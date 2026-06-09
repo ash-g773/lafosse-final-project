@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Image

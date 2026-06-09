@@ -1,4 +1,5 @@
 import { theme } from "@/global";
+import { useRouter } from "expo-router";
 import {
   Image,
   StyleSheet,
@@ -10,6 +11,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.container}>
       <Image

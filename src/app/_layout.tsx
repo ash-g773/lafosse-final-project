@@ -10,7 +10,7 @@ export default function RootLayout() {
     if (!isAuth) {
       router.replace("/(auth)/login");
     } else {
-      router.replace("/(tabs)");
+      router.replace("/(tabs)/index");
     }
   });
 
