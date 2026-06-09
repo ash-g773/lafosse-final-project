@@ -8,14 +8,15 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!isAuth) {
-      router.replace("/(auth)/login");
+      router.replace("/(auth)/landing");
     } else {
       router.replace("/(tabs)/index");
     }
-  });
+  }, []);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(auth)" />
     </Stack>
