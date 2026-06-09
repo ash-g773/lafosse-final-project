@@ -1,9 +1,10 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { theme } from "../../themes";
 
 export default function Landing() {
+  const router = useRouter();
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -34,7 +35,10 @@ export default function Landing() {
             </TouchableOpacity>
           </View>
           <View>
-            <TouchableOpacity style={styles.loginBtn}>
+            <TouchableOpacity
+              style={styles.loginBtn}
+              onPress={() => router.push("./login")}
+            >
               <Text style={styles.loginText}>Log in or Create an Account</Text>
             </TouchableOpacity>
           </View>
@@ -57,7 +61,7 @@ const styles = StyleSheet.create({
   header: {
     fontSize: theme.fontSize.xxl,
     fontWeight: "bold",
-    color: theme.colors.text.light, // white
+    color: theme.colors.text.light,
     textAlign: "center",
     marginBottom: theme.spacing.sm,
     marginTop: theme.spacing.sm,
