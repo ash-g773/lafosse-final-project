@@ -1,7 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack } from "expo-router";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { theme } from "../themes";
+import { theme } from "../../themes";
 
 export default function Landing() {
   return (
@@ -17,7 +17,10 @@ export default function Landing() {
           style={styles.container}
           locations={[0, 0.3, 1]}
         >
-          <Image></Image>
+          <Image
+            style={styles.image}
+            source={require("../../../assets/images/logo.png")}
+          ></Image>
           <Text style={styles.header}>Welcome to FindMyPet</Text>
           <Text style={styles.subheading}>
             Help us get missing pets back home!
@@ -27,12 +30,14 @@ export default function Landing() {
           <View>
             <Text style={styles.cardText}>Spotted a lost pet?</Text>
             <TouchableOpacity style={styles.reportBtn}>
-              <Text style={styles.text}>Report a Sighting</Text>
+              <Text style={styles.text}>Report here</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.loginBtn}>
-            <Text style={styles.loginText}>Log In or Create an Account</Text>
-          </TouchableOpacity>
+          <View>
+            <TouchableOpacity style={styles.loginBtn}>
+              <Text style={styles.loginText}>Log in or Create an Account</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </>
@@ -54,7 +59,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: theme.colors.text.light, // white
     textAlign: "center",
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+    marginTop: theme.spacing.sm,
+  },
+  image: {
+    borderRadius: 30,
+    height: 250,
+    width: 250,
   },
   subheading: {
     fontSize: theme.fontSize.md,
@@ -64,7 +75,7 @@ const styles = StyleSheet.create({
   },
   cardText: {
     textAlign: "center",
-    fontSize: theme.fontSize.md,
+    fontSize: theme.fontSize.lg,
     fontWeight: "bold",
     margin: theme.spacing.md,
   },
@@ -79,9 +90,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   card: {
-    flex: 0.8,
+    flex: 1.1,
     backgroundColor: theme.colors.text.light,
-    padding: theme.spacing.xl,
+    padding: theme.spacing.sm,
     borderRadius: 30,
     margin: theme.spacing.sm,
     gap: theme.spacing.sm,
@@ -92,6 +103,8 @@ const styles = StyleSheet.create({
     padding: theme.spacing.xl,
     borderRadius: theme.borderRadius.md,
     alignItems: "center",
+    marginLeft: theme.spacing.md,
+    marginRight: theme.spacing.md,
   },
   loginBtn: {
     backgroundColor: theme.colors.secondary + "66",
@@ -100,5 +113,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: theme.colors.primary,
+    margin: theme.spacing.md,
+    marginTop: theme.spacing.lg,
   },
 });
