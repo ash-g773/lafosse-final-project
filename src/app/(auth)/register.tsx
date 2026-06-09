@@ -15,9 +15,7 @@ export default function RegisterScreen() {
     <SafeAreaView style={styles.container}>
       <Image
         style={styles.image}
-        source={{
-          uri: "https://www.cats.org.uk/media/i5spwtgt/cat-in-box.jpg",
-        }}
+        source={require("../../../assets/images/logo.png")}
       />
       <View style={styles.content}>
         <Text style={styles.title}>Welcome</Text>
