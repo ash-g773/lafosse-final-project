@@ -1,4 +1,5 @@
 import { theme } from "@/global";
+import { router } from "expo-router";
 import {
     Image,
     StyleSheet,
@@ -19,16 +20,17 @@ export default function RegisterScreen() {
         }}
       />
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome Back</Text>
+        <Text style={styles.title}>Welcome</Text>
+        <Text style={styles.subtitle}>Sign up for FindMyPet:</Text>
         <View style={styles.form}>
           <Text style={styles.formLabels}>Username: </Text>
           <TextInput
-            placeholder="Please enter your username"
+            placeholder="Please enter a username"
             style={styles.input}
           />
           <Text style={styles.formLabels}>Password: </Text>
           <TextInput
-            placeholder="Please enter your password"
+            placeholder="Please enter a password"
             secureTextEntry
             autoCapitalize="none"
             style={styles.input}
@@ -40,10 +42,16 @@ export default function RegisterScreen() {
         </TouchableOpacity>
 
         <View style={styles.register}>
-          <Text style={styles.linkButtonText}>Don't have an account?</Text>
+          <Text style={styles.linkButtonText}>Already have an account?</Text>
 
           <TouchableOpacity style={styles.linkButton}>
-            <Text style={styles.linkButtonTextBold}> Register Here</Text>
+            <Text
+              style={styles.linkButtonTextBold}
+              onPress={() => router.push("/(auth)/login")}
+            >
+              {" "}
+              Login Here
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -70,6 +78,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
+    fontWeight: "bold",
+    marginBottom: 8,
+    textAlign: "center",
+    color: "#f7f9f8",
+  },
+  subtitle: {
+    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 8,
     textAlign: "center",

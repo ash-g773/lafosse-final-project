@@ -1,5 +1,5 @@
 import { theme } from "@/global";
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 import {
   Image,
   StyleSheet,
@@ -11,8 +11,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
-  const router = useRouter();
-
   return (
     <SafeAreaView style={styles.container}>
       <Image
@@ -46,7 +44,13 @@ export default function LoginScreen() {
           <Text style={styles.linkButtonText}>Don't have an account?</Text>
 
           <TouchableOpacity style={styles.linkButton}>
-            <Text style={styles.linkButtonTextBold}> Register Here</Text>
+            <Text
+              style={styles.linkButtonTextBold}
+              onPress={() => router.push("/(auth)/register")}
+            >
+              {" "}
+              Register Here
+            </Text>
           </TouchableOpacity>
         </View>
 
