@@ -1,6 +1,7 @@
 import { theme } from "@/global";
 import React, { useState } from "react";
 import {
+  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -98,7 +99,15 @@ export default function ReportSightingScreen() {
             />
           </View>
 
-          <TouchableOpacity style={styles.submitButton}>
+          <TouchableOpacity
+            style={styles.submitButton}
+            onPress={() =>
+              Alert.alert(
+                "Success!",
+                "Your sighting report has been submitted successfully. Thank you for helping to bring community pets back home!",
+              )
+            }
+          >
             <Text style={styles.buttonText}>Submit</Text>
           </TouchableOpacity>
         </View>
