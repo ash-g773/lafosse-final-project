@@ -42,8 +42,7 @@ app-example
 /ios
 /android
 
-package-lock.json
-
 # coverage directory
 coverage/**/*
+
 package-lock.json
