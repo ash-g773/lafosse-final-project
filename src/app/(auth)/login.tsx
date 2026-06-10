@@ -16,6 +16,7 @@ export default function LoginScreen() {
       <Image
         style={styles.image}
         source={require("../../../assets/images/logo.png")}
+        testID="logo"
       />
       <View style={styles.content}>
         <Text style={styles.title}>Welcome Back</Text>
@@ -24,6 +25,7 @@ export default function LoginScreen() {
           <TextInput
             placeholder="Please enter your username"
             style={styles.input}
+            testID="username"
           />
           <Text style={styles.formLabels}>Password: </Text>
           <TextInput
@@ -31,6 +33,7 @@ export default function LoginScreen() {
             secureTextEntry
             autoCapitalize="none"
             style={styles.input}
+            testID="password"
           />
         </View>
 
