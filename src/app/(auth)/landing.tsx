@@ -10,17 +10,14 @@ export default function Landing() {
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.outerContainer}>
         <LinearGradient
-          colors={[
-            theme.colors.tertiary,
-            theme.colors.primary,
-            theme.colors.secondary,
-          ]}
+          colors={[theme.colors.primary, theme.colors.secondary]}
           style={styles.container}
-          locations={[0, 0.3, 1]}
+          locations={[0, 0.7]}
         >
           <Image
             style={styles.image}
             source={require("../../../assets/images/logo.png")}
+            testID="logo"
           ></Image>
           <Text style={styles.header}>Welcome to FindMyPet</Text>
           <Text style={styles.subheading}>
@@ -30,7 +27,7 @@ export default function Landing() {
         <View style={styles.card}>
           <View>
             <Text style={styles.cardText}>Spotted a lost pet?</Text>
-            <TouchableOpacity style={styles.reportBtn}>
+            <TouchableOpacity style={styles.reportBtn} testID="reportBtn">
               <Text style={styles.text}>Report here</Text>
             </TouchableOpacity>
           </View>
@@ -38,6 +35,7 @@ export default function Landing() {
             <TouchableOpacity
               style={styles.loginBtn}
               onPress={() => router.push("./login")}
+              testID="loginBtn"
             >
               <Text style={styles.loginText}>Log in or Create an Account</Text>
             </TouchableOpacity>

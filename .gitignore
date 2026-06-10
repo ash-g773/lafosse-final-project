@@ -43,3 +43,6 @@ app-example
 /android
 
 package-lock.json
+
+# coverage directory
+coverage/**/*
