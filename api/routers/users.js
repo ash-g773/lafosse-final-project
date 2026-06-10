@@ -1,5 +1,5 @@
 const { Router } = require("express")
-const usersController = require("../controllers/users.controller")
+const usersController = require("../controller/users")
 const usersRouter = Router()
 
 usersRouter.get("/:username", usersController.show)
