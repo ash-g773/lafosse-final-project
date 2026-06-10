@@ -1,4 +1,6 @@
 import { theme } from "@/global";
+import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 import React, { useState } from "react";
 import {
   Alert,
@@ -14,6 +16,7 @@ import DropDownPicker from "react-native-dropdown-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ReportSightingScreen() {
+  // type of animal dropdown
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(null);
   const [items, setItems] = useState([
@@ -22,6 +25,55 @@ export default function ReportSightingScreen() {
     { label: "Tortoise", value: "tortoise" },
     { label: "Other", value: "other" },
   ]);
+
+  // get current location
+  const [location, setLocation] = useState<Location.LocationObject | null>(
+    null,
+  );
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  async function getCurrentLocation() {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status != "granted") {
+      setErrorMsg("Permission to access location was denied");
+      return;
+    }
+
+    let location = await Location.getCurrentPositionAsync({});
+    setLocation(location);
+    console.log(location);
+  }
+
+  // open gallery or camera + select image
+  const [selectedImage, setSelectedImage] = useState<string | undefined>(
+    undefined,
+  );
+
+  const pickImage = async () => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert(
+        "Permission required",
+        "Permission to access the media library is required",
+      );
+      return;
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+    }
+    console.log(selectedImage);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -44,8 +96,15 @@ export default function ReportSightingScreen() {
             <Text style={styles.subtitle}>
               Please upload a photo of the sighting:
             </Text>
-            <TouchableOpacity style={styles.button}>
-              <Image source={require("../../../assets/images/add-pic.png")} />
+            <TouchableOpacity style={styles.button} onPress={pickImage}>
+              <Image
+                source={
+                  selectedImage
+                    ? { uri: selectedImage }
+                    : require("../../../assets/images/add-pic.png")
+                }
+                style={{ width: 200, height: 200 }}
+              />
             </TouchableOpacity>
             <Text style={styles.subtitle}>
               Please ensure you can clearly see the animal in your photo.
@@ -55,7 +114,10 @@ export default function ReportSightingScreen() {
           <View style={styles.form}>
             <Text style={styles.formLabels}>Where did you see them?</Text>
             <View style={styles.location}>
-              <TouchableOpacity style={styles.locationButton}>
+              <TouchableOpacity
+                style={styles.locationButton}
+                onPress={() => getCurrentLocation()}
+              >
                 <Text style={styles.buttonText}>At my current location</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.locationButton}>
