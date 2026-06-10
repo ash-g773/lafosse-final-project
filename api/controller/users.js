@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 
 const User = require("../model/User")
+const Profile = require("../model/Profile")
 
 async function show(req, res) {
     try {
@@ -21,6 +22,7 @@ async function register(req, res) {
         data["password"] = await bcrypt.hash(data.password, salt)
 
         const result = await User.create(data)
+        await Profile.createProfile(result.users_id)
 
         res.status(201).send({ data: result })
     } catch (err) {
