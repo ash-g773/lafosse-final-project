@@ -30,7 +30,10 @@ export default function Landing() {
         <View style={styles.card}>
           <View>
             <Text style={styles.cardText}>Spotted a lost pet?</Text>
-            <TouchableOpacity style={styles.reportBtn}>
+            <TouchableOpacity
+              style={styles.reportBtn}
+              onPress={() => router.push("/(auth)/reportSighting")}
+            >
               <Text style={styles.text}>Report here</Text>
             </TouchableOpacity>
           </View>
