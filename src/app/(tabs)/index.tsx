@@ -24,7 +24,7 @@ interface Pet {
   colour: string | null;
   description: string | null;
   last_seen_location: string | null;
-  lat: string; //look at backend fix so this can be number!
+  lat: string; //look at backend fix so these can be number
   lng: string;
   image_url: string | null;
   status: string;
@@ -100,7 +100,7 @@ interface Sighting {
 
 export default function MapScreen() {
   const [region, setRegion] = useState<Region>({
-    latitude: 51.5074, // default to London while loading
+    latitude: 51.5074, // default to central london while loading
     longitude: -0.1278,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
@@ -212,7 +212,10 @@ export default function MapScreen() {
         ))}
       </MapView>
       <View style={styles.topButtons}>
-        <TouchableOpacity style={styles.iconBtn}>
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={() => router.push("./profile")}
+        >
           <Text>Profile</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconBtn}>
