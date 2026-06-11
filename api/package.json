@@ -8,9 +8,9 @@
     "start": "node ./index.js",
     "setup-db": "node ./database/setup.js",
     "test": "jest --watchAll --detectOpenHandles --runInBand --verbose",
-    "unitTests": "jest --testPathPattern=/unit/ --watchAll --verbose",
-    "integrationTests": "jest --testPathPattern=/integration/ --watchAll --detectOpenHandles --runInBand --verbose",
-    "coverage": "jest --coverage --testPathPattern=/unit/"
+    "unitTests": "jest --testPathPatterns=/unit/ --watchAll --verbose",
+    "integrationTests": "jest --testPathPatterns=/integration/ --watchAll --detectOpenHandles --runInBand --verbose",
+    "coverage": "jest --coverage --testPathPatterns=/unit/"
   },
   "keywords": [],
   "author": "",
