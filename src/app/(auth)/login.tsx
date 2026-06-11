@@ -46,6 +46,7 @@ export default function LoginScreen() {
       <Image
         style={styles.image}
         source={require("../../../assets/images/logo.png")}
+        testID="logo"
       />
       <View style={styles.content}>
         <Text style={styles.title}>Welcome Back</Text>
@@ -55,6 +56,7 @@ export default function LoginScreen() {
             placeholder="Please enter your username"
             style={styles.input}
             onChangeText={(text) => setUsername(text)}
+            testID="username"
           />
           <Text style={styles.formLabels}>Password: </Text>
           <TextInput
@@ -63,6 +65,7 @@ export default function LoginScreen() {
             autoCapitalize="none"
             style={styles.input}
             onChangeText={(text) => setPassword(text)}
+            testID="password"
           />
         </View>
 
@@ -88,7 +91,10 @@ export default function LoginScreen() {
         </View>
 
         <View>
-          <TouchableOpacity style={styles.toReport}>
+          <TouchableOpacity
+            style={styles.toReport}
+            onPress={() => router.replace("/(auth)/reportSighting")}
+          >
             <Text style={styles.buttonText}>Report a sighting</Text>
           </TouchableOpacity>
         </View>

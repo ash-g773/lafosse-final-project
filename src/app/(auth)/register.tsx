@@ -49,16 +49,20 @@ export default function RegisterScreen() {
       <Image
         style={styles.image}
         source={require("../../../assets/images/logo.png")}
+        testID="logo"
       />
       <View style={styles.content}>
         <Text style={styles.title}>Welcome</Text>
-        <Text style={styles.subtitle}>Sign up for FindMyPet:</Text>
+        <Text style={styles.subtitle} testID="signUpText">
+          Sign up for FindMyPet:
+        </Text>
         <View style={styles.form}>
           <Text style={styles.formLabels}>Username: </Text>
           <TextInput
             placeholder="Please enter a username"
             style={styles.input}
             onChangeText={(text) => setUsername(text)}
+            testID="username"
           />
           <Text style={styles.formLabels}>Password: </Text>
           <TextInput
@@ -67,6 +71,7 @@ export default function RegisterScreen() {
             autoCapitalize="none"
             style={styles.input}
             onChangeText={(text) => setPassword(text)}
+            testID="password"
           />
         </View>
 
@@ -94,7 +99,10 @@ export default function RegisterScreen() {
         </View>
 
         <View>
-          <TouchableOpacity style={styles.toReport}>
+          <TouchableOpacity
+            style={styles.toReport}
+            onPress={() => router.replace("/(auth)/reportSighting")}
+          >
             <Text style={styles.buttonText}>Report a sighting</Text>
           </TouchableOpacity>
         </View>

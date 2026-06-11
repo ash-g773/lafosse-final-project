@@ -1,10 +1,11 @@
 export const theme = {
   colors: {
-    primary: "#2D4A22", // main
-    secondary: "#8FAF7E", // light backgrounds
+    primary: "#34A0A4", // main
+    secondary: "#76C893", // light backgrounds
     tertiary: "#563929",
     accent: "#C1440E", // alerts, lost pet pins
     success: "#4A7C59", // reunited pins
+    secondary_light: "#52B69A",
     text: {
       primary: "#1C2B2D",
       secondary: "#5C6B6D",
