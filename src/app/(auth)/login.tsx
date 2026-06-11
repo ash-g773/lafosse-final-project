@@ -1,6 +1,8 @@
 import { theme } from "@/global";
 import { router } from "expo-router";
+import { useState } from "react";
 import {
+  Alert,
   Image,
   StyleSheet,
   Text,
@@ -11,13 +13,39 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  async function login(username: string, password: string) {
+    const options = {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: username,
+        password: password,
+      }),
+    };
+
+    const response = await fetch("http://127.0.0.1:3000/users/login", options);
+    const data = await response.json();
+
+    if (response.status == 200) {
+      //token stuff - not adding yet
+      localStorage.setItem("token", data.token);
+      router.replace("/(tabs)/index");
+    } else {
+      Alert.alert("Looks like there was a problem logging in..." + data.error);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Image
         style={styles.image}
-        source={{
-          uri: "https://www.cats.org.uk/media/i5spwtgt/cat-in-box.jpg",
-        }}
+        source={require("../../../assets/images/logo.png")}
       />
       <View style={styles.content}>
         <Text style={styles.title}>Welcome Back</Text>
@@ -26,6 +54,7 @@ export default function LoginScreen() {
           <TextInput
             placeholder="Please enter your username"
             style={styles.input}
+            onChangeText={(text) => setUsername(text)}
           />
           <Text style={styles.formLabels}>Password: </Text>
           <TextInput
@@ -33,10 +62,14 @@ export default function LoginScreen() {
             secureTextEntry
             autoCapitalize="none"
             style={styles.input}
+            onChangeText={(text) => setPassword(text)}
           />
         </View>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => login(username, password)}
+        >
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
 

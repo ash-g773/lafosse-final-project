@@ -1,23 +1,54 @@
 import { theme } from "@/global";
 import { router } from "expo-router";
+import { useState } from "react";
 import {
-    Image,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RegisterScreen() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  async function register(username: string, password: string) {
+    const options = {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify({
+        username: username,
+        password: password,
+      }),
+    };
+    console.log(options);
+
+    const response = await fetch(
+      "http://127.0.0.1:3000/users/register",
+      options,
+    );
+    const data = await response.json();
+
+    if (response.status == 201) {
+      //after registering, go back to login page
+      Alert.alert("Successfully registered!");
+      router.replace("/(auth)/login");
+    } else {
+      Alert.alert("Looks like there was a problem registering...", data.error);
+    }
+  }
   return (
     <SafeAreaView style={styles.container}>
       <Image
         style={styles.image}
-        source={{
-          uri: "https://www.cats.org.uk/media/i5spwtgt/cat-in-box.jpg",
-        }}
+        source={require("../../../assets/images/logo.png")}
       />
       <View style={styles.content}>
         <Text style={styles.title}>Welcome</Text>
@@ -27,6 +58,7 @@ export default function RegisterScreen() {
           <TextInput
             placeholder="Please enter a username"
             style={styles.input}
+            onChangeText={(text) => setUsername(text)}
           />
           <Text style={styles.formLabels}>Password: </Text>
           <TextInput
@@ -34,10 +66,16 @@ export default function RegisterScreen() {
             secureTextEntry
             autoCapitalize="none"
             style={styles.input}
+            onChangeText={(text) => setPassword(text)}
           />
         </View>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            register(username, password);
+          }}
+        >
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
 
