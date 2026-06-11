@@ -46,7 +46,7 @@ CREATE TABLE pets (
 
 CREATE TABLE sightings (
     sightings_id INT GENERATED ALWAYS AS IDENTITY,
-    pets_id INT NOT NULL,
+    pets_id INT,
     users_id INT,
     guest_contact TEXT,
     sighting_description TEXT NOT NULL,
