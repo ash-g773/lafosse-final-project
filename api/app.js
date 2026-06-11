@@ -9,7 +9,7 @@ const profileRouter = require("./routers/profile")
 
 const app = express();
 
-app.use(cors());
+app.use(cors())
 app.use(express.json());
 
 if (process.env.NODE_ENV !== "test") {
