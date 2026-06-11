@@ -42,6 +42,29 @@ interface Sighting {
   created_at: string;
 }
 
+// const [sightings, setSightings] = useState([])
+// const [lostPets, setLostPets] = useState([])
+//const [loading, setLoading] = useState(true)
+
+//useEffect(()=> {
+//fetchMapData()
+//})
+
+//async function fetchMapData() {
+//try{
+//const [sightingsRes, lostPetsRes] = await Promise.all([
+//fetch ("BACKEND_URL/pets")
+//fetch ("BACKEND_URL/sightings")])
+//const sightingsData = await sightingsRes.json()
+//const lostPetsData = await lostPetsRes.json()
+//setSightings(sightingsData)
+//setLostPets(lostPetsData)
+//} catch(error){
+//console.error("Failed to fetch lost pet reports:", error)
+//} finally{
+//setLoading(false)
+//}
+
 // hardcoded sightings
 const FAKE_PETS: Pet[] = [
   {
