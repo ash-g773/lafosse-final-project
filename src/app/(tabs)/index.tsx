@@ -123,8 +123,8 @@ export default function MapScreen() {
   async function fetchMapData() {
     try {
       const [lostPetsRes, sightingsRes] = await Promise.all([
-        fetch(`${process.env.EXPO_PUBLIC_API_URL}/pets`),
-        fetch(`${process.env.EXPO_PUBLIC_API_URL}/sightings`),
+        fetch(`${process.env.API_URL}/pets`),
+        fetch(`${process.env.API_URL}/sightings`),
       ]);
       const lostPetsData = await lostPetsRes.json();
       const sightingsData = await sightingsRes.json();
