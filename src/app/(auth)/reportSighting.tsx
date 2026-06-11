@@ -143,6 +143,9 @@ export default function ReportSightingScreen() {
                       Please select the location of the sighting on the map (use
                       two fingers to move)
                     </Text>
+                    <View>
+                      <Text> MAP GOES HERE </Text>
+                    </View>
                     <Pressable
                       style={styles.button}
                       onPress={() => setModalVisible(!modalVisible)}
@@ -345,6 +348,7 @@ const styles = StyleSheet.create({
     padding: 25,
     alignItems: "center",
     elevation: 5,
+    justifyContent: "space-between",
   },
   mapMessage: {
     marginTop: theme.spacing.xs,
