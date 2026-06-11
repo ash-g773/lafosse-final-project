@@ -283,13 +283,12 @@ const styles = StyleSheet.create({
     color: theme.colors.text.light,
   },
   input: {
-    backgroundColor: theme.colors.secondary,
+    backgroundColor: theme.colors.secondary_light,
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
     fontSize: theme.fontSize.md,
     marginBottom: theme.spacing.md,
-    borderColor: theme.colors.accent,
-    borderWidth: 1,
+    color: theme.colors.text.secondary,
   },
   button: {
     marginTop: theme.spacing.sm,
