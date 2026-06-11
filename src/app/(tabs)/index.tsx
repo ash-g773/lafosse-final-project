@@ -24,8 +24,8 @@ interface Pet {
   colour: string | null;
   description: string | null;
   last_seen_location: string | null;
-  lat: number;
-  lng: number;
+  lat: string; //look at backend fix so this can be number!
+  lng: string;
   image_url: string | null;
   status: string;
   created_at: string;
@@ -38,8 +38,8 @@ interface Sighting {
   guest_contact: string | null;
   sighting_description: string;
   location_description: string;
-  lat: number;
-  lng: number;
+  lat: string;
+  lng: string;
   image_url: string | null;
   created_at: string;
 }
@@ -116,21 +116,23 @@ export default function MapScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<"pet" | "sighting">("pet");
 
-  const [sightings, setSightings] = useState([]);
-  const [lostPets, setLostPets] = useState([]);
+  const [sightings, setSightings] = useState<Sighting[]>([]);
+  const [lostPets, setLostPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function fetchMapData() {
     try {
       const [lostPetsRes, sightingsRes] = await Promise.all([
-        fetch(`${process.env.API_URL}/pets`),
-        fetch(`${process.env.API_URL}/sightings`),
+        fetch(`${process.env.EXPO_PUBLIC_API_URL}/pets`),
+        fetch(`${process.env.EXPO_PUBLIC_API_URL}/sightings`),
       ]);
+
       const lostPetsData = await lostPetsRes.json();
       const sightingsData = await sightingsRes.json();
       setLostPets(lostPetsData);
       setSightings(sightingsData);
     } catch (error) {
+      console.log(`${process.env.EXPO_PUBLIC_API_URL}`);
       console.error("Failed to fetch map data:", error);
     } finally {
       setLoading(false);
@@ -175,10 +177,10 @@ export default function MapScreen() {
       >
         {lostPets.map((Pet) => (
           <Marker
-            key={`pet-${pet.pets_id}`}
+            key={`pet-${Pet.pets_id}`}
             coordinate={{
-              latitude: Pet.lat,
-              longitude: Pet.lng,
+              latitude: parseFloat(Pet.lat),
+              longitude: parseFloat(Pet.lng),
             }}
             title={Pet.name}
             description={Pet.description || ""}
@@ -195,8 +197,8 @@ export default function MapScreen() {
           <Marker
             key={`sighting-${sighting.sightings_id}`}
             coordinate={{
-              latitude: sighting.lat,
-              longitude: sighting.lng,
+              latitude: parseFloat(sighting.lat), // add parseFloat
+              longitude: parseFloat(sighting.lng),
             }}
             title="Sighting reported"
             description={sighting.sighting_description}
