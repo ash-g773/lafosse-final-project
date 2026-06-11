@@ -1,0 +1,214 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`landing-page renders correctly 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#8FAF7E",
+      "flex": 2,
+    }
+  }
+>
+  <ViewManagerAdapter_ExpoLinearGradient
+    colors={
+      [
+        4281158178,
+        4287606654,
+      ]
+    }
+    locations={
+      [
+        0,
+        0.7,
+      ]
+    }
+    style={
+      {
+        "alignItems": "center",
+        "flex": 2,
+        "justifyContent": "center",
+      }
+    }
+  >
+    <Image
+      source={
+        {
+          "testUri": "../../../assets/images/logo.png",
+        }
+      }
+      style={
+        {
+          "borderRadius": 30,
+          "height": 250,
+          "width": 250,
+        }
+      }
+      testID="logo"
+    />
+    <Text
+      style={
+        {
+          "color": "#FFFFFF",
+          "fontSize": 34,
+          "fontWeight": "bold",
+          "marginBottom": 8,
+          "marginTop": 8,
+          "textAlign": "center",
+        }
+      }
+    >
+      Welcome to FindMyPet
+    </Text>
+    <Text
+      style={
+        {
+          "color": "#FFFFFF",
+          "fontSize": 16,
+          "padding": 8,
+          "textAlign": "center",
+        }
+      }
+    >
+      Help us get missing pets back home!
+    </Text>
+  </ViewManagerAdapter_ExpoLinearGradient>
+  <View
+    style={
+      {
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 30,
+        "flex": 1.1,
+        "gap": 8,
+        "justifyContent": "space-between",
+        "margin": 8,
+        "padding": 8,
+      }
+    }
+  >
+    <View>
+      <Text
+        style={
+          {
+            "fontSize": 20,
+            "fontWeight": "bold",
+            "margin": 16,
+            "textAlign": "center",
+          }
+        }
+      >
+        Spotted a lost pet?
+      </Text>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={false}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#2D4A22",
+            "borderRadius": 16,
+            "marginLeft": 16,
+            "marginRight": 16,
+            "opacity": 1,
+            "padding": 32,
+          }
+        }
+        testID="reportBtn"
+      >
+        <Text
+          style={
+            {
+              "color": "#FFFFFF",
+              "fontSize": 20,
+              "fontWeight": "bold",
+            }
+          }
+        >
+          Report here
+        </Text>
+      </View>
+    </View>
+    <View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#8FAF7E66",
+            "borderColor": "#2D4A22",
+            "borderRadius": 16,
+            "borderWidth": 1,
+            "margin": 16,
+            "marginTop": 24,
+            "opacity": 1,
+            "padding": 16,
+          }
+        }
+        testID="loginBtn"
+      >
+        <Text
+          style={
+            {
+              "color": "#2D4A22",
+              "fontSize": 16,
+              "fontWeight": "bold",
+            }
+          }
+        >
+          Log in or Create an Account
+        </Text>
+      </View>
+    </View>
+  </View>
+</View>
+`;
