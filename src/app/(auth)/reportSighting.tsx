@@ -15,20 +15,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import DropDownPicker from "react-native-dropdown-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AnimalDropdown from "../components/AnimalDropdown";
 
 export default function ReportSightingScreen() {
-  // type of animal dropdown
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(null);
-  const [items, setItems] = useState([
-    { label: "Cat", value: "cat" },
-    { label: "Dog", value: "dog" },
-    { label: "Tortoise", value: "tortoise" },
-    { label: "Other", value: "other" },
-  ]);
-
   // get current location
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
@@ -170,17 +160,7 @@ export default function ReportSightingScreen() {
             </View>
 
             <Text style={styles.formLabels}>Type of Animal: </Text>
-            <DropDownPicker
-              open={open}
-              value={value}
-              items={items}
-              setOpen={setOpen}
-              setValue={setValue}
-              setItems={setItems}
-              placeholder="Select an animal..."
-              listMode="SCROLLVIEW"
-              style={styles.input}
-            />
+            <AnimalDropdown />
             <Text style={styles.formLabels}>Color / Pattern: </Text>
             <TextInput
               autoCapitalize="none"
