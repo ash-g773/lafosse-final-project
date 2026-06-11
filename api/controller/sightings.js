@@ -1,4 +1,5 @@
 const Sighting = require("../model/Sighting");
+const uploadToCloudinary = require('../utils/cloudinary.utils')
 
 async function index(req, res) {
     try {
@@ -21,7 +22,12 @@ async function show(req, res) {
 
 async function create(req, res) {
     try {
-        const data = req.body;
+        const data = req.body
+        if (req.file) {
+            data.image_url = await uploadToCloudinary(req.file.buffer)
+        } else {
+            data.image_url = null
+        }
         const newSighting = await Sighting.create(data);
         res.status(201).json(newSighting);
     } catch (err) {
