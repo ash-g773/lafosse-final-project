@@ -1,3 +1,4 @@
+console.log("Maps key:", process.env.EXPO_PUBLIC_ANDROID_MAPS_KEY);
 export default {
   expo: {
     name: "lafosse-final-project",
