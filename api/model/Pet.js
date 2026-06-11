@@ -1,9 +1,9 @@
 const db = require("../database/connect");
 
 class Pet {
-  constructor({ id, user_id, name, species, breed, colour, description, last_seen_location, lat, lng, image_url, status, created_at }) {
-    this.id = id;
-    this.user_id = user_id;
+  constructor({ pets_id, users_id, name, species, breed, colour, description, last_seen_location, lat, lng, image_url, status, created_at }) {
+    this.pets_id = pets_id;
+    this.users_id = users_id;
     this.name = name;
     this.species = species;
     this.breed = breed;
@@ -27,7 +27,7 @@ class Pet {
   }
 
   static async getOneById(id) {
-    const response = await db.query("SELECT * FROM pets WHERE id = $1;", [id]);
+    const response = await db.query("SELECT * FROM pets WHERE pets_id = $1;", [id]);
     if (response.rows.length !== 1) {
       throw new Error("Pet not found.");
     }
@@ -35,12 +35,12 @@ class Pet {
   }
 
   static async create(data) {
-    const { user_id, name, species, breed, colour, description, last_seen_location, lat, lng, image_url } = data;
+    const { users_id, name, species, breed, colour, description, last_seen_location, lat, lng, image_url } = data;
     const response = await db.query(
-      `INSERT INTO pets (user_id, name, species, breed, colour, description, last_seen_location, lat, lng, image_url)
+      `INSERT INTO pets (users_id, name, species, breed, colour, description, last_seen_location, lat, lng, image_url)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *;`,
-      [user_id, name, species, breed, colour, description, last_seen_location, lat, lng, image_url]
+      [users_id, name, species, breed, colour, description, last_seen_location, lat, lng, image_url]
     );
     return new Pet(response.rows[0]);
   }

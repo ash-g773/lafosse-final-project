@@ -1,12 +1,12 @@
 const db = require("../database/connect");
 
 class Sighting {
-    constructor({ id, pet_id, user_id, guest_contact, description, location_description, lat, lng, image_url,created_at }) {
-        this.id = id;
-        this.pet_id = pet_id;
-        this.user_id = user_id;
+    constructor({ sightings_id, pets_id, users_id, guest_contact, sighting_description, location_description, lat, lng, image_url,created_at }) {
+        this.sightings_id = sightings_id;
+        this.pets_id = pets_id;
+        this.users_id = users_id;
         this.guest_contact = guest_contact;
-        this.description = description;
+        this.sighting_description = sighting_description;
         this.location_description = location_description;
         this.lat = lat;
         this.lng = lng;
@@ -15,12 +15,12 @@ class Sighting {
     }
 
     static async create(data) {
-    const { pet_id, user_id, guest_contact, description, location_description, lat, lng, image_url } = data;
+    const { pets_id, users_id, guest_contact, sighting_description, location_description, lat, lng, image_url } = data;
     const response = await db.query(
-      `INSERT INTO sightings (pet_id, user_id, guest_contact, description, location_description, lat, lng, image_url)
+      `INSERT INTO sightings (pets_id, users_id, guest_contact, sighting_description, location_description, lat, lng, image_url)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *;`,
-      [pet_id, user_id, guest_contact, description, location_description, lat, lng, image_url]
+      [pets_id, users_id, guest_contact, sighting_description, location_description, lat, lng, image_url]
     );
     return new Sighting(response.rows[0]);
   }

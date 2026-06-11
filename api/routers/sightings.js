@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const sightingController = require("../controllers/sightings");
+const sightingController = require("../controller/sightings");
  
 const sightingRouter = Router();
 
