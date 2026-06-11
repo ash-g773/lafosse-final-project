@@ -59,7 +59,10 @@ export default function RegisterScreen() {
         </View>
 
         <View>
-          <TouchableOpacity style={styles.toReport}>
+          <TouchableOpacity
+            style={styles.toReport}
+            onPress={() => router.replace("/(auth)/reportSighting")}
+          >
             <Text style={styles.buttonText}>Report a sighting</Text>
           </TouchableOpacity>
         </View>

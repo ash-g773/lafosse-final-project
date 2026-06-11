@@ -1,6 +1,7 @@
 import { theme } from "@/global";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
@@ -85,7 +86,10 @@ export default function ReportSightingScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
-        <TouchableOpacity style={styles.toReport}>
+        <TouchableOpacity
+          style={styles.toReport}
+          onPress={() => router.replace("/(auth)/login")}
+        >
           <Text style={styles.buttonText}>Login / Register</Text>
         </TouchableOpacity>
 
