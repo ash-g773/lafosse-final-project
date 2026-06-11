@@ -1,12 +1,12 @@
 import { theme } from "@/global";
 import { router } from "expo-router";
 import {
-    Image,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -15,18 +15,20 @@ export default function RegisterScreen() {
     <SafeAreaView style={styles.container}>
       <Image
         style={styles.image}
-        source={{
-          uri: "https://www.cats.org.uk/media/i5spwtgt/cat-in-box.jpg",
-        }}
+        source={require("../../../assets/images/logo.png")}
+        testID="logo"
       />
       <View style={styles.content}>
         <Text style={styles.title}>Welcome</Text>
-        <Text style={styles.subtitle}>Sign up for FindMyPet:</Text>
+        <Text style={styles.subtitle} testID="signUpText">
+          Sign up for FindMyPet:
+        </Text>
         <View style={styles.form}>
           <Text style={styles.formLabels}>Username: </Text>
           <TextInput
             placeholder="Please enter a username"
             style={styles.input}
+            testID="username"
           />
           <Text style={styles.formLabels}>Password: </Text>
           <TextInput
@@ -34,6 +36,7 @@ export default function RegisterScreen() {
             secureTextEntry
             autoCapitalize="none"
             style={styles.input}
+            testID="password"
           />
         </View>
 
