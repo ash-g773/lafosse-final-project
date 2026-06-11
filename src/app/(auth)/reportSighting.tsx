@@ -108,8 +108,6 @@ export default function ReportSightingScreen() {
   /*POST req, /sightings, - creates a new sighting (pets_id and users_id are both nullable), 
   Request Body = {"pets_id":null, "users_id":null, "guest_contact":"random_contact", "sighting_description":"random_description", 
   "location_description":"random_location", "lat":0.0, "lng":0.0, "image_url":null}*/
-  const [formSubmit, tryFormSubmit] = useState(false);
-
   async function submitForm(
     animalType: string | null,
     sightingDescription: string | undefined,
@@ -139,27 +137,30 @@ export default function ReportSightingScreen() {
         sighting_description: fullSightingDescription,
         lat: location ? location.coords.latitude : null,
         lng: location ? location.coords.longitude : null,
-        image_url: imageUrl,
+        image_url: "placeholder_img_url",
       }),
     };
     console.log(options);
 
     try {
-      // const response = await fetch("our_api_link_post_request", options);
-      const response = { status: 200 };
+      const response = await fetch("http://127.0.0.1:3000/sightings/", options);
+      const data = await response.json();
       if (response.status == 200) {
-        tryFormSubmit(true);
+        //clear form
         Alert.alert(
           "Success!",
           "Your sighting report has been submitted successfully. Thank you for helping to bring community pets back home!",
         );
       } else {
-        tryFormSubmit(false);
+        Alert.alert(
+          "Something went wrong...",
+          "Your sighting report was not successful. Please try again later." +
+            data.error,
+        );
       }
     } catch (e) {
       console.log(e);
     }
-    console.log(formSubmit);
   }
 
   // rendering the actual page
