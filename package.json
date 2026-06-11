@@ -9,14 +9,10 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-<<<<<<< HEAD
     "server": "node api/index.js",
     "dev": "nodemon -L api/index.js",
     "setup-db": "node api/database/setup.js",
-    "test": "jest"
-=======
     "test": "jest --watchAll"
->>>>>>> frontend
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^7.15.5",
