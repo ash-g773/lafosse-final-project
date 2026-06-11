@@ -5,6 +5,7 @@ const morgan = require("morgan");
 const usersRouter = require("./routers/users")
 const petRouter = require("./routers/pets")
 const sightingRouter = require("./routers/sightings")
+const profileRouter = require("./routers/profile")
 
 const app = express();
 
@@ -22,5 +23,6 @@ app.get("/", (req, res) => {
 app.use("/users", usersRouter)
 app.use("/pets", petRouter)
 app.use("/sightings", sightingRouter)
+app.use("/profile", profileRouter)
 
 module.exports = app;
