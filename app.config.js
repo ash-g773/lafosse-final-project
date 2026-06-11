@@ -1,6 +1,35 @@
-console.log("Maps key:", process.env.EXPO_PUBLIC_ANDROID_MAPS_KEY);
-export default {
-  expo: {
+import { withAndroidManifest } from "@expo/config-plugins";
+
+const withGoogleMapsApiKey = (config) => {
+  return withAndroidManifest(config, (config) => {
+    const manifest = config.modResults.manifest;
+    const application = manifest.application[0];
+
+    if (!application["meta-data"]) {
+      application["meta-data"] = [];
+    }
+
+    // remove existing entry if present to avoid duplicates
+    application["meta-data"] = application["meta-data"].filter(
+      (item) => item.$["android:name"] !== "com.google.android.geo.API_KEY",
+    );
+
+    // add the key
+    application["meta-data"].push({
+      $: {
+        "android:name": "com.google.android.geo.API_KEY",
+        "android:value": process.env.EXPO_PUBLIC_ANDROID_MAPS_KEY,
+      },
+    });
+
+    return config;
+  });
+};
+
+export default ({ config }) => {
+  return withGoogleMapsApiKey({
+    ...config,
+    // rest of your config
     name: "lafosse-final-project",
     slug: "lafosse-final-project",
     version: "1.0.0",
@@ -59,5 +88,5 @@ export default {
       },
     },
     owner: "ash773s-team",
-  },
+  });
 };
