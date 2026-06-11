@@ -42,3 +42,8 @@ app-example
 /ios
 /android
 .env
+
+# coverage directory
+coverage/**/*
+
+package-lock.json

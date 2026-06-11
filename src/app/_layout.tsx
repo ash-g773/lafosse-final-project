@@ -1,5 +1,24 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
+import { useEffect } from "react";
 
 export default function RootLayout() {
-  return <Stack />;
+  const router = useRouter();
+
+  let isAuth = false;
+
+  useEffect(() => {
+    if (!isAuth) {
+      router.replace("/(auth)/landing");
+    } else {
+      router.replace("/(tabs)/index");
+    }
+  }, []);
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="(auth)" />
+    </Stack>
+  );
 }
