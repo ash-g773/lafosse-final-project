@@ -5,6 +5,8 @@ import React, { useState } from "react";
 import {
   Alert,
   Image,
+  Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -42,6 +44,7 @@ export default function ReportSightingScreen() {
     let location = await Location.getCurrentPositionAsync({});
     setLocation(location);
     console.log(location);
+    console.log(errorMsg);
   }
 
   // open gallery or camera + select image
@@ -75,6 +78,10 @@ export default function ReportSightingScreen() {
     console.log(selectedImage);
   };
 
+  // map pin modal setup
+  const [modalVisible, setModalVisible] = useState(false);
+
+  // rendering the actual page
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
@@ -120,7 +127,37 @@ export default function ReportSightingScreen() {
               >
                 <Text style={styles.buttonText}>At my current location</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.locationButton}>
+
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                  Alert.alert("modal closed");
+                  setModalVisible(!modalVisible);
+                }}
+              >
+                <View style={styles.modalContainer}>
+                  <View style={styles.modalInner}>
+                    <Text style={styles.mapMessage}>
+                      Please select the location of the sighting on the map (use
+                      two fingers to move)
+                    </Text>
+                    <Pressable
+                      style={styles.button}
+                      onPress={() => setModalVisible(!modalVisible)}
+                    >
+                      <Text style={styles.buttonText}>
+                        Submit location and close map
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </Modal>
+              <TouchableOpacity
+                style={styles.locationButton}
+                onPress={() => setModalVisible(true)}
+              >
                 <Text style={styles.buttonText}>Somewhere else (open map)</Text>
               </TouchableOpacity>
             </View>
@@ -294,5 +331,27 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
     alignItems: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalInner: {
+    width: "80%",
+    height: "90%",
+    margin: 20,
+    backgroundColor: theme.colors.primary,
+    padding: 25,
+    alignItems: "center",
+    elevation: 5,
+  },
+  mapMessage: {
+    marginTop: theme.spacing.xs,
+    color: theme.colors.text.light,
+    textAlign: "center",
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.sm,
   },
 });
