@@ -1,8 +1,10 @@
 import * as Location from "expo-location";
+import * as NavigationBar from "expo-navigation-bar";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   Modal,
   StyleSheet,
@@ -42,80 +44,59 @@ interface Sighting {
   created_at: string;
 }
 
-// const [sightings, setSightings] = useState([])
-// const [lostPets, setLostPets] = useState([])
-//const [loading, setLoading] = useState(true)
-
-//useEffect(()=> {
-//fetchMapData()
-//})
-
-//async function fetchMapData() {
-//try{
-//const [sightingsRes, lostPetsRes] = await Promise.all([
-//fetch ("BACKEND_URL/pets")
-//fetch ("BACKEND_URL/sightings")])
-//const sightingsData = await sightingsRes.json()
-//const lostPetsData = await lostPetsRes.json()
-//setSightings(sightingsData)
-//setLostPets(lostPetsData)
-//} catch(error){
-//console.error("Failed to fetch lost pet reports:", error)
-//} finally{
-//setLoading(false)
-//}
+// const BACKEND_URL = "localhost:3000";
 
 // hardcoded sightings
-const FAKE_PETS: Pet[] = [
-  {
-    pets_id: 1,
-    users_id: 1,
-    name: "Luna",
-    species: "Cat",
-    breed: null,
-    colour: null,
-    description: "Black cat, very friendly",
-    last_seen_location: "Thorpedale Road",
-    lat: 51.566691,
-    lng: -0.119936,
-    image_url:
-      "https://images.unsplash.com/photo-1604916287784-c324202b3205?q=80&w=627&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    status: "lost",
-    created_at: "2024-01-01",
-  },
-  {
-    pets_id: 2,
-    users_id: 2,
-    name: "Buddy",
-    species: "Dog",
-    breed: "Golden Retriever",
-    colour: "Golden",
-    description: "Golden retriever, very friendly but disobedient",
-    last_seen_location: "Chelsea Bridge Road",
-    lat: 51.509,
-    lng: -0.131,
-    image_url:
-      "https://images.unsplash.com/photo-1633722715463-d30f4f325e24?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    status: "lost",
-    created_at: "2024-01-01",
-  },
-];
+// const FAKE_PETS: Pet[] = [
+//   {
+//     pets_id: 1,
+//     users_id: 1,
+//     name: "Luna",
+//     species: "Cat",
+//     breed: null,
+//     colour: null,
+//     description: "Black cat, very friendly",
+//     last_seen_location: "Thorpedale Road",
+//     lat: 51.566691,
+//     lng: -0.119936,
+//     image_url:
+//       "https://images.unsplash.com/photo-1604916287784-c324202b3205?q=80&w=627&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//     status: "lost",
+//     created_at: "2024-01-01",
+//   },
+//   {
+//     pets_id: 2,
+//     users_id: 2,
+//     name: "Buddy",
+//     species: "Dog",
+//     breed: "Golden Retriever",
+//     colour: "Golden",
+//     description: "Golden retriever, very friendly but disobedient",
+//     last_seen_location: "Chelsea Bridge Road",
+//     lat: 51.509,
+//     lng: -0.131,
+//     image_url:
+//       "https://images.unsplash.com/photo-1633722715463-d30f4f325e24?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//     status: "lost",
+//     created_at: "2024-01-01",
+//   },
+// ];
 
-const FAKE_SIGHTINGS: Sighting[] = [
-  {
-    sightings_id: 1,
-    pets_id: 1,
-    users_id: null,
-    guest_contact: "finder@email.com",
-    sighting_description: "Possible match for Luna spotted near park",
-    location_description: "Near basketball courts",
-    lat: 51.5657966,
-    lng: -0.1174506,
-    image_url:
-      "https://media.istockphoto.com/id/522302922/photo/black-cat-in-garden.webp?s=1024x1024&w=is&k=20&c=XlqexvWUEVai1V4HqqhOa3SvttfEAQBXwaxEp1wpZwo=",
-    created_at: "2024-01-01",
-  },
-];
+// const FAKE_SIGHTINGS: Sighting[] = [
+//   {
+//     sightings_id: 1,
+//     pets_id: 1,
+//     users_id: null,
+//     guest_contact: "finder@email.com",
+//     sighting_description: "Possible match for Luna spotted near park",
+//     location_description: "Near basketball courts",
+//     lat: 51.5657966,
+//     lng: -0.1174506,
+//     image_url:
+//       "https://media.istockphoto.com/id/522302922/photo/black-cat-in-garden.webp?s=1024x1024&w=is&k=20&c=XlqexvWUEVai1V4HqqhOa3SvttfEAQBXwaxEp1wpZwo=",
+//     created_at: "2024-01-01",
+//   },
+// ];
 
 export default function MapScreen() {
   const [region, setRegion] = useState<Region>({
@@ -135,12 +116,31 @@ export default function MapScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<"pet" | "sighting">("pet");
 
+  const [sightings, setSightings] = useState([]);
+  const [lostPets, setLostPets] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  async function fetchMapData() {
+    try {
+      const [lostPetsRes, sightingsRes] = await Promise.all([
+        fetch(`${process.env.EXPO_PUBLIC_API_URL}/pets`),
+        fetch(`${process.env.EXPO_PUBLIC_API_URL}/sightings`),
+      ]);
+      const lostPetsData = await lostPetsRes.json();
+      const sightingsData = await sightingsRes.json();
+      setLostPets(lostPetsData);
+      setSightings(sightingsData);
+    } catch (error) {
+      console.error("Failed to fetch map data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     async function getLocation() {
-      // ask user for permission first
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") return;
-
       const location = await Location.getCurrentPositionAsync({});
       setRegion({
         latitude: location.coords.latitude,
@@ -150,7 +150,18 @@ export default function MapScreen() {
       });
     }
     getLocation();
+    fetchMapData(); // call it here
+    NavigationBar.setVisibilityAsync("hidden");
   }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text>Loading map data...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -162,25 +173,25 @@ export default function MapScreen() {
         showsUserLocation={true} // show blue dot
         showsMyLocationButton={true} // show recentre button
       >
-        {FAKE_PETS.map((pet) => (
+        {lostPets.map((Pet) => (
           <Marker
             key={`pet-${pet.pets_id}`}
             coordinate={{
-              latitude: pet.lat,
-              longitude: pet.lng,
+              latitude: Pet.lat,
+              longitude: Pet.lng,
             }}
-            title={pet.name}
-            description={pet.description || ""}
+            title={Pet.name}
+            description={Pet.description || ""}
             pinColor={theme.colors.accent}
             onPress={() => {
-              setSelectedPet(pet);
+              setSelectedPet(Pet);
               setModalVisible(true);
               setModalType("pet");
             }}
           />
         ))}
 
-        {FAKE_SIGHTINGS.map((sighting) => (
+        {sightings.map((sighting) => (
           <Marker
             key={`sighting-${sighting.sightings_id}`}
             coordinate={{
@@ -429,5 +440,11 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     borderRadius: theme.borderRadius.md,
     resizeMode: "cover",
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 16,
   },
 });
