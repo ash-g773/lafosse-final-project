@@ -1,0 +1,37 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "api for a mobile app that helps with reporting lost pets and posting sightings",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon -L ./index.js",
+    "start": "node ./index.js",
+    "setup-db": "node ./database/setup.js",
+    "test": "jest --watchAll --detectOpenHandles --runInBand --verbose",
+    "unitTests": "jest --testPathPatterns=/unit/ --watchAll --verbose",
+    "unitTests:models": "jest --testPathPatterns=/unit/models/ --verbose",
+    "unitTests:controllers": "jest --testPathPatterns=/unit/controllers/ --verbose",
+    "integrationTests": "jest --testPathPatterns=/integration/ --watchAll --detectOpenHandles --runInBand --verbose",
+    "coverage": "jest --coverage --testPathPatterns=/unit/"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cloudinary": "^2.10.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.11.0",
+    "multer": "^2.1.1",
+    "pg": "^8.21.0"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
+  }
+}
