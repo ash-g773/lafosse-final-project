@@ -21,33 +21,50 @@ export default function LoginScreen() {
   // const storage = createAsyncStorage("appDB");
 
   async function login(username: string, password: string) {
-    const options = {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: username,
-        password: password,
-      }),
-    };
+    try {
+      const options = {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: username,
+          password: password,
+        }),
+      };
 
-    const response = await fetch("http://127.0.0.1:3000/users/login", options);
-    const data = await response.json();
+      console.log(
+        "Attempting login to:",
+        `${process.env.EXPO_PUBLIC_API_URL}/users/login`,
+      );
 
-    if (response.status == 200) {
-      try {
-        const jsonValue = JSON.stringify(data.token);
-        await AsyncStorage.setItem("token", jsonValue);
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/users/login`,
+        options,
+      );
+
+      console.log("Response status:", response.status);
+
+      const data = await response.json();
+
+      console.log("Response data:", data);
+
+      if (response.status === 200) {
+        await AsyncStorage.setItem("token", data.token);
         const test = await AsyncStorage.getItem("token");
-        console.log(test);
-      } catch (e) {
-        // saving error
+        console.log("Token stored:", test);
+
+        // small delay to make sure token sets
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        router.replace("/(tabs)" as any);
+      } else {
+        Alert.alert("Login failed: " + data.error);
       }
-      router.replace("/(tabs)/index");
-    } else {
-      Alert.alert("Looks like there was a problem logging in..." + data.error);
+    } catch (error) {
+      console.error("Login error:", error);
+      Alert.alert("Network error - check your connection");
     }
   }
 
@@ -81,7 +98,10 @@ export default function LoginScreen() {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => login(username, password)}
+          onPress={() => {
+            console.log("button pressed");
+            login(username, password);
+          }}
         >
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
@@ -123,6 +143,7 @@ const styles = StyleSheet.create({
   content: {
     justifyContent: "center",
     padding: 24,
+    width: "80%",
   },
   title: {
     fontSize: 32,

@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -43,8 +44,15 @@ export default function Profile() {
 
   async function fetchProfile() {
     try {
+      const token = await AsyncStorage.getItem("token");
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_API_URL}/profile/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
       );
       const data = await response.json();
       setProfile(data);
@@ -68,14 +76,14 @@ export default function Profile() {
     setSuccess(false);
 
     try {
+      const token = await AsyncStorage.getItem("token");
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/profiles/${userId}`,
+        `${process.env.EXPO_PUBLIC_API_URL}/profile/${userId}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            // include auth token once you have auth set up:
-            // "Authorization": `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             full_name: fullName,
