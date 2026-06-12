@@ -34,7 +34,20 @@ async function create(req, res) {
         res.status(201).json(newPet);
     } catch (err) {
         res.status(400).json({ error: err.message });
+    }  
+} 
+ async function update(req, res) {
+    try {
+        const id = parseInt(req.params.id);
+        const data = req.body;
+
+        const pet = await Pet.getOneById(id);
+        const result = await pet.update(data);
+
+        res.status(200).json(result);
+    } catch (err) {
+        res.status(404).json({ error: err.message });
     }
 }
 
-module.exports = { index, show, create };
+module.exports = { index, show, create, update };
