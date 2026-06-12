@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import * as NavigationBar from "expo-navigation-bar";
 import { useRouter } from "expo-router";
@@ -122,9 +123,22 @@ export default function MapScreen() {
 
   async function fetchMapData() {
     try {
+      const token = await AsyncStorage.getItem("token");
       const [lostPetsRes, sightingsRes] = await Promise.all([
-        fetch(`${process.env.EXPO_PUBLIC_API_URL}/pets`),
-        fetch(`${process.env.EXPO_PUBLIC_API_URL}/sightings`),
+        fetch(`${process.env.EXPO_PUBLIC_API_URL}/pets`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch(`${process.env.EXPO_PUBLIC_API_URL}/sightings`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }),
       ]);
 
       const lostPetsData = await lostPetsRes.json();
@@ -136,6 +150,15 @@ export default function MapScreen() {
       console.error("Failed to fetch map data:", error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await AsyncStorage.removeItem("token");
+      router.replace("/(auth)/landing" as any);
+    } catch (e) {
+      console.error("Error logging out:", e);
     }
   }
 
@@ -175,6 +198,7 @@ export default function MapScreen() {
         testID="map-view"
         showsUserLocation={true} // show blue dot
         showsMyLocationButton={true} // show recentre button
+        onUserLocationChange={() => {}}
       >
         {lostPets.map((Pet) => (
           <Marker
@@ -222,7 +246,11 @@ export default function MapScreen() {
         >
           <Text>Profile</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconBtn} testID="logout-btn">
+        <TouchableOpacity
+          style={styles.iconBtn}
+          testID="logout-btn"
+          onPress={handleLogout}
+        >
           <Text>Log Out</Text>
         </TouchableOpacity>
       </View>

@@ -1,11 +1,14 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { theme } from "../../themes";
 
@@ -24,8 +27,9 @@ interface UserProfile {
 export default function Profile() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  // how are we storing user id?
-  const userId = 6;
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  const [userId, setUserId] = useState<number | null>(null);
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -37,24 +41,55 @@ export default function Profile() {
     phone !== (profile?.phone || "") ||
     postcode !== (profile?.postcode || "");
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  function decodeUserId(token: string): number | null {
+    try {
+      const payload = token.split(".")[1];
+      const decoded = JSON.parse(atob(payload));
+      // check with your backend team which field name they use
+      return decoded.users_id || decoded.userId || decoded.id || decoded.sub;
+    } catch {
+      return null;
+    }
+  }
 
-  async function fetchProfile() {
+  useEffect(() => {
+    async function start() {
+      const token = await AsyncStorage.getItem("token");
+      if (token) {
+        const id = decodeUserId(token);
+        setUserId(id);
+        if (id) {
+          await fetchProfileWithId(id, token);
+        }
+      }
+    }
+    start();
+  }, []);
+  async function fetchProfileWithId(id: number, token: string) {
     try {
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/profile/${userId}`,
+        `${process.env.EXPO_PUBLIC_API_URL}/profile/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
       );
-      const data = await response.json();
-      setProfile(data);
+      const json = await response.json();
+      console.log("Profile data:", json);
 
+      const data = json.data;
+
+      setProfile(data);
       setFullName(data.full_name || "");
       setPhone(data.phone || "");
       setPostcode(data.postcode || "");
-      setAlertRadius(data.alert_radius || "");
+      setAlertRadius(data.alert_radius?.toString() || "");
     } catch (error) {
       console.error("Failed to fetch profile:", error);
+    } finally {
+      setProfileLoading(false);
     }
   }
 
@@ -68,14 +103,16 @@ export default function Profile() {
     setSuccess(false);
 
     try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token || !userId) return;
+
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/profiles/${userId}`,
+        `${process.env.EXPO_PUBLIC_API_URL}/profile/${userId}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            // include auth token once you have auth set up:
-            // "Authorization": `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             full_name: fullName,
@@ -101,6 +138,14 @@ export default function Profile() {
     } finally {
       setSaving(false);
     }
+  }
+
+  if (profileLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
   }
 
   return (

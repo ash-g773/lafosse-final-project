@@ -1,8 +1,9 @@
-import { theme } from "@/global";
+import { theme } from "@/themes";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
@@ -16,6 +17,7 @@ import {
   View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
+import MapView, { PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ReportSightingScreen() {
@@ -108,6 +110,28 @@ export default function ReportSightingScreen() {
     return fullSightingDescription;
   }
 
+  const [region, setRegion] = useState<Region>({
+    latitude: 51.5074, // default to central london while loading
+    longitude: -0.1278,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  });
+
+  useEffect(() => {
+    async function getLocation() {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
+      const location = await Location.getCurrentPositionAsync({});
+      setRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    }
+    getLocation();
+  }, []);
+
   // sending the filled out form
   /*POST req, /sightings, - creates a new sighting (pets_id and users_id are both nullable), 
   Request Body = {"pets_id":null, "users_id":null, "guest_contact":"random_contact", "sighting_description":"random_description", 
@@ -124,38 +148,69 @@ export default function ReportSightingScreen() {
     // if (!sightingDescription || !location || !imageCloudinaryURL) {
     //   throw Alert.alert("Please fill in all required fields!");
     // }
+
+    const token = await AsyncStorage.getItem("token");
+
+    // decode userId from token if it exists
+    let userId: number | null = null;
+    if (token) {
+      try {
+        const payload = token.split(".")[1];
+        const decoded = JSON.parse(atob(payload));
+        console.log(decoded);
+        userId = decoded.users_id;
+      } catch {
+        userId = null;
+      }
+    }
+
     const fullSightingDescription = combineDescriptors(
       animalType,
       sightingDescription,
       animalColor,
     );
 
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    };
+
+    // only add auth header if token exists
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const options = {
       method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({
         guest_contact: guestContact ? guestContact : null,
         sighting_description: fullSightingDescription,
         lat: location ? location.coords.latitude : null,
         lng: location ? location.coords.longitude : null,
         image_url: "placeholder_img_url",
+        users_id: token ? userId : null,
       }),
     };
     console.log(options);
 
     try {
-      const response = await fetch("http://127.0.0.1:3000/sightings/", options);
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/sightings`,
+        options,
+      );
       const data = await response.json();
-      if (response.status == 200) {
+      if (response.status == 200 || response.status == 201) {
         //clear form
         Alert.alert(
           "Success!",
           "Your sighting report has been submitted successfully. Thank you for helping to bring community pets back home!",
         );
-        router.replace("/(auth)/landing");
+        if (token) {
+          router.replace("/(tabs)");
+        } else {
+          router.replace("/(auth)/landing");
+        }
       } else {
         Alert.alert(
           "Something went wrong...",
@@ -285,9 +340,16 @@ export default function ReportSightingScreen() {
                       Please select the location of the sighting on the map (use
                       two fingers to move)
                     </Text>
-                    <View>
-                      <Text> MAP GOES HERE </Text>
-                    </View>
+
+                    <MapView
+                      style={styles.map}
+                      provider={PROVIDER_GOOGLE}
+                      region={region}
+                      showsUserLocation={true} // show blue dot
+                      showsMyLocationButton={true} // show recentre button
+                      onUserLocationChange={() => {}}
+                    ></MapView>
+
                     <Pressable
                       style={styles.button}
                       onPress={() => setModalVisible(!modalVisible)}
@@ -505,6 +567,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.secondary,
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.sm,
+  },
+  map: {
+    height: 500,
+    width: 300,
   },
   modal2Container: {
     flex: 1,

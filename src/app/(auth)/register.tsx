@@ -1,4 +1,4 @@
-import { theme } from "@/global";
+import { theme } from "@/themes";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -31,7 +31,7 @@ export default function RegisterScreen() {
     console.log(options);
 
     const response = await fetch(
-      "http://127.0.0.1:3000/users/register",
+      `${process.env.EXPO_PUBLIC_API_URL}/users/register`,
       options,
     );
     const data = await response.json();
