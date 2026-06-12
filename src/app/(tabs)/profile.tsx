@@ -105,7 +105,11 @@ export default function Profile() {
 
   return (
     <ScrollView style={styles.container}>
-      <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+      <TouchableOpacity
+        style={styles.backBtn}
+        testID="back-btn"
+        onPress={() => router.back()}
+      >
         <Text>Back</Text>
       </TouchableOpacity>
       <Text style={styles.heading}>Your Profile</Text>
@@ -150,6 +154,7 @@ export default function Profile() {
       <TouchableOpacity
         style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
         onPress={handleSave}
+        testID="save-btn"
         disabled={saving || !hasChanges}
       >
         <Text>{saving ? "Saving..." : "Save Changes"}</Text>
