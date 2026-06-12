@@ -31,9 +31,7 @@ describe('Sighting', () => {
       expect(result).toHaveProperty('pets_id', 1)
       expect(result).toHaveProperty('sighting_description', 'Saw a fluffy white cat near the park')
       expect(db.query).toHaveBeenCalledWith(
-        `INSERT INTO sightings (pets_id, users_id, guest_contact, sighting_description, location_description, lat, lng, image_url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       RETURNING *;`,
+        `INSERT INTO sightings (pets_id, users_id, guest_contact, sighting_description, location_description, lat, lng, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;`,
         [sightingData.pets_id, sightingData.users_id, sightingData.guest_contact, sightingData.sighting_description, sightingData.location_description, sightingData.lat, sightingData.lng, sightingData.image_url]
       )
     })
