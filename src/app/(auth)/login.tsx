@@ -1,4 +1,5 @@
 import { theme } from "@/global";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -15,6 +16,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function LoginScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  // create a storage instance
+  // const storage = createAsyncStorage("appDB");
 
   async function login(username: string, password: string) {
     const options = {
@@ -33,8 +37,14 @@ export default function LoginScreen() {
     const data = await response.json();
 
     if (response.status == 200) {
-      //token stuff - not adding yet
-      localStorage.setItem("token", data.token);
+      try {
+        const jsonValue = JSON.stringify(data.token);
+        await AsyncStorage.setItem("token", jsonValue);
+        const test = await AsyncStorage.getItem("token");
+        console.log(test);
+      } catch (e) {
+        // saving error
+      }
       router.replace("/(tabs)/index");
     } else {
       Alert.alert("Looks like there was a problem logging in..." + data.error);
