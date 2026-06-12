@@ -33,19 +33,20 @@ export default function LoginScreen() {
       }),
     };
 
-    const response = await fetch("http://127.0.0.1:3000/users/login", options);
+    const response = await fetch(
+      `${process.env.EXPO_PUBLIC_API_URL_ASH}/users/login`,
+      options,
+    );
     const data = await response.json();
-
+    console.log(data);
     if (response.status == 200) {
       try {
-        const jsonValue = JSON.stringify(data.token);
+        const jsonValue = data.token;
         await AsyncStorage.setItem("token", jsonValue);
-        const test = await AsyncStorage.getItem("token");
-        console.log(test);
       } catch (e) {
         // saving error
       }
-      router.replace("/(tabs)/index");
+      router.replace("/(tabs)");
     } else {
       Alert.alert("Looks like there was a problem logging in..." + data.error);
     }

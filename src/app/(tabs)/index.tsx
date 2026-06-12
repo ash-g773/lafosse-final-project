@@ -123,16 +123,17 @@ export default function MapScreen() {
   async function fetchMapData() {
     try {
       const [lostPetsRes, sightingsRes] = await Promise.all([
-        fetch(`${process.env.EXPO_PUBLIC_API_URL}/pets`),
-        fetch(`${process.env.EXPO_PUBLIC_API_URL}/sightings`),
+        fetch(`${process.env.EXPO_PUBLIC_API_URL_ASH}/pets`),
+        fetch(`${process.env.EXPO_PUBLIC_API_URL_ASH}/sightings`),
       ]);
+      console.log("finish getting pets and sightings");
 
       const lostPetsData = await lostPetsRes.json();
       const sightingsData = await sightingsRes.json();
       setLostPets(lostPetsData);
       setSightings(sightingsData);
     } catch (error) {
-      console.log(`${process.env.EXPO_PUBLIC_API_URL}`);
+      console.log(`${process.env.EXPO_PUBLIC_API_URL_ASH}`);
       console.error("Failed to fetch map data:", error);
     } finally {
       setLoading(false);

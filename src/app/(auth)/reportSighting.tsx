@@ -147,7 +147,10 @@ export default function ReportSightingScreen() {
     console.log(options);
 
     try {
-      const response = await fetch("http://127.0.0.1:3000/sightings/", options);
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL_ASH}/sightings/`,
+        options,
+      );
       const data = await response.json();
       if (response.status == 200) {
         //clear form

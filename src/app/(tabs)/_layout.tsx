@@ -13,13 +13,12 @@ export default function TabsLayout() {
       // error reading value
     }
   };
-  console.log(token);
 
   useEffect(() => {
     if (!token) {
       router.replace("/(auth)/landing");
     } else {
-      router.replace("/(tabs)/index");
+      router.replace("/(tabs)");
     }
   }, []);
 
