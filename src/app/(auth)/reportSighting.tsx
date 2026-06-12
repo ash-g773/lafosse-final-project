@@ -75,12 +75,16 @@ export default function ReportSightingScreen() {
 
     if (!result.canceled) {
       setSelectedImage(result.assets[0].uri);
+      setModal2Visible(false);
     }
     console.log(selectedImage);
   };
 
   // map pin modal setup
   const [modalVisible, setModalVisible] = useState(false);
+
+  // picture upload modal setup
+  const [modal2Visible, setModal2Visible] = useState(false);
 
   // save sighting description
   const [sightingDescription, setSightingDescription] = useState<string>();
@@ -151,6 +155,7 @@ export default function ReportSightingScreen() {
           "Success!",
           "Your sighting report has been submitted successfully. Thank you for helping to bring community pets back home!",
         );
+        router.replace("/(auth)/landing");
       } else {
         Alert.alert(
           "Something went wrong...",
@@ -161,6 +166,34 @@ export default function ReportSightingScreen() {
     } catch (e) {
       console.log(e);
     }
+  }
+
+  async function openCamera() {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert(
+        "Permission required",
+        "Permission to access the media library is required",
+      );
+      return;
+    }
+
+    let result = await ImagePicker.launchCameraAsync({
+      cameraType: ImagePicker.CameraType.back,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+      setModal2Visible(false);
+    }
+    console.log(selectedImage);
   }
 
   // rendering the actual page
@@ -188,7 +221,30 @@ export default function ReportSightingScreen() {
             <Text style={styles.subtitle}>
               Please upload a photo of the sighting:
             </Text>
-            <TouchableOpacity style={styles.button} onPress={pickImage}>
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={modal2Visible}
+              onRequestClose={() => {
+                Alert.alert("modal closed");
+                setModal2Visible(!modal2Visible);
+              }}
+            >
+              <View style={styles.modal2Container}>
+                <View style={styles.modal2Inner}>
+                  <TouchableOpacity style={styles.button} onPress={openCamera}>
+                    <Text style={styles.buttonText}>Camera</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.button} onPress={pickImage}>
+                    <Text style={styles.buttonText}>Gallery</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => setModal2Visible(true)}
+            >
               <Image
                 source={
                   selectedImage
@@ -449,5 +505,21 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.secondary,
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.sm,
+  },
+  modal2Container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modal2Inner: {
+    width: "80%",
+    height: "15%",
+    margin: 20,
+    backgroundColor: theme.colors.primary,
+    padding: 25,
+    alignItems: "center",
+    elevation: 5,
+    justifyContent: "space-around",
+    flexDirection: "row",
   },
 });
