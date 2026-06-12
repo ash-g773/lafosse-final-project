@@ -1,127 +1,151 @@
-const petsController = require('../../../controller/pets')
 const Pet = require('../../../model/Pet')
- 
-// Mocking response methods
-const mockSend = jest.fn()
-const mockJson = jest.fn()
-const mockEnd = jest.fn()
- 
-// we are mocking .send(), .json() and .end()
-const mockStatus = jest.fn(() => ({
-  send: mockSend,
-  json: mockJson,
-  end: mockEnd
-}));
- 
-const mockRes = { status: mockStatus };
- 
- 
-describe('Pets controller', () => {
+const db = require('../../../database/connect')
+
+describe('Pet', () => {
   beforeEach(() => jest.clearAllMocks())
- 
+
   afterAll(() => jest.resetAllMocks())
- 
-  describe('index', () => {
-    it('should return pets with a status code 200', async () => {
-      const testPets = ['p1', 'p2']
-      jest.spyOn(Pet, 'getAll').mockResolvedValue(testPets)
- 
-      await petsController.index(null, mockRes)
- 
-      expect(Pet.getAll).toHaveBeenCalledTimes(1)
-      expect(mockStatus).toHaveBeenCalledWith(200)
-      expect(mockJson).toHaveBeenCalledWith(testPets)
+
+  describe('getAll', () => {
+    it('should return a list of pets', async () => {
+      const testPets = [
+        {
+          pets_id: 1,
+          users_id: 1,
+          name: 'Metro',
+          species: 'cat',
+          breed: 'Domestic Shorthair',
+          colour: 'black',
+          description: 'lean, mean killing machine',
+          last_seen_location: 'London',
+          lat: 51.5074,
+          lng: -0.1278,
+          image_url: null,
+          status: 'lost',
+          created_at: new Date()
+        },
+        {
+          pets_id: 2,
+          users_id: 1,
+          name: 'Rover',
+          species: 'dog',
+          breed: 'Labrador',
+          colour: 'yellow',
+          description: 'friendly dog',
+          last_seen_location: 'Victoria Park',
+          lat: 51.5362,
+          lng: 0.0373,
+          image_url: null,
+          status: 'lost',
+          created_at: new Date()
+        }
+      ]
+      jest.spyOn(db, 'query').mockResolvedValueOnce({ rows: testPets })
+
+      const result = await Pet.getAll()
+
+      expect(result).toHaveLength(2)
+      expect(result[0]).toBeInstanceOf(Pet)
+      expect(result[1]).toBeInstanceOf(Pet)
+      expect(db.query).toHaveBeenCalledWith('SELECT * FROM pets ORDER BY created_at DESC;')
     })
- 
-    it('should return an error upon failure', async () => {
-      jest.spyOn(Pet, 'getAll').mockRejectedValue(new Error('Something happened to your db'))
- 
-      await petsController.index(null, mockRes)
- 
-      expect(Pet.getAll).toHaveBeenCalledTimes(1)
-      expect(mockStatus).toHaveBeenCalledWith(500)
-      expect(mockJson).toHaveBeenCalledWith({ error: 'Something happened to your db' })
+
+    it('should throw an error if no pets are found', async () => {
+      jest.spyOn(db, 'query').mockResolvedValueOnce({ rows: [] })
+
+      await expect(Pet.getAll()).rejects.toThrow('No pets available.')
     })
   })
- 
-  describe('show', () => {
-    let testPet, mockReq;
- 
-    beforeEach(() => {
-      testPet = {
+
+  describe('getOneById', () => {
+    it('should return a pet when given a valid id', async () => {
+      const testPet = {
         pets_id: 1,
         users_id: 1,
-        name: 'Fluffy',
+        name: 'Metro',
         species: 'cat',
-        breed: 'Persian',
-        colour: 'white',
-        description: 'fluffy white cat',
+        breed: 'Domestic Shorthair',
+        colour: 'black',
+        description: 'lean, mean killing machine',
         last_seen_location: 'London',
-        lat: 51.5,
-        lng: -0.1,
-        image_url: 'http://example.com/fluffy.jpg',
+        lat: 51.5074,
+        lng: -0.1278,
+        image_url: null,
         status: 'lost',
         created_at: new Date()
       }
-      mockReq = { params: { id: 1 } }
-    });
- 
-    it('should return a pet with a 200 status code', async () => {
-      jest.spyOn(Pet, 'getOneById').mockResolvedValue(new Pet(testPet))
- 
-      await petsController.show(mockReq, mockRes);
- 
-      expect(Pet.getOneById).toHaveBeenCalledTimes(1);
-      expect(mockStatus).toHaveBeenCalledWith(200);
-      expect(mockJson).toHaveBeenCalledWith(new Pet(testPet))
+      jest.spyOn(db, 'query').mockResolvedValueOnce({ rows: [testPet] })
+
+      const result = await Pet.getOneById(1)
+
+      expect(result).toBeInstanceOf(Pet)
+      expect(result).toHaveProperty('pets_id', 1)
+      expect(result).toHaveProperty('name', 'Metro')
+      expect(db.query).toHaveBeenCalledWith('SELECT * FROM pets WHERE pets_id = $1;', [1])
     })
- 
-    it('should return an error if the pet is not found', async () => {
-      jest.spyOn(Pet, 'getOneById').mockRejectedValue(new Error('Pet not found.'))
- 
-      await petsController.show(mockReq, mockRes)
- 
-      expect(Pet.getOneById).toHaveBeenCalledTimes(1)
-      expect(mockStatus).toHaveBeenCalledWith(404)
-      expect(mockJson).toHaveBeenCalledWith({ error: 'Pet not found.' })
+
+    it('should throw an error when pet is not found', async () => {
+      jest.spyOn(db, 'query').mockResolvedValueOnce({ rows: [] })
+
+      await expect(Pet.getOneById(999)).rejects.toThrow('Pet not found.')
     })
   })
- 
+
   describe('create', () => {
-    it('should return a new pet with a 201 status code', async () => {
-      const testPet = {
+    it('should resolve with a new pet on successful creation', async () => {
+      const newPetData = {
         users_id: 1,
-        name: 'Fluffy',
+        name: 'Metro',
         species: 'cat',
-        breed: 'Persian',
-        colour: 'white',
-        description: 'fluffy white cat',
+        breed: 'Domestic Shorthair',
+        colour: 'black',
+        description: 'lean, mean killing machine',
         last_seen_location: 'London',
-        lat: 51.5,
-        lng: -0.1,
-        image_url: 'http://example.com/fluffy.jpg'
+        lat: 51.5074,
+        lng: -0.1278,
+        image_url: null
       }
-      const mockReq = { body: testPet }
- 
-      jest.spyOn(Pet, 'create').mockResolvedValue(new Pet({ ...testPet, pets_id: 1, status: 'lost', created_at: new Date() }))
- 
-      await petsController.create(mockReq, mockRes)
- 
-      expect(Pet.create).toHaveBeenCalledTimes(1)
-      expect(mockStatus).toHaveBeenCalledWith(201)
-      expect(mockJson).toHaveBeenCalledWith(expect.any(Pet))
+      const dbResponse = { ...newPetData, pets_id: 1, status: 'lost', created_at: new Date() }
+      jest.spyOn(db, 'query').mockResolvedValueOnce({ rows: [dbResponse] })
+
+      const result = await Pet.create(newPetData)
+
+      expect(result).toBeInstanceOf(Pet)
+      expect(result).toHaveProperty('pets_id', 1)
+      expect(result).toHaveProperty('name', 'Metro')
+      expect(result).toHaveProperty('status', 'lost')
+      expect(db.query).toHaveBeenCalledWith(
+        'INSERT INTO pets (users_id, name, species, breed, colour, description, last_seen_location, lat, lng, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *;',
+        [
+          newPetData.users_id,
+          newPetData.name,
+          newPetData.species,
+          newPetData.breed,
+          newPetData.colour,
+          newPetData.description,
+          newPetData.last_seen_location,
+          newPetData.lat,
+          newPetData.lng,
+          newPetData.image_url
+        ]
+      )
     })
- 
-    it('should return an error if creation fails', async () => {
-      const mockReq = { body: { name: 'Fluffy' } }
- 
-      jest.spyOn(Pet, 'create').mockRejectedValue(new Error('oh no'))
- 
-      await petsController.create(mockReq, mockRes)
- 
-      expect(Pet.create).toHaveBeenCalledTimes(1)
-      expect(mockStatus).toHaveBeenCalledWith(400)
-      expect(mockJson).toHaveBeenCalledWith({ error: 'oh no' })
+
+    it('should throw an error on db query failure', async () => {
+      jest.spyOn(db, 'query').mockRejectedValue(new Error('Database error'))
+
+      await expect(Pet.create({
+        users_id: 1,
+        name: 'Metro',
+        species: 'cat',
+        breed: 'Domestic Shorthair',
+        colour: 'black',
+        description: 'lean, mean killing machine',
+        last_seen_location: 'London',
+        lat: 51.5074,
+        lng: -0.1278,
+        image_url: null
+      })).rejects.toThrow('Database error')
     })
   })
 })

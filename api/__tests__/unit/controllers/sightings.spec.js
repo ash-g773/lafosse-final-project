@@ -1,5 +1,5 @@
 const sightingsController = require('../../../controller/sightings')
-const Sighting = require('../model/Sighting')
+const Sighting = require('../../../model/Sighting')
  
 // Mocking response methods
 const mockSend = jest.fn()
