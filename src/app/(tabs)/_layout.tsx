@@ -25,7 +25,7 @@ export default function TabsLayout() {
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index"></Stack.Screen>
+      <Stack.Screen name="index" />
     </Stack>
   );
 }
