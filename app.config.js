@@ -66,6 +66,10 @@ export default ({ config }) => {
       "expo-router",
       "react-native-maps",
       "expo-location",
+      "expo-navigation-bar",
+      "expo-image-picker",
+      "expo-camera",
+      "expo-notifications",
       [
         "expo-splash-screen",
         {
