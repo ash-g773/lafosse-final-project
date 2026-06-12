@@ -19,7 +19,7 @@ export default function TabsLayout() {
     if (!token) {
       router.replace("/(auth)/landing");
     } else {
-      router.replace("/(tabs)/index");
+      router.replace("/(tabs)");
     }
   }, []);
 

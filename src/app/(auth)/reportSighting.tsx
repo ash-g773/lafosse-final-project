@@ -65,7 +65,7 @@ export default function ReportSightingScreen() {
       return;
     }
 
-    let result = await ImagePicker.launchImageLibraryAsync({
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       aspect: [4, 3],
       quality: 1,
@@ -199,7 +199,7 @@ export default function ReportSightingScreen() {
   // rendering the actual page
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
+      <View style={styles.topBar} testID="login&logo">
         <TouchableOpacity
           style={styles.toReport}
           onPress={() => router.replace("/(auth)/login")}
@@ -210,7 +210,6 @@ export default function ReportSightingScreen() {
         <Image
           style={styles.logo}
           source={require("../../../assets/images/logo.png")}
-          testID="logo"
         />
       </View>
 
@@ -252,6 +251,7 @@ export default function ReportSightingScreen() {
                     : require("../../../assets/images/add-pic.png")
                 }
                 style={{ width: 200, height: 200 }}
+                testID="addPic"
               />
             </TouchableOpacity>
             <Text style={styles.subtitle}>
@@ -318,6 +318,7 @@ export default function ReportSightingScreen() {
               placeholder="Select an animal..."
               listMode="SCROLLVIEW"
               style={styles.input}
+              testID="dropdown"
             />
             <Text style={styles.formLabels}>Color / Pattern: </Text>
             <TextInput
@@ -325,6 +326,7 @@ export default function ReportSightingScreen() {
               style={styles.input}
               placeholder="Please input color"
               onChangeText={setAnimalColor}
+              testID="colorInput"
             />
 
             <Text style={styles.formLabels}>Description: </Text>
@@ -333,6 +335,7 @@ export default function ReportSightingScreen() {
               autoCapitalize="none"
               style={styles.input}
               onChangeText={setSightingDescription}
+              testID="descriptionInput"
             />
 
             <Text style={styles.formLabels}>
@@ -343,6 +346,7 @@ export default function ReportSightingScreen() {
               autoCapitalize="none"
               style={styles.input}
               onChangeText={setGuestContact}
+              testID="contactInput"
             />
           </View>
 
@@ -358,6 +362,7 @@ export default function ReportSightingScreen() {
                 selectedImage,
               )
             }
+            testID="submitButton"
           >
             <Text style={styles.buttonText}>Submit</Text>
           </TouchableOpacity>

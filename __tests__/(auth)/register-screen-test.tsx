@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react-native";
-import RegisterScreen from "../src/app/(auth)/register";
+import RegisterScreen from "../../src/app/(auth)/register";
 
 describe("login screen tests", () => {
   it("should have a logo", async () => {

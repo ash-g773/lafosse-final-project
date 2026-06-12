@@ -45,7 +45,7 @@ export default function LoginScreen() {
       } catch (e) {
         // saving error
       }
-      router.replace("/(tabs)/index");
+      router.replace("/(tabs)");
     } else {
       Alert.alert("Looks like there was a problem logging in..." + data.error);
     }

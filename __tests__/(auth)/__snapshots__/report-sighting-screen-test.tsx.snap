@@ -1,0 +1,601 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`report sighting screen tests renders correctly 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#34A0A4",
+      "flex": 3,
+      "justifyContent": "center",
+    }
+  }
+>
+  <View
+    style={
+      {
+        "flex": 2,
+        "flexDirection": "row",
+        "justifyContent": "space-evenly",
+        "marginTop": 24,
+        "width": "100%",
+      }
+    }
+    testID="login&logo"
+  >
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#76C893",
+          "borderRadius": 16,
+          "height": 25,
+          "marginTop": 16,
+          "opacity": 1,
+          "width": 200,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#FFFFFF",
+            "fontSize": 16,
+            "fontWeight": "600",
+          }
+        }
+      >
+        Login / Register
+      </Text>
+    </View>
+    <Image
+      source={
+        {
+          "testUri": "../../../assets/images/logo.png",
+        }
+      }
+      style={
+        {
+          "height": 50,
+          "width": 50,
+        }
+      }
+    />
+  </View>
+  <Text
+    style={
+      {
+        "color": "#FFFFFF",
+        "fontSize": 34,
+        "fontWeight": "bold",
+        "marginBottom": 8,
+        "marginTop": 60,
+        "textAlign": "center",
+      }
+    }
+  >
+    Report a Sighting
+  </Text>
+  <RCTScrollView>
+    <View>
+      <View
+        style={
+          {
+            "backgroundColor": "#76C893",
+            "borderRadius": 16,
+            "justifyContent": "center",
+            "margin": 24,
+            "padding": 24,
+          }
+        }
+      >
+        <View
+          style={{}}
+        >
+          <Text
+            style={
+              {
+                "color": "#FFFFFF",
+                "fontSize": 16,
+                "fontWeight": "bold",
+                "marginBottom": 8,
+                "textAlign": "center",
+              }
+            }
+          >
+            Please upload a photo of the sighting:
+          </Text>
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#76C893",
+                "borderRadius": 16,
+                "marginTop": 8,
+                "opacity": 1,
+                "padding": 16,
+              }
+            }
+          >
+            <Image
+              source={
+                {
+                  "testUri": "../../../assets/images/add-pic.png",
+                }
+              }
+              style={
+                {
+                  "height": 200,
+                  "width": 200,
+                }
+              }
+              testID="addPic"
+            />
+          </View>
+          <Text
+            style={
+              {
+                "color": "#FFFFFF",
+                "fontSize": 16,
+                "fontWeight": "bold",
+                "marginBottom": 8,
+                "textAlign": "center",
+              }
+            }
+          >
+            Please ensure you can clearly see the animal in your photo.
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "stretch",
+              "width": "100%",
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#FFFFFF",
+                "marginTop": 4,
+              }
+            }
+          >
+            Where did you see them?
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "stretch",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "space-evenly",
+              }
+            }
+          >
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#34A0A4",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "marginTop": 8,
+                  "opacity": 1,
+                  "padding": 16,
+                  "width": "40%",
+                }
+              }
+            >
+              <Text
+                style={
+                  {
+                    "color": "#FFFFFF",
+                    "fontSize": 16,
+                    "fontWeight": "600",
+                  }
+                }
+              >
+                At my current location
+              </Text>
+            </View>
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#34A0A4",
+                  "borderRadius": 12,
+                  "justifyContent": "center",
+                  "marginTop": 8,
+                  "opacity": 1,
+                  "padding": 16,
+                  "width": "40%",
+                }
+              }
+            >
+              <Text
+                style={
+                  {
+                    "color": "#FFFFFF",
+                    "fontSize": 16,
+                    "fontWeight": "600",
+                  }
+                }
+              >
+                Somewhere else (open map)
+              </Text>
+            </View>
+          </View>
+          <Text
+            style={
+              {
+                "color": "#FFFFFF",
+                "marginTop": 4,
+              }
+            }
+          >
+            Type of Animal: 
+          </Text>
+          <View
+            style={
+              [
+                {
+                  "width": "100%",
+                },
+                {
+                  "zIndex": 5000,
+                },
+                {},
+              ]
+            }
+          >
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onLayout={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#52B69A",
+                  "borderColor": "#000",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "color": "#5C6B6D",
+                  "flexDirection": "row",
+                  "fontSize": 16,
+                  "justifyContent": "space-between",
+                  "marginBottom": 16,
+                  "minHeight": 50,
+                  "opacity": 1,
+                  "padding": 16,
+                  "paddingHorizontal": 10,
+                  "paddingVertical": 3,
+                  "width": "100%",
+                  "zIndex": 5000,
+                }
+              }
+              testID="dropdown"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#000",
+                      "flex": 1,
+                    },
+                    {},
+                    false,
+                    {},
+                  ]
+                }
+              >
+                Select an animal...
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "marginLeft": 10,
+                    },
+                    {},
+                  ]
+                }
+              >
+                <Image
+                  source={
+                    {
+                      "testUri": "../../react-native-dropdown-picker/src/themes/light/icons/arrow-down.png",
+                    }
+                  }
+                  style={
+                    [
+                      {
+                        "height": 20,
+                        "width": 20,
+                      },
+                      {},
+                    ]
+                  }
+                />
+              </View>
+            </View>
+          </View>
+          <Text
+            style={
+              {
+                "color": "#FFFFFF",
+                "marginTop": 4,
+              }
+            }
+          >
+            Color / Pattern: 
+          </Text>
+          <TextInput
+            autoCapitalize="none"
+            onChangeText={[Function]}
+            placeholder="Please input color"
+            style={
+              {
+                "backgroundColor": "#52B69A",
+                "borderRadius": 16,
+                "color": "#5C6B6D",
+                "fontSize": 16,
+                "marginBottom": 16,
+                "padding": 16,
+              }
+            }
+            testID="colorInput"
+          />
+          <Text
+            style={
+              {
+                "color": "#FFFFFF",
+                "marginTop": 4,
+              }
+            }
+          >
+            Description: 
+          </Text>
+          <TextInput
+            autoCapitalize="none"
+            onChangeText={[Function]}
+            placeholder="Time of sighting, important info, behaviour etc."
+            style={
+              {
+                "backgroundColor": "#52B69A",
+                "borderRadius": 16,
+                "color": "#5C6B6D",
+                "fontSize": 16,
+                "marginBottom": 16,
+                "padding": 16,
+              }
+            }
+            testID="descriptionInput"
+          />
+          <Text
+            style={
+              {
+                "color": "#FFFFFF",
+                "marginTop": 4,
+              }
+            }
+          >
+            Your contact info (optional):
+             
+          </Text>
+          <TextInput
+            autoCapitalize="none"
+            onChangeText={[Function]}
+            placeholder="+44 1234567890"
+            style={
+              {
+                "backgroundColor": "#52B69A",
+                "borderRadius": 16,
+                "color": "#5C6B6D",
+                "fontSize": 16,
+                "marginBottom": 16,
+                "padding": 16,
+              }
+            }
+            testID="contactInput"
+          />
+        </View>
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#34A0A4",
+              "borderRadius": 16,
+              "marginTop": 8,
+              "opacity": 1,
+              "padding": 16,
+            }
+          }
+          testID="submitButton"
+        >
+          <Text
+            style={
+              {
+                "color": "#FFFFFF",
+                "fontSize": 16,
+                "fontWeight": "600",
+              }
+            }
+          >
+            Submit
+          </Text>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+</RNCSafeAreaView>
+`;
