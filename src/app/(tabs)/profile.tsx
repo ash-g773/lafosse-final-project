@@ -157,7 +157,9 @@ export default function Profile() {
         testID="save-btn"
         disabled={saving || !hasChanges}
       >
-        <Text>{saving ? "Saving..." : "Save Changes"}</Text>
+        <Text style={styles.saveBtnText}>
+          {saving ? "Saving..." : "Save Changes"}
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -171,17 +173,24 @@ const styles = StyleSheet.create({
     top: 50,
     left: 16,
     gap: 8,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: 20,
+    padding: 10,
   },
   heading: {
     fontSize: theme.fontSize.xxl,
     fontWeight: "bold",
     color: theme.colors.text.primary,
     marginBottom: theme.spacing.md,
+    marginTop: theme.spacing.xl,
+    padding: 10,
+    alignSelf: "center",
   },
   label: {
     fontSize: theme.fontSize.md,
     fontWeight: "bold",
     color: theme.colors.text.primary,
+    padding: theme.spacing.sm,
   },
   input: {
     backgroundColor: theme.colors.card,
@@ -197,7 +206,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
     borderRadius: theme.borderRadius.md,
     alignItems: "center",
-    marginTop: theme.spacing.md,
+    marginTop: theme.spacing.xl,
   },
   saveBtnDisabled: {
     opacity: 0.6,
