@@ -198,6 +198,7 @@ export default function MapScreen() {
         testID="map-view"
         showsUserLocation={true} // show blue dot
         showsMyLocationButton={true} // show recentre button
+        onUserLocationChange={() => {}}
       >
         {lostPets.map((Pet) => (
           <Marker
