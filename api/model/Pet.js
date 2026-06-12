@@ -45,19 +45,19 @@ class Pet {
     );
     return new Pet(response.rows[0]);
   }
-  
-async update(data) {
+
+  async update(data) {
     const response = await db.query(
-        "UPDATE pets SET status = $1 WHERE pets_id = $2 RETURNING *;",
-        [data.status, this.pets_id]
+      "UPDATE pets SET status = $1 WHERE pets_id = $2 RETURNING *;",
+      [data.status, this.pets_id]
     );
 
-    if (response.rows.length != 1) {
-        throw new Error("Unable to update pet status.");
+    if (response.rows.length !== 1) {
+      throw new Error("Unable to update pet status.");
     }
 
     return new Pet(response.rows[0]);
-}
+  }
 }
 
 module.exports = Pet;
