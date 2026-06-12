@@ -1,5 +1,6 @@
 const usersController = require("../../../controller/users")
 const User = require("../../../model/User")
+const Profile = require("../../../model/Profile")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 
@@ -66,6 +67,7 @@ describe("Users controller", () => {
       const mockReq = { body: testUser }
 
       jest.spyOn(User, "create").mockResolvedValue(testUser)
+      jest.spyOn(Profile, "createProfile").mockResolvedValue()
 
       await usersController.register(mockReq, mockRes)
 
