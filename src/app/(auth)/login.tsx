@@ -1,4 +1,4 @@
-import { theme } from "@/global";
+import { theme } from "@/themes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useState } from "react";

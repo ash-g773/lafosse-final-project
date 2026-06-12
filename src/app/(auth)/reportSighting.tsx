@@ -1,9 +1,9 @@
-import { theme } from "@/global";
+import { theme } from "@/themes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
@@ -17,6 +17,7 @@ import {
   View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
+import MapView, { PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ReportSightingScreen() {
@@ -108,6 +109,28 @@ export default function ReportSightingScreen() {
       animalType + "; " + sightingDescription + "; " + animalColor;
     return fullSightingDescription;
   }
+
+  const [region, setRegion] = useState<Region>({
+    latitude: 51.5074, // default to central london while loading
+    longitude: -0.1278,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  });
+
+  useEffect(() => {
+    async function getLocation() {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
+      const location = await Location.getCurrentPositionAsync({});
+      setRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    }
+    getLocation();
+  }, []);
 
   // sending the filled out form
   /*POST req, /sightings, - creates a new sighting (pets_id and users_id are both nullable), 
@@ -317,9 +340,16 @@ export default function ReportSightingScreen() {
                       Please select the location of the sighting on the map (use
                       two fingers to move)
                     </Text>
-                    <View>
-                      <Text> MAP GOES HERE </Text>
-                    </View>
+
+                    <MapView
+                      style={styles.map}
+                      provider={PROVIDER_GOOGLE}
+                      region={region}
+                      showsUserLocation={true} // show blue dot
+                      showsMyLocationButton={true} // show recentre button
+                      onUserLocationChange={() => {}}
+                    ></MapView>
+
                     <Pressable
                       style={styles.button}
                       onPress={() => setModalVisible(!modalVisible)}
@@ -537,6 +567,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.secondary,
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.sm,
+  },
+  map: {
+    height: 500,
+    width: 300,
   },
   modal2Container: {
     flex: 1,

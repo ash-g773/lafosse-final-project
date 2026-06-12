@@ -1,4 +1,4 @@
-import { theme } from "@/global";
+import { theme } from "@/themes";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
