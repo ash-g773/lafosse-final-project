@@ -1,11 +1,11 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
 } from "react-native";
 import { theme } from "../../themes";
 
@@ -25,7 +25,7 @@ export default function Profile() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   // how are we storing user id?
-  const userId = 1;
+  const userId = 6;
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");

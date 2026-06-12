@@ -172,12 +172,14 @@ export default function MapScreen() {
         style={StyleSheet.absoluteFill}
         provider={PROVIDER_GOOGLE}
         region={region}
+        testID="map-view"
         showsUserLocation={true} // show blue dot
         showsMyLocationButton={true} // show recentre button
       >
         {lostPets.map((Pet) => (
           <Marker
             key={`pet-${Pet.pets_id}`}
+            testID={`pet-marker-${Pet.pets_id}`}
             coordinate={{
               latitude: parseFloat(Pet.lat),
               longitude: parseFloat(Pet.lng),
@@ -196,6 +198,7 @@ export default function MapScreen() {
         {sightings.map((sighting) => (
           <Marker
             key={`sighting-${sighting.sightings_id}`}
+            testID={`sighting-marker-${sighting.sightings_id}`}
             coordinate={{
               latitude: parseFloat(sighting.lat), // add parseFloat
               longitude: parseFloat(sighting.lng),
@@ -214,11 +217,12 @@ export default function MapScreen() {
       <View style={styles.topButtons}>
         <TouchableOpacity
           style={styles.iconBtn}
+          testID="profile-btn"
           onPress={() => router.push("./profile")}
         >
           <Text>Profile</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconBtn}>
+        <TouchableOpacity style={styles.iconBtn} testID="logout-btn">
           <Text>Log Out</Text>
         </TouchableOpacity>
       </View>
@@ -247,6 +251,7 @@ export default function MapScreen() {
 
       <TouchableOpacity
         style={styles.plusBtn}
+        testID="plus-btn"
         onPress={() => setMenuOpen(!menuOpen)}
       >
         <Text style={styles.plusText}>{menuOpen ? "✕" : "+"}</Text>
