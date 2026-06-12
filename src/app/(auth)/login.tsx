@@ -40,8 +40,6 @@ export default function LoginScreen() {
       try {
         const jsonValue = JSON.stringify(data.token);
         await AsyncStorage.setItem("token", jsonValue);
-        const test = await AsyncStorage.getItem("token");
-        console.log(test);
       } catch (e) {
         // saving error
       }

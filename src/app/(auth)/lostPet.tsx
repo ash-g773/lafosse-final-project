@@ -18,7 +18,7 @@ import {
 import DropDownPicker from "react-native-dropdown-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function ReportSightingScreen() {
+export default function LostPetScreen() {
   // type of animal dropdown
   const [open, setOpen] = useState(false);
   const [animalType, setValue] = useState<string | null>(null);
@@ -26,7 +26,7 @@ export default function ReportSightingScreen() {
     { label: "Cat", value: "cat" },
     { label: "Dog", value: "dog" },
     { label: "Tortoise", value: "tortoise" },
-    { label: "Other", value: "other" },
+    { label: "Other (please add to description)", value: "other" },
   ]);
 
   // get current location
@@ -65,6 +65,7 @@ export default function ReportSightingScreen() {
       return;
     }
 
+    // potentially update to expo document picker to be able to choose multiple
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       aspect: [4, 3],
@@ -87,36 +88,28 @@ export default function ReportSightingScreen() {
   const [modal2Visible, setModal2Visible] = useState(false);
 
   // save sighting description
-  const [sightingDescription, setSightingDescription] = useState<string>();
+  const [description, setDescription] = useState<string>();
+
+  // save animal type
+  const [animalBreed, setAnimalBreed] = useState<string>();
 
   // set guest contact
-  const [guestContact, setGuestContact] = useState<string | undefined>(
-    undefined,
-  );
+  const [petName, setPetName] = useState<string | undefined>(undefined);
 
   //set animal color
   const [animalColor, setAnimalColor] = useState<string | undefined>(undefined);
 
-  // creating sighting description
-  function combineDescriptors(
-    animalType: string | null,
-    sightingDescription: string | undefined,
-    animalColor: string | undefined,
-  ) {
-    const fullSightingDescription =
-      animalType + "; " + sightingDescription + "; " + animalColor;
-    return fullSightingDescription;
-  }
-
   // sending the filled out form
-  /*POST req, /sightings, - creates a new sighting (pets_id and users_id are both nullable), 
-  Request Body = {"pets_id":null, "users_id":null, "guest_contact":"random_contact", "sighting_description":"random_description", 
-  "location_description":"random_location", "lat":0.0, "lng":0.0, "image_url":null}*/
+  /*POST req, /pets, - creates a new lost pet post, 
+  Request Body = {"users_id":1, "name":"random_name", "species":"random_species", "breed":"random_breed", 
+  "colour":"random_colour", "description":"random_description", "last_seen_location":"random_location", 
+  "lat":0.0, "lng":0.0, "image_url":null}*/
   async function submitForm(
+    petName: string | undefined,
     animalType: string | null,
-    sightingDescription: string | undefined,
+    animalBreed: string | undefined,
+    description: string | undefined,
     animalColor: string | undefined,
-    guestContact: string | undefined,
     location: Location.LocationObject | undefined,
     imageUrl: string | undefined,
   ) {
@@ -124,12 +117,6 @@ export default function ReportSightingScreen() {
     // if (!sightingDescription || !location || !imageCloudinaryURL) {
     //   throw Alert.alert("Please fill in all required fields!");
     // }
-    const fullSightingDescription = combineDescriptors(
-      animalType,
-      sightingDescription,
-      animalColor,
-    );
-
     const options = {
       method: "POST",
       headers: {
@@ -137,8 +124,13 @@ export default function ReportSightingScreen() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        guest_contact: guestContact ? guestContact : null,
-        sighting_description: fullSightingDescription,
+        // user_id: userID, --- need to figure out how this is carried through
+        name: petName ? petName : null,
+        species: animalType ? animalType : null,
+        breed: animalBreed ? animalBreed : null,
+        color: animalColor ? animalColor : null,
+        description: description,
+        // last_seen_location: --- ?
         lat: location ? location.coords.latitude : null,
         lng: location ? location.coords.longitude : null,
         image_url: "placeholder_img_url",
@@ -147,53 +139,26 @@ export default function ReportSightingScreen() {
     console.log(options);
 
     try {
-      const response = await fetch("http://127.0.0.1:3000/sightings/", options);
-      const data = await response.json();
+      // const response = await fetch("http://127.0.0.1:3000/sightings/", options);
+      const response = { status: 200 };
+      // const data = await response.json();
       if (response.status == 200) {
         //clear form
         Alert.alert(
-          "Success!",
-          "Your sighting report has been submitted successfully. Thank you for helping to bring community pets back home!",
+          "Report created",
+          "Your lost pet report has been submitted successfully. We hope you are reunited soon!",
         );
         router.replace("/(auth)/landing");
       } else {
         Alert.alert(
           "Something went wrong...",
-          "Your sighting report was not successful. Please try again later." +
-            data.error,
+          "Your lost pet report was not successfully created. Please try again later.",
+          // data.error,
         );
       }
     } catch (e) {
       console.log(e);
     }
-  }
-
-  async function openCamera() {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permissionResult.granted) {
-      Alert.alert(
-        "Permission required",
-        "Permission to access the media library is required",
-      );
-      return;
-    }
-
-    let result = await ImagePicker.launchCameraAsync({
-      cameraType: ImagePicker.CameraType.back,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    console.log(result);
-
-    if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
-      setModal2Visible(false);
-    }
-    console.log(selectedImage);
   }
 
   // rendering the actual page
@@ -202,49 +167,25 @@ export default function ReportSightingScreen() {
       <View style={styles.topBar}>
         <TouchableOpacity
           style={styles.toReport}
-          onPress={() => router.replace("/(auth)/login")}
+          onPress={() => router.replace("/(tabs)/profile")}
         >
-          <Text style={styles.buttonText}>Login / Register</Text>
+          <Text style={styles.buttonText}>Go to profile</Text>
         </TouchableOpacity>
 
         <Image
           style={styles.logo}
           source={require("../../../assets/images/logo.png")}
-          testID="logo"
         />
       </View>
 
-      <Text style={styles.title}>Report a Sighting</Text>
+      <Text style={styles.title}>Report a Lost Pet</Text>
       <ScrollView>
         <View style={styles.sightingForm}>
           <View style={styles.uploadImage}>
             <Text style={styles.subtitle}>
               Please upload a photo of the sighting:
             </Text>
-            <Modal
-              animationType="slide"
-              transparent={true}
-              visible={modal2Visible}
-              onRequestClose={() => {
-                Alert.alert("modal closed");
-                setModal2Visible(!modal2Visible);
-              }}
-            >
-              <View style={styles.modal2Container}>
-                <View style={styles.modal2Inner}>
-                  <TouchableOpacity style={styles.button} onPress={openCamera}>
-                    <Text style={styles.buttonText}>Camera</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.button} onPress={pickImage}>
-                    <Text style={styles.buttonText}>Gallery</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => setModal2Visible(true)}
-            >
+            <TouchableOpacity style={styles.button} onPress={pickImage}>
               <Image
                 source={
                   selectedImage
@@ -260,7 +201,14 @@ export default function ReportSightingScreen() {
           </View>
 
           <View style={styles.form}>
-            <Text style={styles.formLabels}>Where did you see them?</Text>
+            <Text style={styles.formLabels}>Your pet's name (optional)</Text>
+            <TextInput
+              placeholder=""
+              autoCapitalize="none"
+              style={styles.input}
+              onChangeText={setPetName}
+            />
+            <Text style={styles.formLabels}>Where did you last see them?</Text>
             <View style={styles.location}>
               {/* once selected i.e. when location!null this needs to change to just display location */}
               <TouchableOpacity
@@ -307,7 +255,7 @@ export default function ReportSightingScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.formLabels}>Type of Animal: </Text>
+            <Text style={styles.formLabels}>What type of animal are they?</Text>
             <DropDownPicker
               open={open}
               value={animalType}
@@ -315,11 +263,22 @@ export default function ReportSightingScreen() {
               setOpen={setOpen}
               setValue={setValue}
               setItems={setItems}
-              placeholder="Select an animal..."
+              placeholder="Select..."
               listMode="SCROLLVIEW"
               style={styles.input}
             />
-            <Text style={styles.formLabels}>Color / Pattern: </Text>
+            <Text style={styles.formLabels}>
+              What breed are they? (optional)
+            </Text>
+            <TextInput
+              autoCapitalize="none"
+              style={styles.input}
+              placeholder="Please input breed"
+              onChangeText={setAnimalBreed}
+            />
+            <Text style={styles.formLabels}>
+              What color / pattern are they?
+            </Text>
             <TextInput
               autoCapitalize="none"
               style={styles.input}
@@ -327,22 +286,13 @@ export default function ReportSightingScreen() {
               onChangeText={setAnimalColor}
             />
 
-            <Text style={styles.formLabels}>Description: </Text>
+            <Text style={styles.formLabels}>More information: </Text>
             <TextInput
-              placeholder="Time of sighting, important info, behaviour etc."
+              placeholder="Any helpful info incase someone spots your pet"
               autoCapitalize="none"
-              style={styles.input}
-              onChangeText={setSightingDescription}
-            />
-
-            <Text style={styles.formLabels}>
-              Your contact info (optional):{" "}
-            </Text>
-            <TextInput
-              placeholder="+44 1234567890"
-              autoCapitalize="none"
-              style={styles.input}
-              onChangeText={setGuestContact}
+              style={styles.moreInfo}
+              onChangeText={setDescription}
+              multiline={true}
             />
           </View>
 
@@ -350,10 +300,11 @@ export default function ReportSightingScreen() {
             style={styles.submitButton}
             onPress={() =>
               submitForm(
+                petName,
                 animalType,
-                sightingDescription,
+                animalBreed,
+                description,
                 animalColor,
-                guestContact,
                 location,
                 selectedImage,
               )
@@ -521,5 +472,14 @@ const styles = StyleSheet.create({
     elevation: 5,
     justifyContent: "space-around",
     flexDirection: "row",
+  },
+  moreInfo: {
+    backgroundColor: theme.colors.secondary_light,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    fontSize: theme.fontSize.md,
+    marginBottom: theme.spacing.md,
+    color: theme.colors.text.secondary,
+    height: 100,
   },
 });
