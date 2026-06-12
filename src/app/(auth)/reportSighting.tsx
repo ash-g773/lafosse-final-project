@@ -1,4 +1,5 @@
 import { theme } from "@/global";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { router } from "expo-router";
@@ -124,38 +125,69 @@ export default function ReportSightingScreen() {
     // if (!sightingDescription || !location || !imageCloudinaryURL) {
     //   throw Alert.alert("Please fill in all required fields!");
     // }
+
+    const token = await AsyncStorage.getItem("token");
+
+    // decode userId from token if it exists
+    let userId: number | null = null;
+    if (token) {
+      try {
+        const payload = token.split(".")[1];
+        const decoded = JSON.parse(atob(payload));
+        console.log(decoded);
+        userId = decoded.users_id;
+      } catch {
+        userId = null;
+      }
+    }
+
     const fullSightingDescription = combineDescriptors(
       animalType,
       sightingDescription,
       animalColor,
     );
 
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    };
+
+    // only add auth header if token exists
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const options = {
       method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({
         guest_contact: guestContact ? guestContact : null,
         sighting_description: fullSightingDescription,
         lat: location ? location.coords.latitude : null,
         lng: location ? location.coords.longitude : null,
         image_url: "placeholder_img_url",
+        users_id: token ? userId : null,
       }),
     };
     console.log(options);
 
     try {
-      const response = await fetch("http://127.0.0.1:3000/sightings/", options);
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/sightings`,
+        options,
+      );
       const data = await response.json();
-      if (response.status == 200) {
+      if (response.status == 200 || response.status == 201) {
         //clear form
         Alert.alert(
           "Success!",
           "Your sighting report has been submitted successfully. Thank you for helping to bring community pets back home!",
         );
-        router.replace("/(auth)/landing");
+        if (token) {
+          router.replace("/(tabs)");
+        } else {
+          router.replace("/(auth)/landing");
+        }
       } else {
         Alert.alert(
           "Something went wrong...",
