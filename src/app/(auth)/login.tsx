@@ -1,6 +1,9 @@
 import { theme } from "@/global";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
+import { useState } from "react";
 import {
+  Alert,
   Image,
   StyleSheet,
   Text,
@@ -11,6 +14,43 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  // create a storage instance
+  // const storage = createAsyncStorage("appDB");
+
+  async function login(username: string, password: string) {
+    const options = {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: username,
+        password: password,
+      }),
+    };
+
+    const response = await fetch("http://127.0.0.1:3000/users/login", options);
+    const data = await response.json();
+
+    if (response.status == 200) {
+      try {
+        const jsonValue = JSON.stringify(data.token);
+        await AsyncStorage.setItem("token", jsonValue);
+        const test = await AsyncStorage.getItem("token");
+        console.log(test);
+      } catch (e) {
+        // saving error
+      }
+      router.replace("/(tabs)/index");
+    } else {
+      Alert.alert("Looks like there was a problem logging in..." + data.error);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Image
@@ -25,6 +65,7 @@ export default function LoginScreen() {
           <TextInput
             placeholder="Please enter your username"
             style={styles.input}
+            onChangeText={(text) => setUsername(text)}
             testID="username"
           />
           <Text style={styles.formLabels}>Password: </Text>
@@ -33,11 +74,15 @@ export default function LoginScreen() {
             secureTextEntry
             autoCapitalize="none"
             style={styles.input}
+            onChangeText={(text) => setPassword(text)}
             testID="password"
           />
         </View>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => login(username, password)}
+        >
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
 
@@ -56,7 +101,10 @@ export default function LoginScreen() {
         </View>
 
         <View>
-          <TouchableOpacity style={styles.toReport}>
+          <TouchableOpacity
+            style={styles.toReport}
+            onPress={() => router.replace("/(auth)/reportSighting")}
+          >
             <Text style={styles.buttonText}>Report a sighting</Text>
           </TouchableOpacity>
         </View>

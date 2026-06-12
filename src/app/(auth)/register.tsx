@@ -1,6 +1,8 @@
 import { theme } from "@/global";
 import { router } from "expo-router";
+import { useState } from "react";
 import {
+  Alert,
   Image,
   StyleSheet,
   Text,
@@ -11,6 +13,37 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RegisterScreen() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  async function register(username: string, password: string) {
+    const options = {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify({
+        username: username,
+        password: password,
+      }),
+    };
+    console.log(options);
+
+    const response = await fetch(
+      "http://127.0.0.1:3000/users/register",
+      options,
+    );
+    const data = await response.json();
+
+    if (response.status == 201) {
+      //after registering, go back to login page
+      Alert.alert("Successfully registered!");
+      router.replace("/(auth)/login");
+    } else {
+      Alert.alert("Looks like there was a problem registering...", data.error);
+    }
+  }
   return (
     <SafeAreaView style={styles.container}>
       <Image
@@ -28,6 +61,7 @@ export default function RegisterScreen() {
           <TextInput
             placeholder="Please enter a username"
             style={styles.input}
+            onChangeText={(text) => setUsername(text)}
             testID="username"
           />
           <Text style={styles.formLabels}>Password: </Text>
@@ -36,11 +70,17 @@ export default function RegisterScreen() {
             secureTextEntry
             autoCapitalize="none"
             style={styles.input}
+            onChangeText={(text) => setPassword(text)}
             testID="password"
           />
         </View>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            register(username, password);
+          }}
+        >
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
 
@@ -59,7 +99,10 @@ export default function RegisterScreen() {
         </View>
 
         <View>
-          <TouchableOpacity style={styles.toReport}>
+          <TouchableOpacity
+            style={styles.toReport}
+            onPress={() => router.replace("/(auth)/reportSighting")}
+          >
             <Text style={styles.buttonText}>Report a sighting</Text>
           </TouchableOpacity>
         </View>
