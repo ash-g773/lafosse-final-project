@@ -260,7 +260,7 @@ export default function MapScreen() {
             style={styles.menuBtn}
             onPress={() => {
               setMenuOpen(false);
-              router.push("./reportLost");
+              router.push("./lostPet");
             }}
           >
             <Text style={styles.menuText}>🐾 Report Lost Pet</Text>

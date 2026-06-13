@@ -1,4 +1,4 @@
-import { theme } from "@/global";
+import { theme } from "@/themes";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { router } from "expo-router";
@@ -183,7 +183,7 @@ export default function LostPetScreen() {
         <View style={styles.sightingForm}>
           <View style={styles.uploadImage}>
             <Text style={styles.subtitle}>
-              Please upload a photo of the sighting:
+              Please upload a photo of your pet:
             </Text>
             <TouchableOpacity style={styles.button} onPress={pickImage}>
               <Image
