@@ -264,11 +264,14 @@ export default function ReportSightingScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Text style={styles.buttonText}>Back</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.toReport}
           onPress={() => router.replace("/(auth)/login")}
         >
-          <Text style={styles.buttonText}>Login / Register</Text>
+          <Text style={styles.buttonText}>Log in / Register</Text>
         </TouchableOpacity>
 
         <Image
@@ -509,6 +512,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: theme.spacing.lg,
     margin: theme.spacing.lg,
+  },
+  backBtn: {
+    height: 25,
+    width: 80,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.borderRadius.md,
+    alignItems: "center",
+    marginTop: theme.spacing.md,
   },
   uploadImage: {},
   topBar: {
