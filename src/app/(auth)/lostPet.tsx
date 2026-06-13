@@ -1,4 +1,5 @@
 import { theme } from "@/themes";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { router } from "expo-router";
@@ -16,6 +17,7 @@ import {
   View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
+import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LostPetScreen() {
@@ -33,6 +35,17 @@ export default function LostPetScreen() {
   const [location, setLocation] = useState<Location.LocationObject | undefined>(
     undefined,
   );
+  const [region, setRegion] = useState<Region>({
+    latitude: 51.5074, // default to central london while loading
+    longitude: -0.1278,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  });
+  const [selectedLocation, setSelectedLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   async function getCurrentLocation() {
@@ -99,6 +112,9 @@ export default function LostPetScreen() {
   //set animal color
   const [animalColor, setAnimalColor] = useState<string | undefined>(undefined);
 
+  //loading state
+  const [submitting, setSubmitting] = useState(false);
+
   // sending the filled out form
   /*POST req, /pets, - creates a new lost pet post, 
   Request Body = {"users_id":1, "name":"random_name", "species":"random_species", "breed":"random_breed", 
@@ -117,50 +133,69 @@ export default function LostPetScreen() {
     // if (!sightingDescription || !location || !imageCloudinaryURL) {
     //   throw Alert.alert("Please fill in all required fields!");
     // }
-    const options = {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        // user_id: userID, --- need to figure out how this is carried through
-        name: petName ? petName : null,
-        species: animalType ? animalType : null,
-        breed: animalBreed ? animalBreed : null,
-        color: animalColor ? animalColor : null,
-        description: description,
-        // last_seen_location: --- ?
-        lat: location ? location.coords.latitude : null,
-        lng: location ? location.coords.longitude : null,
-        image_url: "placeholder_img_url",
-      }),
-    };
-    console.log(options);
-
+    setSubmitting(true);
     try {
-      // const response = await fetch("http://127.0.0.1:3000/sightings/", options);
-      const response = { status: 200 };
-      // const data = await response.json();
-      if (response.status == 200) {
-        //clear form
+      const token = await AsyncStorage.getItem("token");
+
+      let userId: number | null = null;
+      if (token) {
+        try {
+          const payload = token.split(".")[1];
+          const decoded = JSON.parse(atob(payload));
+          userId = decoded.users_id;
+        } catch {
+          userId = null;
+        }
+      }
+
+      const options = {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({
+          users_id: userId,
+          name: petName ?? null,
+          species: animalType ?? null,
+          breed: animalBreed ?? null,
+          colour: animalColor ?? null, // note: your schema uses 'colour' not 'color'
+          description: description ?? null,
+          lat: selectedLocation
+            ? selectedLocation.latitude
+            : (location?.coords.latitude ?? null),
+          lng: selectedLocation
+            ? selectedLocation.longitude
+            : (location?.coords.longitude ?? null),
+          image_url: "placeholder_img_url",
+        }),
+      };
+
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/pets`,
+        options,
+      );
+      const data = await response.json();
+
+      if (response.status === 200 || response.status === 201) {
         Alert.alert(
           "Report created",
           "Your lost pet report has been submitted successfully. We hope you are reunited soon!",
         );
-        router.replace("/(auth)/landing");
+        router.replace("/(tabs)" as any);
       } else {
         Alert.alert(
           "Something went wrong...",
           "Your lost pet report was not successfully created. Please try again later.",
-          // data.error,
         );
       }
     } catch (e) {
       console.log(e);
+    } finally {
+      setSubmitting(false);
     }
   }
-
   // rendering the actual page
   return (
     <SafeAreaView style={styles.container}>
@@ -212,10 +247,19 @@ export default function LostPetScreen() {
             <View style={styles.location}>
               {/* once selected i.e. when location!null this needs to change to just display location */}
               <TouchableOpacity
-                style={styles.locationButton}
+                style={[
+                  styles.locationButton,
+                  location &&
+                    !selectedLocation &&
+                    styles.locationButtonSelected,
+                ]}
                 onPress={() => getCurrentLocation()}
               >
-                <Text style={styles.buttonText}>At my current location</Text>
+                <Text style={styles.buttonText}>
+                  {location && !selectedLocation
+                    ? "✓ Current location"
+                    : "At my current location"}
+                </Text>
               </TouchableOpacity>
 
               <Modal
@@ -233,25 +277,80 @@ export default function LostPetScreen() {
                       Please select the location of the sighting on the map (use
                       two fingers to move)
                     </Text>
-                    <View>
-                      <Text> MAP GOES HERE </Text>
-                    </View>
+                    <MapView
+                      style={styles.map}
+                      provider={PROVIDER_GOOGLE}
+                      region={region}
+                      showsUserLocation={true} // show blue dot
+                      showsMyLocationButton={true} // show recentre button
+                      onUserLocationChange={() => {}}
+                      onPress={(e) =>
+                        setSelectedLocation(e.nativeEvent.coordinate)
+                      }
+                    >
+                      {selectedLocation && (
+                        <Marker
+                          coordinate={selectedLocation}
+                          draggable={true} // lets user drag pin after placing it
+                          onDragEnd={(e) => {
+                            // update location when pin is dragged
+                            setSelectedLocation(e.nativeEvent.coordinate);
+                          }}
+                          pinColor={theme.colors.accent}
+                        />
+                      )}
+                    </MapView>
+                    {selectedLocation && (
+                      <Text style={styles.locationConfirmed}>
+                        📍 Location selected — drag the pin to adjust
+                      </Text>
+                    )}
+
                     <Pressable
                       style={styles.button}
-                      onPress={() => setModalVisible(!modalVisible)}
+                      onPress={() => {
+                        if (selectedLocation) {
+                          // save the map selection as the sighting location
+                          setLocation({
+                            coords: {
+                              latitude: selectedLocation.latitude,
+                              longitude: selectedLocation.longitude,
+                              altitude: null,
+                              accuracy: null,
+                              altitudeAccuracy: null,
+                              heading: null,
+                              speed: null,
+                            },
+                            timestamp: Date.now(),
+                          } as Location.LocationObject);
+                          console.log(
+                            "coords:",
+                            selectedLocation.latitude,
+                            selectedLocation.longitude,
+                          );
+                        }
+                        setModalVisible(false);
+                      }}
                     >
                       <Text style={styles.buttonText}>
-                        Submit location and close map
+                        {selectedLocation ? "Confirm location" : "Close map"}
                       </Text>
                     </Pressable>
                   </View>
                 </View>
               </Modal>
               <TouchableOpacity
-                style={styles.locationButton}
+                style={[
+                  styles.locationButton,
+                  selectedLocation && styles.locationButtonSelected,
+                ]}
                 onPress={() => setModalVisible(true)}
               >
-                <Text style={styles.buttonText}>Somewhere else (open map)</Text>
+                <Text style={styles.buttonText}>
+                  {selectedLocation
+                    ? "✓ Location pinned"
+                    : "Somewhere else (open map)"}
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -297,7 +396,7 @@ export default function LostPetScreen() {
           </View>
 
           <TouchableOpacity
-            style={styles.submitButton}
+            style={[styles.submitButton, submitting && { opacity: 0.6 }]}
             onPress={() =>
               submitForm(
                 petName,
@@ -309,8 +408,11 @@ export default function LostPetScreen() {
                 selectedImage,
               )
             }
+            disabled={submitting}
           >
-            <Text style={styles.buttonText}>Submit</Text>
+            <Text style={styles.buttonText}>
+              {submitting ? "Submitting..." : "Submit"}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -481,5 +583,18 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     color: theme.colors.text.secondary,
     height: 100,
+  },
+  locationConfirmed: {
+    color: theme.colors.text.light,
+    textAlign: "center",
+    marginTop: theme.spacing.sm,
+    fontSize: theme.fontSize.md,
+  },
+  locationButtonSelected: {
+    backgroundColor: theme.colors.success,
+  },
+  map: {
+    height: 500,
+    width: 300,
   },
 });

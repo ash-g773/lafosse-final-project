@@ -328,10 +328,19 @@ export default function ReportSightingScreen() {
             <View style={styles.location}>
               {/* once selected i.e. when location!null this needs to change to just display location */}
               <TouchableOpacity
-                style={styles.locationButton}
+                style={[
+                  styles.locationButton,
+                  location &&
+                    !selectedLocation &&
+                    styles.locationButtonSelected,
+                ]}
                 onPress={() => getCurrentLocation()}
               >
-                <Text style={styles.buttonText}>At my current location</Text>
+                <Text style={styles.buttonText}>
+                  {location && !selectedLocation
+                    ? "✓ Current location"
+                    : "At my current location"}
+                </Text>
               </TouchableOpacity>
 
               <Modal
@@ -413,10 +422,17 @@ export default function ReportSightingScreen() {
                 </View>
               </Modal>
               <TouchableOpacity
-                style={styles.locationButton}
+                style={[
+                  styles.locationButton,
+                  selectedLocation && styles.locationButtonSelected,
+                ]}
                 onPress={() => setModalVisible(true)}
               >
-                <Text style={styles.buttonText}>Somewhere else (open map)</Text>
+                <Text style={styles.buttonText}>
+                  {selectedLocation
+                    ? "✓ Location pinned"
+                    : "Somewhere else (open map)"}
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -644,5 +660,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: theme.spacing.sm,
     fontSize: theme.fontSize.md,
+  },
+  locationButtonSelected: {
+    backgroundColor: theme.colors.success,
   },
 });

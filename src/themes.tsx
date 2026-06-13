@@ -1,17 +1,17 @@
 export const theme = {
   colors: {
-    primary: "#34A0A4", // main
-    secondary: "#76C893", // light backgrounds
-    tertiary: "#563929",
-    accent: "#C1440E", // alerts, lost pet pins
-    success: "#4A7C59", // reunited pins
-    secondary_light: "#52B69A",
+    primary: "#2D6A7F", // slate blue-teal
+    secondary: "#83C5BE", // soft sage-teal
+    tertiary: "#006D77", // deeper teal
+    accent: "#E29578", // warm coral (softer than red)
+    success: "#52B69A", // mint green
+    secondary_light: "#EDF6F9",
     text: {
-      primary: "#1C2B2D",
-      secondary: "#5C6B6D",
+      primary: "#1B262C", // near black with blue tint
+      secondary: "#5E8A96", // muted teal-grey
       light: "#FFFFFF",
     },
-    background: "#F2F0EB",
+    background: "#EDF6F9", // very pale teal
     card: "#FFFFFF",
   },
   spacing: {
