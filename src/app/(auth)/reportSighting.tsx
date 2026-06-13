@@ -627,6 +627,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
     justifyContent: "space-between",
+    borderRadius: 20,
   },
   mapMessage: {
     marginTop: theme.spacing.xs,
