@@ -544,13 +544,14 @@ const styles = StyleSheet.create({
     alignItems: "stretch",
   },
   locationButton: {
-    width: "40%",
+    width: "45%",
     justifyContent: "center",
     alignItems: "center",
     marginTop: theme.spacing.sm,
     backgroundColor: theme.colors.primary,
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
+    minHeight: 60,
   },
   formLabels: {
     marginTop: theme.spacing.xs,
