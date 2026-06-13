@@ -17,7 +17,7 @@ import {
   View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
-import MapView, { PROVIDER_GOOGLE, Region } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ReportSightingScreen() {
@@ -117,6 +117,11 @@ export default function ReportSightingScreen() {
     longitudeDelta: 0.01,
   });
 
+  const [selectedLocation, setSelectedLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
   useEffect(() => {
     async function getLocation() {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -186,8 +191,12 @@ export default function ReportSightingScreen() {
       body: JSON.stringify({
         guest_contact: guestContact ? guestContact : null,
         sighting_description: fullSightingDescription,
-        lat: location ? location.coords.latitude : null,
-        lng: location ? location.coords.longitude : null,
+        lat: selectedLocation
+          ? selectedLocation.latitude
+          : (location?.coords.latitude ?? null),
+        lng: selectedLocation
+          ? selectedLocation.longitude
+          : (location?.coords.longitude ?? null),
         image_url: "placeholder_img_url",
         users_id: token ? userId : null,
       }),
@@ -348,14 +357,56 @@ export default function ReportSightingScreen() {
                       showsUserLocation={true} // show blue dot
                       showsMyLocationButton={true} // show recentre button
                       onUserLocationChange={() => {}}
-                    ></MapView>
+                      onPress={(e) =>
+                        setSelectedLocation(e.nativeEvent.coordinate)
+                      }
+                    >
+                      {selectedLocation && (
+                        <Marker
+                          coordinate={selectedLocation}
+                          draggable={true} // lets user drag pin after placing it
+                          onDragEnd={(e) => {
+                            // update location when pin is dragged
+                            setSelectedLocation(e.nativeEvent.coordinate);
+                          }}
+                          pinColor={theme.colors.accent}
+                        />
+                      )}
+                    </MapView>
+                    {selectedLocation && (
+                      <Text style={styles.locationConfirmed}>
+                        📍 Location selected — drag the pin to adjust
+                      </Text>
+                    )}
 
                     <Pressable
                       style={styles.button}
-                      onPress={() => setModalVisible(!modalVisible)}
+                      onPress={() => {
+                        if (selectedLocation) {
+                          // save the map selection as the sighting location
+                          setLocation({
+                            coords: {
+                              latitude: selectedLocation.latitude,
+                              longitude: selectedLocation.longitude,
+                              altitude: null,
+                              accuracy: null,
+                              altitudeAccuracy: null,
+                              heading: null,
+                              speed: null,
+                            },
+                            timestamp: Date.now(),
+                          } as Location.LocationObject);
+                          console.log(
+                            "coords:",
+                            selectedLocation.latitude,
+                            selectedLocation.longitude,
+                          );
+                        }
+                        setModalVisible(false);
+                      }}
                     >
                       <Text style={styles.buttonText}>
-                        Submit location and close map
+                        {selectedLocation ? "Confirm location" : "Close map"}
                       </Text>
                     </Pressable>
                   </View>
@@ -587,5 +638,11 @@ const styles = StyleSheet.create({
     elevation: 5,
     justifyContent: "space-around",
     flexDirection: "row",
+  },
+  locationConfirmed: {
+    color: theme.colors.text.light,
+    textAlign: "center",
+    marginTop: theme.spacing.sm,
+    fontSize: theme.fontSize.md,
   },
 });
