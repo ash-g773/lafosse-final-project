@@ -54,5 +54,18 @@
     "supertest": "^7.2.2",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ash-g773/lafosse-final-project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ash-g773/lafosse-final-project/issues"
+  },
+  "homepage": "https://github.com/ash-g773/lafosse-final-project#readme"
 }
