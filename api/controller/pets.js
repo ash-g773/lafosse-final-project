@@ -34,7 +34,7 @@ async function create(req, res) {
     await Alert.createForAllUsers(
       newPet.pets_id,
       "lost",
-      `Lost ${newPet.species}: ${newPet.name}${newPet.colour ? " · " + newPet.colour : ""} near ${newPet.last_seen_location || "unknown location"}`
+      `Lost ${newPet.species}: ${newPet.name}${newPet.colour ? " · " + newPet.colour : ""} near ${newPet.last_seen_location}`
     )
 
     res.status(201).json(newPet)
