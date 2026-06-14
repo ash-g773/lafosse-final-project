@@ -34,7 +34,7 @@ CREATE TABLE pets (
     breed VARCHAR(100),
     colour VARCHAR(100),
     description TEXT,
-    last_seen_location TEXT,
+    last_seen_location TEXT NOT NULL,
     lat DECIMAL(9,6) NOT NULL,
     lng DECIMAL(9,6) NOT NULL,
     image_url TEXT,
