@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
@@ -60,6 +60,21 @@ export default function LostPetScreen() {
     console.log(location);
     console.log(errorMsg);
   }
+
+  useEffect(() => {
+    async function getLocation() {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
+      const location = await Location.getCurrentPositionAsync({});
+      setRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    }
+    getLocation();
+  }, []);
 
   // open gallery or camera + select image
   const [selectedImage, setSelectedImage] = useState<string | undefined>(
@@ -200,6 +215,13 @@ export default function LostPetScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => router.replace("/(tabs)")}
+        >
+          <Text style={styles.buttonText}>Back</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.toReport}
           onPress={() => router.replace("/(tabs)/profile")}
@@ -468,13 +490,14 @@ const styles = StyleSheet.create({
     alignItems: "stretch",
   },
   locationButton: {
-    width: "40%",
+    width: "45%",
     justifyContent: "center",
     alignItems: "center",
     marginTop: theme.spacing.sm,
     backgroundColor: theme.colors.primary,
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
+    minHeight: 60,
   },
   formLabels: {
     marginTop: theme.spacing.xs,
@@ -520,10 +543,19 @@ const styles = StyleSheet.create({
   logo: {
     width: 50,
     height: 50,
+    borderRadius: 10,
   },
   toReport: {
     height: 25,
     width: 200,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.borderRadius.md,
+    alignItems: "center",
+    marginTop: theme.spacing.md,
+  },
+  backBtn: {
+    height: 25,
+    width: 80,
     backgroundColor: theme.colors.secondary,
     borderRadius: theme.borderRadius.md,
     alignItems: "center",
@@ -550,6 +582,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
     justifyContent: "space-between",
+    borderRadius: 20,
   },
   mapMessage: {
     marginTop: theme.spacing.xs,

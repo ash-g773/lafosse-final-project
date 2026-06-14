@@ -264,11 +264,14 @@ export default function ReportSightingScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Text style={styles.buttonText}>Back</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.toReport}
           onPress={() => router.replace("/(auth)/login")}
         >
-          <Text style={styles.buttonText}>Login / Register</Text>
+          <Text style={styles.buttonText}>Log in / Register</Text>
         </TouchableOpacity>
 
         <Image
@@ -510,6 +513,14 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     margin: theme.spacing.lg,
   },
+  backBtn: {
+    height: 25,
+    width: 80,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.borderRadius.md,
+    alignItems: "center",
+    marginTop: theme.spacing.md,
+  },
   uploadImage: {},
   topBar: {
     marginTop: theme.spacing.lg,
@@ -544,13 +555,14 @@ const styles = StyleSheet.create({
     alignItems: "stretch",
   },
   locationButton: {
-    width: "40%",
+    width: "45%",
     justifyContent: "center",
     alignItems: "center",
     marginTop: theme.spacing.sm,
     backgroundColor: theme.colors.primary,
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
+    minHeight: 60,
   },
   formLabels: {
     marginTop: theme.spacing.xs,
@@ -626,6 +638,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
     justifyContent: "space-between",
+    borderRadius: 20,
   },
   mapMessage: {
     marginTop: theme.spacing.xs,
