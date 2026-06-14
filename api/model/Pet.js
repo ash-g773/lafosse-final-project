@@ -18,6 +18,7 @@ class Pet {
   }
 
 
+
   static async getAll() {
     const response = await db.query("SELECT * FROM pets ORDER BY created_at DESC;");
     if (response.rows.length === 0) {
@@ -42,6 +43,19 @@ class Pet {
        RETURNING *;`,
       [users_id, name, species, breed, colour, description, last_seen_location, lat, lng, image_url]
     );
+    return new Pet(response.rows[0]);
+  }
+
+  async update(data) {
+    const response = await db.query(
+      "UPDATE pets SET status = $1 WHERE pets_id = $2 RETURNING *;",
+      [data.status, this.pets_id]
+    );
+
+    if (response.rows.length !== 1) {
+      throw new Error("Unable to update pet status.");
+    }
+
     return new Pet(response.rows[0]);
   }
 }

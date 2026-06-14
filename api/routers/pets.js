@@ -8,5 +8,6 @@ const petRouter = Router();
 petRouter.get("/", petController.index);
 petRouter.get("/:id", petController.show);
 petRouter.post("/", authenticator, upload.single("image"), petController.create);
+petRouter.patch("/:id/status", authenticator, petController.update);
  
 module.exports = petRouter;
