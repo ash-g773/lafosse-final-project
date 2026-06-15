@@ -154,9 +154,9 @@ export default function ReportSightingScreen() {
     // if (!sightingDescription || !location || !imageCloudinaryURL) {
     //   throw Alert.alert("Please fill in all required fields!");
     // }
+    console.log("submitForm started");
 
     const token = await AsyncStorage.getItem("token");
-    console.log("Token in AsyncStorage:", token);
 
     // decode userId from token if it exists
     let userId: number | null = null;
@@ -170,10 +170,7 @@ export default function ReportSightingScreen() {
         userId = null;
       }
     }
-    const headers: Record<string, string> = {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    };
+
     setSubmitting(true);
     try {
       const fullSightingDescription = combineDescriptors(
@@ -183,6 +180,9 @@ export default function ReportSightingScreen() {
       );
 
       // only add auth header if token exists
+      const headers: Record<string, string> = {
+        Accept: "application/json",
+      };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -205,15 +205,20 @@ export default function ReportSightingScreen() {
       formData.append("lat", location ? String(location.coords.latitude) : "");
       formData.append("lng", location ? String(location.coords.longitude) : "");
 
+      console.log("About to POST to backend");
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_API_URL}/sightings/`,
         {
           method: "POST",
+          headers,
           body: formData,
         },
       );
 
+      console.log("Response status:", response.status);
+
       const data = await response.json();
+      console.log("Response body:", data);
 
       if (response.status === 201) {
         Alert.alert(
@@ -487,7 +492,8 @@ export default function ReportSightingScreen() {
 
           <TouchableOpacity
             style={[styles.submitButton, submitting && { opacity: 0.6 }]}
-            onPress={() =>
+            onPress={() => {
+              console.log("submit button pressed");
               submitForm(
                 animalType,
                 sightingDescription,
@@ -495,8 +501,8 @@ export default function ReportSightingScreen() {
                 guestContact,
                 location,
                 selectedImage,
-              )
-            }
+              );
+            }}
             disabled={submitting}
           >
             <Text style={styles.buttonText}>
