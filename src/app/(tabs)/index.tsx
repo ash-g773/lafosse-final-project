@@ -129,7 +129,7 @@ export default function MapScreen() {
       console.error("Failed to load auth:", e);
     }
   }
-  
+
   async function fetchAlerts() {
     try {
       const stored = await AsyncStorage.getItem("token");
@@ -143,6 +143,27 @@ export default function MapScreen() {
       setUnreadCount(data.data.filter((a: any) => !a.is_read).length);
     } catch (err) {
       console.error("Failed to fetch alerts:", err);
+    }
+  }
+
+  async function markAlertAsRead(alerts_id: number) {
+    try {
+      const stored = await AsyncStorage.getItem("token");
+      await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/alerts/${alerts_id}/read`,
+        {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${stored}` },
+        },
+      );
+      setAlerts((prev) =>
+        prev.map((a) =>
+          a.alerts_id === alerts_id ? { ...a, is_read: true } : a,
+        ),
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error("Failed to mark alert as read:", err);
     }
   }
 
