@@ -200,24 +200,26 @@ export default function MapScreen() {
         showsMyLocationButton={true} // show recentre button
         onUserLocationChange={() => {}}
       >
-        {lostPets.map((Pet) => (
-          <Marker
-            key={`pet-${Pet.pets_id}`}
-            testID={`pet-marker-${Pet.pets_id}`}
-            coordinate={{
-              latitude: parseFloat(Pet.lat),
-              longitude: parseFloat(Pet.lng),
-            }}
-            title={Pet.name}
-            description={Pet.description || ""}
-            pinColor={theme.colors.accent}
-            onPress={() => {
-              setSelectedPet(Pet);
-              setModalVisible(true);
-              setModalType("pet");
-            }}
-          />
-        ))}
+        {lostPets
+          .filter((Pet) => Pet.status === "lost")
+          .map((Pet) => (
+            <Marker
+              key={`pet-${Pet.pets_id}`}
+              testID={`pet-marker-${Pet.pets_id}`}
+              coordinate={{
+                latitude: parseFloat(Pet.lat),
+                longitude: parseFloat(Pet.lng),
+              }}
+              title={Pet.name}
+              description={Pet.description || ""}
+              pinColor={theme.colors.accent}
+              onPress={() => {
+                setSelectedPet(Pet);
+                setModalVisible(true);
+                setModalType("pet");
+              }}
+            />
+          ))}
 
         {sightings.map((sighting) => (
           <Marker
