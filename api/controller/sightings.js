@@ -1,4 +1,5 @@
 const Sighting = require("../model/Sighting");
+const Alert = require("../model/Alert")
 const uploadToCloudinary = require('../utils/cloudinary.utils')
 
 async function index(req, res) {
@@ -21,18 +22,24 @@ async function show(req, res) {
 }
 
 async function create(req, res) {
-    try {
-        const data = req.body
-        if (req.file) {
-            data.image_url = await uploadToCloudinary(req.file.buffer)
-        } else {
-            data.image_url = null
-        }
-        const newSighting = await Sighting.create(data);
-        res.status(201).json(newSighting);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
+  try {
+    const data = req.body
+    if (req.file) {
+      data.image_url = await uploadToCloudinary(req.file.buffer)
+    } else {
+      data.image_url = null
     }
-}
+    const newSighting = await Sighting.create(data)
 
+    await Alert.createForAllUsers(
+      newSighting.pets_id,
+      "sighting",
+      `New sighting reported: ${newSighting.sighting_description?.slice(0, 80) || "unknown animal"}`
+    )
+
+    res.status(201).json(newSighting)
+  } catch (err) {
+    res.status(400).json({ error: err.message })
+  }
+}
 module.exports = { index, show, create };

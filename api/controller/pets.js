@@ -1,4 +1,5 @@
 const Pet = require("../model/Pet");
+const Alert = require("../model/Alert")
 const uploadToCloudinary = require('../utils/cloudinary.utils')
 
 async function index(req, res) {
@@ -21,19 +22,26 @@ async function show(req, res) {
 }
 
 async function create(req, res) {
-    try {
-        const data = req.body
-        if (req.file) {
-            data.image_url = await uploadToCloudinary(req.file.buffer)
-        } else {
-            data.image_url = null
-        }
-        const newPet = await Pet.create(data);
-        res.status(201).json(newPet);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }  
-} 
+  try {
+    const data = req.body
+    if (req.file) {
+      data.image_url = await uploadToCloudinary(req.file.buffer)
+    } else {
+      data.image_url = null
+    }
+    const newPet = await Pet.create(data)
+
+    await Alert.createForAllUsers(
+      newPet.pets_id,
+      "lost",
+      `Lost ${newPet.species}: ${newPet.name}${newPet.colour ? " · " + newPet.colour : ""} near ${newPet.last_seen_location}`
+    )
+
+    res.status(201).json(newPet)
+  } catch (err) {
+    res.status(400).json({ error: err.message })
+  }
+}
 
 async function update(req, res) {
   try {
