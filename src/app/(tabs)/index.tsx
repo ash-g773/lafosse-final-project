@@ -357,7 +357,8 @@ export default function MapScreen() {
             (setAlertsModalVisible(true), fetchAlerts());
           }}
         >
-          <Text>alerts 🔔</Text>
+          <Text>Alerts</Text>
+          <Text>🔔</Text>
           {unreadCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{unreadCount}</Text>
