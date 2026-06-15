@@ -155,7 +155,7 @@ export default function MapScreen() {
   }
 }
 
-  async function markAlertAsRead(alerts_id: number) {
+  async function markAlertAsRead(alerts_id: number, pets_id: number | null, alert_type: string) {
     try {
       const stored = await AsyncStorage.getItem("token");
       await fetch(
@@ -171,6 +171,24 @@ export default function MapScreen() {
         ),
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
+
+      // close alerts modal
+      setAlertsModalVisible(false);
+
+      // navigate to the relevant pet or sighting
+      if (alert_type === "lost" && pets_id) {
+        const response = await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/pets/${pets_id}`,
+          { headers: { Authorization: `Bearer ${stored}` } },
+        );
+        const data = await response.json();
+        setSelectedPet(data);
+        setModalType("pet");
+        setModalVisible(true);
+      } else if (alert_type === "sighting") {
+        // for sightings, just refresh the map so the pin is visible
+        fetchMapData();
+      }
     } catch (err) {
       console.error("Failed to mark alert as read:", err);
     }
@@ -409,7 +427,7 @@ export default function MapScreen() {
                       styles.alertRow,
                       !alert.is_read && styles.alertRowUnread,
                     ]}
-                    onPress={() => markAlertAsRead(alert.alerts_id)}
+                    onPress={() => markAlertAsRead(alert.alerts_id, alert.pets_id, alert.alert_type)}
                   >
                     <Text style={styles.alertIcon}>
                       {alert.alert_type === "lost" ? "🔴" : "🟢"}
