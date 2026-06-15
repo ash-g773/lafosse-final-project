@@ -225,6 +225,13 @@ export default function MapScreen() {
     NavigationBar.setVisibilityAsync("hidden")
   }, [])
 
+  useEffect(() => {
+  if (!userId || !token) return;
+  fetchAlerts();
+  const interval = setInterval(fetchAlerts, 30000);
+  return () => clearInterval(interval);
+}, [userId, token]);
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
