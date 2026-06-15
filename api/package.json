@@ -9,6 +9,8 @@
     "setup-db": "node ./database/setup.js",
     "test": "jest --watchAll --detectOpenHandles --runInBand --verbose",
     "unitTests": "jest --testPathPatterns=/unit/ --watchAll --verbose",
+    "unitTests:models": "jest --testPathPatterns=/unit/models/ --verbose",
+    "unitTests:controllers": "jest --testPathPatterns=/unit/controllers/ --verbose",
     "integrationTests": "jest --testPathPatterns=/integration/ --watchAll --detectOpenHandles --runInBand --verbose",
     "coverage": "jest --coverage --testPathPatterns=/unit/"
   },
@@ -21,6 +23,7 @@
     "cloudinary": "^2.10.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
+    "expo-router": "~55.0.16",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.11.0",

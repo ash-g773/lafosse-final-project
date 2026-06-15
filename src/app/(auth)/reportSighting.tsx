@@ -17,7 +17,7 @@ import {
   View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
-import MapView, { PROVIDER_GOOGLE, Region } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ReportSightingScreen() {
@@ -117,6 +117,11 @@ export default function ReportSightingScreen() {
     longitudeDelta: 0.01,
   });
 
+  const [selectedLocation, setSelectedLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
   useEffect(() => {
     async function getLocation() {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -186,8 +191,12 @@ export default function ReportSightingScreen() {
       body: JSON.stringify({
         guest_contact: guestContact ? guestContact : null,
         sighting_description: fullSightingDescription,
-        lat: location ? location.coords.latitude : null,
-        lng: location ? location.coords.longitude : null,
+        lat: selectedLocation
+          ? selectedLocation.latitude
+          : (location?.coords.latitude ?? null),
+        lng: selectedLocation
+          ? selectedLocation.longitude
+          : (location?.coords.longitude ?? null),
         image_url: "placeholder_img_url",
         users_id: token ? userId : null,
       }),
@@ -255,11 +264,14 @@ export default function ReportSightingScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Text style={styles.buttonText}>Back</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.toReport}
           onPress={() => router.replace("/(auth)/login")}
         >
-          <Text style={styles.buttonText}>Login / Register</Text>
+          <Text style={styles.buttonText}>Log in / Register</Text>
         </TouchableOpacity>
 
         <Image
@@ -319,10 +331,19 @@ export default function ReportSightingScreen() {
             <View style={styles.location}>
               {/* once selected i.e. when location!null this needs to change to just display location */}
               <TouchableOpacity
-                style={styles.locationButton}
+                style={[
+                  styles.locationButton,
+                  location &&
+                    !selectedLocation &&
+                    styles.locationButtonSelected,
+                ]}
                 onPress={() => getCurrentLocation()}
               >
-                <Text style={styles.buttonText}>At my current location</Text>
+                <Text style={styles.buttonText}>
+                  {location && !selectedLocation
+                    ? "✓ Current location"
+                    : "At my current location"}
+                </Text>
               </TouchableOpacity>
 
               <Modal
@@ -348,24 +369,73 @@ export default function ReportSightingScreen() {
                       showsUserLocation={true} // show blue dot
                       showsMyLocationButton={true} // show recentre button
                       onUserLocationChange={() => {}}
-                    ></MapView>
+                      onPress={(e) =>
+                        setSelectedLocation(e.nativeEvent.coordinate)
+                      }
+                    >
+                      {selectedLocation && (
+                        <Marker
+                          coordinate={selectedLocation}
+                          draggable={true} // lets user drag pin after placing it
+                          onDragEnd={(e) => {
+                            // update location when pin is dragged
+                            setSelectedLocation(e.nativeEvent.coordinate);
+                          }}
+                          pinColor={theme.colors.accent}
+                        />
+                      )}
+                    </MapView>
+                    {selectedLocation && (
+                      <Text style={styles.locationConfirmed}>
+                        📍 Location selected — drag the pin to adjust
+                      </Text>
+                    )}
 
                     <Pressable
                       style={styles.button}
-                      onPress={() => setModalVisible(!modalVisible)}
+                      onPress={() => {
+                        if (selectedLocation) {
+                          // save the map selection as the sighting location
+                          setLocation({
+                            coords: {
+                              latitude: selectedLocation.latitude,
+                              longitude: selectedLocation.longitude,
+                              altitude: null,
+                              accuracy: null,
+                              altitudeAccuracy: null,
+                              heading: null,
+                              speed: null,
+                            },
+                            timestamp: Date.now(),
+                          } as Location.LocationObject);
+                          console.log(
+                            "coords:",
+                            selectedLocation.latitude,
+                            selectedLocation.longitude,
+                          );
+                        }
+                        setModalVisible(false);
+                      }}
                     >
                       <Text style={styles.buttonText}>
-                        Submit location and close map
+                        {selectedLocation ? "Confirm location" : "Close map"}
                       </Text>
                     </Pressable>
                   </View>
                 </View>
               </Modal>
               <TouchableOpacity
-                style={styles.locationButton}
+                style={[
+                  styles.locationButton,
+                  selectedLocation && styles.locationButtonSelected,
+                ]}
                 onPress={() => setModalVisible(true)}
               >
-                <Text style={styles.buttonText}>Somewhere else (open map)</Text>
+                <Text style={styles.buttonText}>
+                  {selectedLocation
+                    ? "✓ Location pinned"
+                    : "Somewhere else (open map)"}
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -443,6 +513,14 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     margin: theme.spacing.lg,
   },
+  backBtn: {
+    height: 25,
+    width: 80,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.borderRadius.md,
+    alignItems: "center",
+    marginTop: theme.spacing.md,
+  },
   uploadImage: {},
   topBar: {
     marginTop: theme.spacing.lg,
@@ -477,13 +555,14 @@ const styles = StyleSheet.create({
     alignItems: "stretch",
   },
   locationButton: {
-    width: "40%",
+    width: "45%",
     justifyContent: "center",
     alignItems: "center",
     marginTop: theme.spacing.sm,
     backgroundColor: theme.colors.primary,
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
+    minHeight: 60,
   },
   formLabels: {
     marginTop: theme.spacing.xs,
@@ -559,6 +638,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
     justifyContent: "space-between",
+    borderRadius: 20,
   },
   mapMessage: {
     marginTop: theme.spacing.xs,
@@ -587,5 +667,14 @@ const styles = StyleSheet.create({
     elevation: 5,
     justifyContent: "space-around",
     flexDirection: "row",
+  },
+  locationConfirmed: {
+    color: theme.colors.text.light,
+    textAlign: "center",
+    marginTop: theme.spacing.sm,
+    fontSize: theme.fontSize.md,
+  },
+  locationButtonSelected: {
+    backgroundColor: theme.colors.success,
   },
 });
