@@ -123,6 +123,37 @@ describe('Pets controller', () => {
       expect(mockJson).toHaveBeenCalledWith({ error: 'oh no' })
     })
   });
+
+describe('update', () => {
+  it('should update a pet status and return it with a 200 status code', async () => {
+    // Arrange
+    const existingPet = { pets_id: 1, users_id: 1, name: 'Fluffy', species: 'cat', breed: 'Persian', colour: 'white', description: 'fluffy cat', last_seen_location: 'London', lat: 51.5, lng: -0.1, image_url: 'http://example.com/1.jpg', status: 'lost', created_at: new Date() }
+    const updatedPet = { ...existingPet, status: 'reunited' }
+    const mockReq = { params: { id: 1 }, body: { status: 'reunited' } }
+
+    jest.spyOn(Pet, 'getOneById').mockResolvedValue(new Pet(existingPet))
+    jest.spyOn(Pet.prototype, 'update').mockResolvedValue(updatedPet)
+
+    await petController.update(mockReq, mockRes)
+
+    expect(Pet.getOneById).toHaveBeenCalledWith(1)
+    expect(Pet.prototype.update).toHaveBeenCalledWith({ status: 'reunited' })
+    expect(mockStatus).toHaveBeenCalledWith(200)
+    expect(mockJson).toHaveBeenCalledWith(updatedPet)
+  })
+
+  it('should return a 404 if the pet is not found', async () => {
+    const mockReq = { params: { id: 999 }, body: { status: 'reunited' } }
+
+    jest.spyOn(Pet, 'getOneById').mockRejectedValue(new Error('Pet not found.'))
+
+    await petController.update(mockReq, mockRes)
+
+    expect(Pet.getOneById).toHaveBeenCalledWith(999)
+    expect(mockStatus).toHaveBeenCalledWith(404)
+    expect(mockJson).toHaveBeenCalledWith({ error: 'Pet not found.' })
+  })
+})
 });
 
 
