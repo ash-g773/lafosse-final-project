@@ -98,6 +98,7 @@ export default function LoginScreen() {
 
         <TouchableOpacity
           style={styles.button}
+          testID="login-btn"
           onPress={() => {
             console.log("button pressed");
             login(username, password);
