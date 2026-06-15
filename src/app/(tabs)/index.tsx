@@ -129,6 +129,23 @@ export default function MapScreen() {
       console.error("Failed to load auth:", e);
     }
   }
+  
+  async function fetchAlerts() {
+    try {
+      const stored = await AsyncStorage.getItem("token");
+      if (!stored || !userId) return;
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/alerts/${userId}`,
+        { headers: { Authorization: `Bearer ${stored}` } },
+      );
+      const data = await response.json();
+      setAlerts(data.data);
+      setUnreadCount(data.data.filter((a: any) => !a.is_read).length);
+    } catch (err) {
+      console.error("Failed to fetch alerts:", err);
+    }
+  }
+
   async function fetchMapData() {
     try {
       const token = await AsyncStorage.getItem("token")
