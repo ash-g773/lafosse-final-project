@@ -70,6 +70,7 @@ export default ({ config }) => {
       "expo-navigation-bar",
       "expo-image-picker",
       "expo-camera",
+      "expo-notifications",
       [
         "expo-splash-screen",
         {
@@ -82,7 +83,7 @@ export default ({ config }) => {
       ],
     ],
     experiments: {
-      typedRoutes: false,
+      typedRoutes: true,
       reactCompiler: true,
     },
     extra: {
