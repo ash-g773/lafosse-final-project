@@ -1,14 +1,21 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import Profile from "../../src/app/(tabs)/profile";
 
+jest.mock("@react-native-async-storage/async-storage", () =>
+  require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
+);
+
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
+const mockBack = jest.fn();
 
 //expo-router
 jest.mock("expo-router", () => ({
   useRouter: () => ({
-    push: jest.fn(),
-    back: jest.fn(),
+    push: mockPush,
+    back: mockBack,
+    replace: mockReplace,
   }),
   Stack: { Screen: () => null },
 }));
@@ -57,56 +64,134 @@ const mockUpdatedProfile = {
   created_at: "2024-01-01T00:00:00.000Z",
 };
 
-// fetch setup functions
-function setupMockFetchSuccess() {
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => mockProfile,
-  });
-}
+const mockLostPets = [
+  {
+    pets_id: 1,
+    users_id: 1,
+    name: "Luna",
+    species: "Cat",
+    breed: null,
+    colour: "Black",
+    description: "Very friendly black cat",
+    last_seen_location: "Thorpedale Road",
+    lat: "51.566691",
+    lng: "-0.119936",
+    image_url: null,
+    status: "lost",
+    created_at: "2024-01-01T00:00:00.000Z",
+  },
+  {
+    pets_id: 2,
+    users_id: 1,
+    name: "Buddy",
+    species: "Dog",
+    breed: "Golden Retriever",
+    colour: "Golden",
+    description: "Friendly but disobedient",
+    last_seen_location: "Chelsea Bridge Road",
+    lat: "51.509",
+    lng: "-0.131",
+    image_url: null,
+    status: "lost",
+    created_at: "2024-01-01T00:00:00.000Z",
+  },
+];
 
-function setupMockFetchEmpty() {
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => mockEmptyProfile,
-  });
-}
+// fetch setup functions
 
 function setupMockFetchAndSave() {
   mockFetch
-    // first call - fetch profile
     .mockResolvedValueOnce({
       ok: true,
-      json: async () => mockProfile,
+      json: async () => ({ data: mockProfile }), // add data wrapper
     })
-    // second call - save profile
     .mockResolvedValueOnce({
       ok: true,
-      json: async () => mockUpdatedProfile,
+      json: async () => ({ data: mockUpdatedProfile }), // add data wrapper
     });
-}
-
-function setupMockFetchError() {
-  mockFetch.mockRejectedValueOnce(new Error("Network error"));
 }
 
 function setupMockSaveError() {
   mockFetch
-    // fetch succeeds
     .mockResolvedValueOnce({
       ok: true,
-      json: async () => mockProfile,
+      json: async () => ({ data: mockProfile }), // add data wrapper
     })
-    // save fails
     .mockResolvedValueOnce({
       ok: false,
       json: async () => ({ message: "Failed to update profile" }),
     });
 }
 
+function setupMockFetchEmpty() {
+  mockFetch.mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({ data: mockEmptyProfile }), // add data wrapper
+  });
+}
+
+function setupMockFetchSuccess() {
+  mockFetch.mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({ data: mockProfile }),
+  });
+}
+
+function setupMockFetchError() {
+  mockFetch.mockRejectedValueOnce(new Error("Network error"));
+}
+
+function setupMockFetchWithPets() {
+  mockFetch
+    // first call - fetch profile
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: mockProfile }),
+    })
+    // second call - fetch pets (when view pets button is pressed)
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: mockLostPets }),
+    });
+}
+
+function setupMockFetchNoPets() {
+  mockFetch
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: mockProfile }),
+    })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: [] }), // empty array
+    });
+}
+
+function setupMockFetchWithPetsAndReunite() {
+  mockFetch
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: mockProfile }),
+    })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: mockLostPets }),
+    })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({}),
+    });
+}
+
 beforeEach(() => {
   mockPush.mockReset();
   mockReplace.mockReset();
+
+  jest.clearAllMocks();
+
+  (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+    "header.eyJ1c2Vyc19pZCI6MX0=.signature",
+  );
 });
 
 describe("Profile page", () => {
@@ -183,7 +268,7 @@ describe("Profile page", () => {
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => mockProfile,
+        json: async () => ({ data: mockProfile }),
       })
       .mockReturnValueOnce(new Promise(() => {}));
 
@@ -205,7 +290,114 @@ describe("Profile page", () => {
     const { getByTestId } = await render(<Profile />);
 
     await waitFor(() => {
-      expect(getByTestId("back-btn")).toBeTruthy;
+      expect(getByTestId("back-btn")).toBeTruthy();
+    });
+  });
+  it("navigates back when back button is pressed", async () => {
+    setupMockFetchSuccess();
+
+    const { getByTestId } = render(<Profile />);
+
+    await waitFor(() => {
+      fireEvent.press(getByTestId("back-btn"));
+    });
+    expect(mockBack).toHaveBeenCalled();
+  });
+  it("displays the user's lost pets when button is pressed", async () => {
+    setupMockFetchWithPets();
+    const { getByText } = await render(<Profile />);
+
+    await waitFor(() => {
+      expect(getByText("View Lost Pet Reports ▼")).toBeTruthy();
+    });
+
+    fireEvent.press(getByText("View Lost Pet Reports ▼"));
+
+    await waitFor(() => {
+      expect(getByText("Luna")).toBeTruthy();
+      expect(getByText("Buddy")).toBeTruthy();
+    });
+  });
+  it("shows message when user has no previous lost pets", async () => {
+    setupMockFetchNoPets();
+    const { getByText } = await render(<Profile />);
+
+    await waitFor(() => {
+      expect(getByText("View Lost Pet Reports ▼")).toBeTruthy();
+    });
+
+    fireEvent.press(getByText("View Lost Pet Reports ▼"));
+
+    await waitFor(() => {
+      expect(getByText("You have no previous lost pet reports.")).toBeTruthy();
+    });
+  });
+
+  it("hides pets when button is pressed again", async () => {
+    setupMockFetchWithPets();
+    const { getByText, queryByText } = await render(<Profile />);
+
+    await waitFor(() => {
+      expect(getByText("View Lost Pet Reports ▼")).toBeTruthy();
+    });
+
+    fireEvent.press(getByText("View Lost Pet Reports ▼"));
+
+    await waitFor(() => {
+      expect(getByText("Luna")).toBeTruthy();
+    });
+
+    fireEvent.press(getByText("Hide Lost Pet Reports ▲"));
+
+    await waitFor(() => {
+      expect(queryByText("Luna")).toBeNull();
+    });
+  });
+  it("renders correctly", async () => {
+    const { toJSON } = await render(<Profile />);
+    expect(toJSON()).toMatchSnapshot();
+  });
+  it("disables save button when no changes made", async () => {
+    setupMockFetchSuccess();
+
+    const { getByTestId } = render(<Profile />);
+
+    await waitFor(() => {
+      expect(getByTestId("save-btn").props.accessibilityState?.disabled).toBe(
+        true,
+      );
+    });
+  });
+  it("enables save button when changes are made", async () => {
+    setupMockFetchSuccess();
+
+    const { getByPlaceholderText, getByTestId } = render(<Profile />);
+
+    await waitFor(() => {
+      expect(getByPlaceholderText("Your Name")).toBeTruthy();
+    });
+    fireEvent.changeText(getByPlaceholderText("Your Name"), "New Name");
+
+    expect(getByTestId("save-btn").props.accessibilityState?.disabled).toBe(
+      false,
+    );
+  });
+  it("marks pets as reunited when button is pressed", async () => {
+    setupMockFetchWithPetsAndReunite();
+
+    const { getByText, getByTestId } = render(<Profile />);
+
+    await waitFor(() => {
+      fireEvent.press(getByText("View Lost Pet Reports ▼"));
+    });
+    await waitFor(() => {
+      expect(getByTestId("reunite-btn-1")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("reunite-btn-1"));
+
+    await waitFor(() => {
+      expect(getByText("🟢 Reunited")).toBeTruthy();
     });
   });
 });

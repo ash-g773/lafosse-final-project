@@ -312,7 +312,7 @@ export default function Profile() {
 
             {!petsLoading && lostPets.length === 0 && (
               <Text style={styles.noPetsMsg}>
-                You have no active lost pet reports.
+                You have no previous lost pet reports.
               </Text>
             )}
 
@@ -359,6 +359,7 @@ export default function Profile() {
                   {Pet.status === "lost" && (
                     <TouchableOpacity
                       style={styles.reunitedBtn}
+                      testID={`reunite-btn-${Pet.pets_id}`}
                       onPress={() => markAsReunited(Pet.pets_id)}
                     >
                       <Text style={styles.reunitedBtnText}>

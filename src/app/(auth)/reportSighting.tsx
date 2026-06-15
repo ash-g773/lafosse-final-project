@@ -1,4 +1,5 @@
 import { theme } from "@/themes";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { router } from "expo-router";
@@ -149,6 +150,27 @@ export default function ReportSightingScreen() {
     location: Location.LocationObject | undefined,
     imageUrl: string | undefined,
   ) {
+    // check whether any of the above are blank, throw error
+    // if (!sightingDescription || !location || !imageCloudinaryURL) {
+    //   throw Alert.alert("Please fill in all required fields!");
+    // }
+    console.log("submitForm started");
+
+    const token = await AsyncStorage.getItem("token");
+
+    // decode userId from token if it exists
+    let userId: number | null = null;
+    if (token) {
+      try {
+        const payload = token.split(".")[1];
+        const decoded = JSON.parse(atob(payload));
+        console.log(decoded);
+        userId = decoded.users_id;
+      } catch {
+        userId = null;
+      }
+    }
+
     setSubmitting(true);
     try {
       const fullSightingDescription = combineDescriptors(
@@ -156,6 +178,14 @@ export default function ReportSightingScreen() {
         sightingDescription,
         animalColor,
       );
+
+      // only add auth header if token exists
+      const headers: Record<string, string> = {
+        Accept: "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
 
       const formData = new FormData();
 
@@ -172,36 +202,40 @@ export default function ReportSightingScreen() {
 
       formData.append("sighting_description", fullSightingDescription);
       formData.append("guest_contact", guestContact ?? "");
-      formData.append(
-        "lat",
-        location ? String(location.coords.latitude) : "",
-      );
-      formData.append(
-        "lng",
-        location ? String(location.coords.longitude) : "",
-      );
+      formData.append("lat", location ? String(location.coords.latitude) : "");
+      formData.append("lng", location ? String(location.coords.longitude) : "");
 
+      console.log("About to POST to backend");
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_API_URL}/sightings/`,
         {
           method: "POST",
+          headers,
           body: formData,
         },
       );
 
+      console.log("Response status:", response.status);
+
       const data = await response.json();
+      console.log("Response body:", data);
 
       if (response.status === 201) {
         Alert.alert(
           "Success!",
           "Your sighting report has been submitted successfully. Thank you for helping to bring community pets back home!",
         );
-        router.replace("/(auth)/landing");
+
+        if (token) {
+          router.replace("/(tabs)");
+        } else {
+          router.replace("/(auth)/landing");
+        }
       } else {
         Alert.alert(
           "Something went wrong...",
           "Your sighting report was not successful. Please try again later. " +
-          data.error,
+            (data?.error ?? ""),
         );
       }
     } catch (e) {
@@ -312,8 +346,8 @@ export default function ReportSightingScreen() {
                 style={[
                   styles.locationButton,
                   location &&
-                  !selectedLocation &&
-                  styles.locationButtonSelected,
+                    !selectedLocation &&
+                    styles.locationButtonSelected,
                 ]}
                 onPress={() => getCurrentLocation()}
               >
@@ -346,7 +380,7 @@ export default function ReportSightingScreen() {
                       region={region}
                       showsUserLocation={true} // show blue dot
                       showsMyLocationButton={true} // show recentre button
-                      onUserLocationChange={() => { }}
+                      onUserLocationChange={() => {}}
                       onPress={(e) =>
                         setSelectedLocation(e.nativeEvent.coordinate)
                       }
@@ -458,7 +492,8 @@ export default function ReportSightingScreen() {
 
           <TouchableOpacity
             style={[styles.submitButton, submitting && { opacity: 0.6 }]}
-            onPress={() =>
+            onPress={() => {
+              console.log("submit button pressed");
               submitForm(
                 animalType,
                 sightingDescription,
@@ -466,8 +501,8 @@ export default function ReportSightingScreen() {
                 guestContact,
                 location,
                 selectedImage,
-              )
-            }
+              );
+            }}
             disabled={submitting}
           >
             <Text style={styles.buttonText}>
