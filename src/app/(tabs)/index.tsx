@@ -4,7 +4,7 @@ import * as NavigationBar from "expo-navigation-bar"
 import { useRouter } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { useEffect, useState } from "react"
-import { ActivityIndicator, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import MapView, { Marker, Region } from "react-native-maps"
 import { theme } from "../../themes"
 
@@ -131,20 +131,29 @@ export default function MapScreen() {
   }
 
   async function fetchAlerts() {
-    try {
-      const stored = await AsyncStorage.getItem("token");
-      if (!stored || !userId) return;
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/alerts/${userId}`,
-        { headers: { Authorization: `Bearer ${stored}` } },
-      );
-      const data = await response.json();
-      setAlerts(data.data);
-      setUnreadCount(data.data.filter((a: any) => !a.is_read).length);
-    } catch (err) {
-      console.error("Failed to fetch alerts:", err);
-    }
+  try {
+    const stored = await AsyncStorage.getItem("token");
+    if (!stored) return;
+
+    const payload = stored.split(".")[1];
+    const decoded = JSON.parse(atob(payload));
+    const id = decoded.users_id;
+
+    if (!id) return;
+
+    console.log("Fetching alerts for userId:", id);
+
+    const response = await fetch(
+      `${process.env.EXPO_PUBLIC_API_URL}/alerts/${id}`,
+      { headers: { Authorization: `Bearer ${stored}` } },
+    );
+    const data = await response.json();
+    setAlerts(data.data);
+    setUnreadCount(data.data.filter((a: any) => !a.is_read).length);
+  } catch (err) {
+    console.error("Failed to fetch alerts:", err);
   }
+}
 
   async function markAlertAsRead(alerts_id: number) {
     try {
@@ -226,11 +235,10 @@ export default function MapScreen() {
   }, [])
 
   useEffect(() => {
-  if (!userId || !token) return;
   fetchAlerts();
   const interval = setInterval(fetchAlerts, 30000);
   return () => clearInterval(interval);
-}, [userId, token]);
+}, []);
 
   if (loading) {
     return (
@@ -295,8 +303,18 @@ export default function MapScreen() {
         <TouchableOpacity style={styles.iconBtn} testID="profile-btn" onPress={() => router.push("./profile")}>
           <Text>Profile</Text>
         </TouchableOpacity>
+
         <TouchableOpacity style={styles.iconBtn} testID="logout-btn" onPress={handleLogout}>
           <Text>Log Out</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.iconBtn} testID="alerts-btn" onPress={() => { setAlertsModalVisible(true), fetchAlerts(); }}>
+          <Text>alerts 🔔</Text>
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unreadCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
       {menuOpen && (
@@ -362,8 +380,58 @@ export default function MapScreen() {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+      <Modal
+        visible={alertsModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setAlertsModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalBackdrop}
+          activeOpacity={1}
+          onPress={() => setAlertsModalVisible(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.modalCard}
+            onPress={() => {}}
+          >
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalName}>Alerts</Text>
+            {alerts.length === 0 ? (
+              <Text style={styles.modalDescription}>No alerts yet.</Text>
+            ) : (
+              <ScrollView style={{ maxHeight: 300 }}>
+                {alerts.map((alert) => (
+                  <TouchableOpacity
+                    key={alert.alerts_id}
+                    style={[
+                      styles.alertRow,
+                      !alert.is_read && styles.alertRowUnread,
+                    ]}
+                    onPress={() => markAlertAsRead(alert.alerts_id)}
+                  >
+                    <Text style={styles.alertIcon}>
+                      {alert.alert_type === "lost" ? "🔴" : "🟢"}
+                    </Text>
+                    <Text style={styles.alertMessage}>
+                      {alert.alert_message}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+            <TouchableOpacity
+              style={styles.modalCloseBtn}
+              onPress={() => setAlertsModalVisible(false)}
+            >
+              <Text style={styles.modalCloseBtnText}>Close</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -487,5 +555,41 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 16,
+  },
+  badge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: theme.colors.accent,
+    borderRadius: theme.borderRadius.full,
+    width: 18,
+    height: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeText: {
+    color: theme.colors.text.light,
+    fontSize: theme.fontSize.sm,
+    fontWeight: "bold",
+  },
+  alertRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.sm,
+    backgroundColor: theme.colors.background,
+    marginBottom: theme.spacing.xs,
+  },
+  alertRowUnread: {
+    backgroundColor: theme.colors.secondary + "44",
+  },
+  alertIcon: {
+    fontSize: theme.fontSize.md,
+  },
+  alertMessage: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.secondary,
+    flex: 1,
   },
 })
