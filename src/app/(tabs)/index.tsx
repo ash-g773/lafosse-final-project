@@ -1,48 +1,40 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Location from "expo-location";
-import * as NavigationBar from "expo-navigation-bar";
-import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
-import { theme } from "../../themes";
+import AsyncStorage from "@react-native-async-storage/async-storage"
+import * as Location from "expo-location"
+import * as NavigationBar from "expo-navigation-bar"
+import { useRouter } from "expo-router"
+import { StatusBar } from "expo-status-bar"
+import { useEffect, useState } from "react"
+import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps"
+import { theme } from "../../themes"
 
 interface Pet {
-  pets_id: number;
-  users_id: number;
-  name: string;
-  species: string;
-  breed: string | null;
-  colour: string | null;
-  description: string | null;
-  last_seen_location: string | null;
-  lat: string; //look at backend fix so these can be number
-  lng: string;
-  image_url: string | null;
-  status: string;
-  created_at: string;
+  pets_id: number
+  users_id: number
+  name: string
+  species: string
+  breed: string | null
+  colour: string | null
+  description: string | null
+  last_seen_location: string | null
+  lat: string //look at backend fix so these can be number
+  lng: string
+  image_url: string | null
+  status: string
+  created_at: string
 }
 
 interface Sighting {
-  sightings_id: number;
-  pets_id: number | null;
-  users_id: number | null;
-  guest_contact: string | null;
-  sighting_description: string;
-  location_description: string;
-  lat: string;
-  lng: string;
-  image_url: string | null;
-  created_at: string;
+  sightings_id: number
+  pets_id: number | null
+  users_id: number | null
+  guest_contact: string | null
+  sighting_description: string
+  location_description: string
+  lat: string
+  lng: string
+  image_url: string | null
+  created_at: string
 }
 
 // const BACKEND_URL = "localhost:3000";
@@ -105,25 +97,88 @@ export default function MapScreen() {
     longitude: -0.1278,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
-  });
+  })
 
-  const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter()
+  const [menuOpen, setMenuOpen] = useState(false)
 
-  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
-  const [selectedSighting, setSelectedSighting] = useState<Sighting | null>(
-    null,
-  );
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalType, setModalType] = useState<"pet" | "sighting">("pet");
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null)
+  const [selectedSighting, setSelectedSighting] = useState<Sighting | null>(null)
+  const [modalVisible, setModalVisible] = useState(false)
+  const [modalType, setModalType] = useState<"pet" | "sighting">("pet")
 
-  const [sightings, setSightings] = useState<Sighting[]>([]);
-  const [lostPets, setLostPets] = useState<Pet[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [sightings, setSightings] = useState<Sighting[]>([])
+  const [lostPets, setLostPets] = useState<Pet[]>([])
+  const [loading, setLoading] = useState(true)
+  const [token, setToken] = useState<string | null>(null)
+  const [userId, setUserId] = useState<number | null>(null)
+  const [alerts, setAlerts] = useState<any[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [alertsModalVisible, setAlertsModalVisible] = useState(false)
+
+  async function loadAuth() {
+    try {
+      const stored = await AsyncStorage.getItem("token");
+      setToken(stored);
+      if (stored) {
+        const payload = stored.split(".")[1];
+        const decoded = JSON.parse(atob(payload));
+        setUserId(decoded.users_id);
+      }
+    } catch (e) {
+      console.error("Failed to load auth:", e);
+    }
+  }
+
+  async function fetchAlerts() {
+  try {
+    const stored = await AsyncStorage.getItem("token");
+    if (!stored) return;
+
+    const payload = stored.split(".")[1];
+    const decoded = JSON.parse(atob(payload));
+    const id = decoded.users_id;
+
+    if (!id) return;
+
+    console.log("Fetching alerts for userId:", id);
+
+    const response = await fetch(
+      `${process.env.EXPO_PUBLIC_API_URL}/alerts/${id}`,
+      { headers: { Authorization: `Bearer ${stored}` } },
+    );
+    const data = await response.json();
+    setAlerts(data.data);
+    setUnreadCount(data.data.filter((a: any) => !a.is_read).length);
+  } catch (err) {
+    console.error("Failed to fetch alerts:", err);
+  }
+}
+
+  async function markAlertAsRead(alerts_id: number) {
+    try {
+      const stored = await AsyncStorage.getItem("token");
+      await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/alerts/${alerts_id}/read`,
+        {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${stored}` },
+        },
+      );
+      setAlerts((prev) =>
+        prev.map((a) =>
+          a.alerts_id === alerts_id ? { ...a, is_read: true } : a,
+        ),
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error("Failed to mark alert as read:", err);
+    }
+  }
 
   async function fetchMapData() {
     try {
-      const token = await AsyncStorage.getItem("token");
+      const token = await AsyncStorage.getItem("token")
       const [lostPetsRes, sightingsRes] = await Promise.all([
         fetch(`${process.env.EXPO_PUBLIC_API_URL}/pets`, {
           method: "GET",
@@ -139,45 +194,51 @@ export default function MapScreen() {
             Authorization: `Bearer ${token}`,
           },
         }),
-      ]);
+      ])
 
-      const lostPetsData = await lostPetsRes.json();
-      const sightingsData = await sightingsRes.json();
-      setLostPets(lostPetsData);
-      setSightings(sightingsData);
+      const lostPetsData = await lostPetsRes.json()
+      const sightingsData = await sightingsRes.json()
+      setLostPets(lostPetsData)
+      setSightings(sightingsData)
     } catch (error) {
-      console.log(`${process.env.EXPO_PUBLIC_API_URL}`);
-      console.error("Failed to fetch map data:", error);
+      console.log(`${process.env.EXPO_PUBLIC_API_URL}`)
+      console.error("Failed to fetch map data:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   async function handleLogout() {
     try {
-      await AsyncStorage.removeItem("token");
-      router.replace("/(auth)/landing" as any);
+      await AsyncStorage.removeItem("token")
+      router.replace("/(auth)/landing" as any)
     } catch (e) {
-      console.error("Error logging out:", e);
+      console.error("Error logging out:", e)
     }
   }
 
   useEffect(() => {
     async function getLocation() {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") return;
-      const location = await Location.getCurrentPositionAsync({});
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== "granted") return
+      const location = await Location.getCurrentPositionAsync({})
       setRegion({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
-      });
+      })
     }
-    getLocation();
-    fetchMapData(); // call it here
-    NavigationBar.setVisibilityAsync("hidden");
-  }, []);
+    getLocation()
+    fetchMapData() // call it here
+    NavigationBar.setVisibilityAsync("hidden")
+  }, [])
+
+  useEffect(() => {
+  fetchAlerts();
+  const interval = setInterval(fetchAlerts, 30000);
+  return () => clearInterval(interval);
+}, []);
 
   if (loading) {
     return (
@@ -185,7 +246,7 @@ export default function MapScreen() {
         <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text>Loading map data...</Text>
       </View>
-    );
+    )
   }
 
   return (
@@ -198,7 +259,7 @@ export default function MapScreen() {
         testID="map-view"
         showsUserLocation={true} // show blue dot
         showsMyLocationButton={true} // show recentre button
-        onUserLocationChange={() => {}}
+        onUserLocationChange={() => { }}
       >
         {lostPets.map((Pet) => (
           <Marker
@@ -212,9 +273,9 @@ export default function MapScreen() {
             description={Pet.description || ""}
             pinColor={theme.colors.accent}
             onPress={() => {
-              setSelectedPet(Pet);
-              setModalVisible(true);
-              setModalType("pet");
+              setSelectedPet(Pet)
+              setModalVisible(true)
+              setModalType("pet")
             }}
           />
         ))}
@@ -231,27 +292,29 @@ export default function MapScreen() {
             description={sighting.sighting_description}
             pinColor={theme.colors.success}
             onPress={() => {
-              setSelectedSighting(sighting);
-              setModalVisible(true);
-              setModalType("sighting");
+              setSelectedSighting(sighting)
+              setModalVisible(true)
+              setModalType("sighting")
             }}
           />
         ))}
       </MapView>
       <View style={styles.topButtons}>
-        <TouchableOpacity
-          style={styles.iconBtn}
-          testID="profile-btn"
-          onPress={() => router.push("./profile")}
-        >
+        <TouchableOpacity style={styles.iconBtn} testID="profile-btn" onPress={() => router.push("./profile")}>
           <Text>Profile</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.iconBtn}
-          testID="logout-btn"
-          onPress={handleLogout}
-        >
+
+        <TouchableOpacity style={styles.iconBtn} testID="logout-btn" onPress={handleLogout}>
           <Text>Log Out</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.iconBtn} testID="alerts-btn" onPress={() => { setAlertsModalVisible(true), fetchAlerts(); }}>
+          <Text>alerts 🔔</Text>
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unreadCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
       {menuOpen && (
@@ -259,8 +322,8 @@ export default function MapScreen() {
           <TouchableOpacity
             style={styles.menuBtn}
             onPress={() => {
-              setMenuOpen(false);
-              router.push("./lostPet");
+              setMenuOpen(false)
+              router.push("./lostPet")
             }}
           >
             <Text style={styles.menuText}>🐾 Report Lost Pet</Text>
@@ -268,8 +331,8 @@ export default function MapScreen() {
           <TouchableOpacity
             style={styles.menuBtn}
             onPress={() => {
-              setMenuOpen(false);
-              router.push("./reportSighting");
+              setMenuOpen(false)
+              router.push("./reportSighting")
             }}
           >
             <Text style={styles.menuText}>📍 Report Sighting</Text>
@@ -277,55 +340,25 @@ export default function MapScreen() {
         </View>
       )}
 
-      <TouchableOpacity
-        style={styles.plusBtn}
-        testID="plus-btn"
-        onPress={() => setMenuOpen(!menuOpen)}
-      >
+      <TouchableOpacity style={styles.plusBtn} testID="plus-btn" onPress={() => setMenuOpen(!menuOpen)}>
         <Text style={styles.plusText}>{menuOpen ? "✕" : "+"}</Text>
       </TouchableOpacity>
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalBackdrop}
-          activeOpacity={1}
-          onPress={() => setModalVisible(false)}
-        >
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.modalCard}
-            onPress={() => {}}
-          >
+      <Modal visible={modalVisible} transparent={true} animationType="slide" onRequestClose={() => setModalVisible(false)}>
+        <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setModalVisible(false)}>
+          <TouchableOpacity activeOpacity={1} style={styles.modalCard} onPress={() => { }}>
             <View style={styles.modalHandle} />
 
             {modalType === "pet" && selectedPet && (
               <>
                 <Text style={styles.modalName}>{selectedPet.name}</Text>
-                {selectedPet.image_url && (
-                  <Image
-                    style={styles.image}
-                    source={{ uri: selectedPet.image_url }}
-                  />
-                )}
+                {selectedPet.image_url && <Image style={styles.image} source={{ uri: selectedPet.image_url }} />}
                 <Text style={styles.modalDescription}>
                   {selectedPet.species}
                   {selectedPet.breed ? ` · ${selectedPet.breed}` : ""}
                 </Text>
-                {selectedPet.colour && (
-                  <Text style={styles.modalDescription}>
-                    Colour: {selectedPet.colour}
-                  </Text>
-                )}
-                <Text style={styles.modalDescription}>
-                  {selectedPet.description}
-                </Text>
-                <Text style={styles.modalDescription}>
-                  Last seen: {selectedPet.last_seen_location}
-                </Text>
+                {selectedPet.colour && <Text style={styles.modalDescription}>Colour: {selectedPet.colour}</Text>}
+                <Text style={styles.modalDescription}>{selectedPet.description}</Text>
+                <Text style={styles.modalDescription}>Last seen: {selectedPet.last_seen_location}</Text>
                 <Text style={styles.modalType}>🔴 Missing</Text>
               </>
             )}
@@ -333,26 +366,64 @@ export default function MapScreen() {
             {modalType === "sighting" && selectedSighting && (
               <>
                 <Text style={styles.modalName}>Sighting Reported</Text>
-                {selectedSighting.image_url && (
-                  <Image
-                    style={styles.image}
-                    source={{ uri: selectedSighting.image_url }}
-                  />
-                )}
-                <Text style={styles.modalDescription}>
-                  {selectedSighting.sighting_description}
-                </Text>
+                {selectedSighting.image_url && <Image style={styles.image} source={{ uri: selectedSighting.image_url }} />}
+                <Text style={styles.modalDescription}>{selectedSighting.sighting_description}</Text>
                 {selectedSighting.location_description && (
-                  <Text style={styles.modalDescription}>
-                    Location: {selectedSighting.location_description}
-                  </Text>
+                  <Text style={styles.modalDescription}>Location: {selectedSighting.location_description}</Text>
                 )}
                 <Text style={styles.modalType}>🟢 Sighting</Text>
               </>
             )}
+            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setModalVisible(false)}>
+              <Text style={styles.modalCloseBtnText}>Close</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+      <Modal
+        visible={alertsModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setAlertsModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalBackdrop}
+          activeOpacity={1}
+          onPress={() => setAlertsModalVisible(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.modalCard}
+            onPress={() => {}}
+          >
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalName}>Alerts</Text>
+            {alerts.length === 0 ? (
+              <Text style={styles.modalDescription}>No alerts yet.</Text>
+            ) : (
+              <ScrollView style={{ maxHeight: 300 }}>
+                {alerts.map((alert) => (
+                  <TouchableOpacity
+                    key={alert.alerts_id}
+                    style={[
+                      styles.alertRow,
+                      !alert.is_read && styles.alertRowUnread,
+                    ]}
+                    onPress={() => markAlertAsRead(alert.alerts_id)}
+                  >
+                    <Text style={styles.alertIcon}>
+                      {alert.alert_type === "lost" ? "🔴" : "🟢"}
+                    </Text>
+                    <Text style={styles.alertMessage}>
+                      {alert.alert_message}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
             <TouchableOpacity
               style={styles.modalCloseBtn}
-              onPress={() => setModalVisible(false)}
+              onPress={() => setAlertsModalVisible(false)}
             >
               <Text style={styles.modalCloseBtnText}>Close</Text>
             </TouchableOpacity>
@@ -485,4 +556,40 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 16,
   },
-});
+  badge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: theme.colors.accent,
+    borderRadius: theme.borderRadius.full,
+    width: 18,
+    height: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeText: {
+    color: theme.colors.text.light,
+    fontSize: theme.fontSize.sm,
+    fontWeight: "bold",
+  },
+  alertRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.sm,
+    backgroundColor: theme.colors.background,
+    marginBottom: theme.spacing.xs,
+  },
+  alertRowUnread: {
+    backgroundColor: theme.colors.secondary + "44",
+  },
+  alertIcon: {
+    fontSize: theme.fontSize.md,
+  },
+  alertMessage: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.secondary,
+    flex: 1,
+  },
+})
