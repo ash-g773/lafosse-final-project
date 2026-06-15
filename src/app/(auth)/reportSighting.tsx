@@ -1,5 +1,4 @@
 import { theme } from "@/themes";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { router } from "expo-router";
@@ -23,6 +22,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function ReportSightingScreen() {
   // type of animal dropdown
   const [open, setOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [animalType, setValue] = useState<string | null>(null);
   const [items, setItems] = useState([
     { label: "Cat", value: "cat" },
@@ -149,89 +149,67 @@ export default function ReportSightingScreen() {
     location: Location.LocationObject | undefined,
     imageUrl: string | undefined,
   ) {
-    // check whether any of the above are blank, throw error
-    // if (!sightingDescription || !location || !imageCloudinaryURL) {
-    //   throw Alert.alert("Please fill in all required fields!");
-    // }
-
-    const token = await AsyncStorage.getItem("token");
-
-    // decode userId from token if it exists
-    let userId: number | null = null;
-    if (token) {
-      try {
-        const payload = token.split(".")[1];
-        const decoded = JSON.parse(atob(payload));
-        console.log(decoded);
-        userId = decoded.users_id;
-      } catch {
-        userId = null;
-      }
-    }
-
-    const fullSightingDescription = combineDescriptors(
-      animalType,
-      sightingDescription,
-      animalColor,
-    );
-
-    const headers: Record<string, string> = {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    };
-
-    // only add auth header if token exists
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    const options = {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        guest_contact: guestContact ? guestContact : null,
-        sighting_description: fullSightingDescription,
-        lat: selectedLocation
-          ? selectedLocation.latitude
-          : (location?.coords.latitude ?? null),
-        lng: selectedLocation
-          ? selectedLocation.longitude
-          : (location?.coords.longitude ?? null),
-        image_url: "placeholder_img_url",
-        users_id: token ? userId : null,
-      }),
-    };
-    console.log(options);
-
+    setSubmitting(true);
     try {
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/sightings`,
-        options,
+      const fullSightingDescription = combineDescriptors(
+        animalType,
+        sightingDescription,
+        animalColor,
       );
+
+      const formData = new FormData();
+
+      if (imageUrl) {
+        const filename = imageUrl.split("/").pop() || "sighting.jpg";
+        const match = /\.(\w+)$/.exec(filename);
+        const mimeType = match ? `image/${match[1]}` : "image/jpeg";
+        formData.append("image", {
+          uri: imageUrl,
+          name: filename,
+          type: mimeType,
+        } as any);
+      }
+
+      formData.append("sighting_description", fullSightingDescription);
+      formData.append("guest_contact", guestContact ?? "");
+      formData.append(
+        "lat",
+        location ? String(location.coords.latitude) : "",
+      );
+      formData.append(
+        "lng",
+        location ? String(location.coords.longitude) : "",
+      );
+
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/sightings/`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
       const data = await response.json();
-      if (response.status == 200 || response.status == 201) {
-        //clear form
+
+      if (response.status === 201) {
         Alert.alert(
           "Success!",
           "Your sighting report has been submitted successfully. Thank you for helping to bring community pets back home!",
         );
-        if (token) {
-          router.replace("/(tabs)");
-        } else {
-          router.replace("/(auth)/landing");
-        }
+        router.replace("/(auth)/landing");
       } else {
         Alert.alert(
           "Something went wrong...",
-          "Your sighting report was not successful. Please try again later." +
-            data.error,
+          "Your sighting report was not successful. Please try again later. " +
+          data.error,
         );
       }
     } catch (e) {
       console.log(e);
+    } finally {
+      setSubmitting(false);
     }
   }
-
   async function openCamera() {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -334,8 +312,8 @@ export default function ReportSightingScreen() {
                 style={[
                   styles.locationButton,
                   location &&
-                    !selectedLocation &&
-                    styles.locationButtonSelected,
+                  !selectedLocation &&
+                  styles.locationButtonSelected,
                 ]}
                 onPress={() => getCurrentLocation()}
               >
@@ -368,7 +346,7 @@ export default function ReportSightingScreen() {
                       region={region}
                       showsUserLocation={true} // show blue dot
                       showsMyLocationButton={true} // show recentre button
-                      onUserLocationChange={() => {}}
+                      onUserLocationChange={() => { }}
                       onPress={(e) =>
                         setSelectedLocation(e.nativeEvent.coordinate)
                       }
@@ -479,7 +457,7 @@ export default function ReportSightingScreen() {
           </View>
 
           <TouchableOpacity
-            style={styles.submitButton}
+            style={[styles.submitButton, submitting && { opacity: 0.6 }]}
             onPress={() =>
               submitForm(
                 animalType,
@@ -490,8 +468,11 @@ export default function ReportSightingScreen() {
                 selectedImage,
               )
             }
+            disabled={submitting}
           >
-            <Text style={styles.buttonText}>Submit</Text>
+            <Text style={styles.buttonText}>
+              {submitting ? "Submitting..." : "Submit"}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

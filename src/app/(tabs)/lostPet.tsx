@@ -144,14 +144,9 @@ export default function LostPetScreen() {
     location: Location.LocationObject | undefined,
     imageUrl: string | undefined,
   ) {
-    // check whether any of the above are blank, throw error
-    // if (!sightingDescription || !location || !imageCloudinaryURL) {
-    //   throw Alert.alert("Please fill in all required fields!");
-    // }
     setSubmitting(true);
     try {
       const token = await AsyncStorage.getItem("token");
-
       let userId: number | null = null;
       if (token) {
         try {
@@ -163,34 +158,54 @@ export default function LostPetScreen() {
         }
       }
 
-      const options = {
+      const formData = new FormData();
+
+      if (imageUrl) {
+        const filename = imageUrl.split("/").pop() || "pet.jpg";
+        const match = /\.(\w+)$/.exec(filename);
+        const mimeType = match ? `image/${match[1]}` : "image/jpeg";
+        formData.append("image", {
+          uri: imageUrl,
+          name: filename,
+          type: mimeType,
+        } as any);
+      }
+
+      formData.append("users_id", userId ? String(userId) : "");
+      formData.append("name", petName ?? "");
+      formData.append("species", animalType ?? "");
+      formData.append("breed", animalBreed ?? "");
+      formData.append("colour", animalColor ?? "");
+      formData.append("description", description ?? "");
+      formData.append(
+        "last_seen_location",
+        selectedLocation
+          ? `${selectedLocation.latitude}, ${selectedLocation.longitude}`
+          : location
+            ? `${location.coords.latitude}, ${location.coords.longitude}`
+            : "",
+      );
+      formData.append(
+        "lat",
+        selectedLocation
+          ? String(selectedLocation.latitude)
+          : String(location?.coords.latitude ?? ""),
+      );
+      formData.append(
+        "lng",
+        selectedLocation
+          ? String(selectedLocation.longitude)
+          : String(location?.coords.longitude ?? ""),
+      );
+
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/pets`, {
         method: "POST",
         headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
           ...(token && { Authorization: `Bearer ${token}` }),
         },
-        body: JSON.stringify({
-          users_id: userId,
-          name: petName ?? null,
-          species: animalType ?? null,
-          breed: animalBreed ?? null,
-          colour: animalColor ?? null, // note: your schema uses 'colour' not 'color'
-          description: description ?? null,
-          lat: selectedLocation
-            ? selectedLocation.latitude
-            : (location?.coords.latitude ?? null),
-          lng: selectedLocation
-            ? selectedLocation.longitude
-            : (location?.coords.longitude ?? null),
-          image_url: "placeholder_img_url",
-        }),
-      };
+        body: formData,
+      });
 
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/pets`,
-        options,
-      );
       const data = await response.json();
 
       if (response.status === 200 || response.status === 201) {
@@ -272,8 +287,8 @@ export default function LostPetScreen() {
                 style={[
                   styles.locationButton,
                   location &&
-                    !selectedLocation &&
-                    styles.locationButtonSelected,
+                  !selectedLocation &&
+                  styles.locationButtonSelected,
                 ]}
                 onPress={() => getCurrentLocation()}
               >
@@ -305,7 +320,7 @@ export default function LostPetScreen() {
                       region={region}
                       showsUserLocation={true} // show blue dot
                       showsMyLocationButton={true} // show recentre button
-                      onUserLocationChange={() => {}}
+                      onUserLocationChange={() => { }}
                       onPress={(e) =>
                         setSelectedLocation(e.nativeEvent.coordinate)
                       }
