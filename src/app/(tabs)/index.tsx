@@ -356,7 +356,8 @@ export default function MapScreen() {
             (setAlertsModalVisible(true), fetchAlerts());
           }}
         >
-          <Text>alerts 🔔</Text>
+          <Text style={styles.alertsText}>Alerts</Text>
+          <Text style={styles.alertsText}>🔔</Text>
           {unreadCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{unreadCount}</Text>
@@ -744,5 +745,8 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.md,
     color: theme.colors.text.secondary,
     flex: 1,
+  },
+  alertsText: {
+    alignSelf: "center",
   },
 });
