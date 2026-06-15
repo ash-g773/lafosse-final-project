@@ -6,6 +6,7 @@ const usersRouter = require("./routers/users")
 const petRouter = require("./routers/pets")
 const sightingRouter = require("./routers/sightings")
 const profileRouter = require("./routers/profile")
+const alertsRouter = require("./routers/alerts")
 
 const app = express();
 
@@ -24,5 +25,6 @@ app.use("/users", usersRouter)
 app.use("/pets", petRouter)
 app.use("/sightings", sightingRouter)
 app.use("/profile", profileRouter)
+app.use("/alerts", alertsRouter)
 
 module.exports = app;
