@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Image,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -120,6 +121,93 @@ export default function MapScreen() {
   const [sightings, setSightings] = useState<Sighting[]>([]);
   const [lostPets, setLostPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [alertsModalVisible, setAlertsModalVisible] = useState(false);
+
+  async function loadAuth() {
+    try {
+      const stored = await AsyncStorage.getItem("token");
+      setToken(stored);
+      if (stored) {
+        const payload = stored.split(".")[1];
+        const decoded = JSON.parse(atob(payload));
+        setUserId(decoded.users_id);
+      }
+    } catch (e) {
+      console.error("Failed to load auth:", e);
+    }
+  }
+
+  async function fetchAlerts() {
+    try {
+      const stored = await AsyncStorage.getItem("token");
+      if (!stored) return;
+
+      const payload = stored.split(".")[1];
+      const decoded = JSON.parse(atob(payload));
+      const id = decoded.users_id;
+
+      if (!id) return;
+
+      console.log("Fetching alerts for userId:", id);
+
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/alerts/${id}`,
+        { headers: { Authorization: `Bearer ${stored}` } },
+      );
+      const data = await response.json();
+      setAlerts(data.data);
+      setUnreadCount(data.data.filter((a: any) => !a.is_read).length);
+    } catch (err) {
+      console.error("Failed to fetch alerts:", err);
+    }
+  }
+
+  async function markAlertAsRead(
+    alerts_id: number,
+    pets_id: number | null,
+    alert_type: string,
+  ) {
+    try {
+      const stored = await AsyncStorage.getItem("token");
+      await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/alerts/${alerts_id}/read`,
+        {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${stored}` },
+        },
+      );
+      setAlerts((prev) =>
+        prev.map((a) =>
+          a.alerts_id === alerts_id ? { ...a, is_read: true } : a,
+        ),
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+
+      // close alerts modal
+      setAlertsModalVisible(false);
+
+      // navigate to the relevant pet or sighting
+      if (alert_type === "lost" && pets_id) {
+        const response = await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/pets/${pets_id}`,
+          { headers: { Authorization: `Bearer ${stored}` } },
+        );
+        const data = await response.json();
+        setSelectedPet(data);
+        setModalType("pet");
+        setModalVisible(true);
+      } else if (alert_type === "sighting") {
+        // for sightings, just refresh the map so the pin is visible
+        fetchMapData();
+      }
+    } catch (err) {
+      console.error("Failed to mark alert as read:", err);
+    }
+  }
 
   async function fetchMapData() {
     try {
@@ -261,6 +349,20 @@ export default function MapScreen() {
         >
           <Text>Log Out</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.iconBtn}
+          testID="alerts-btn"
+          onPress={() => {
+            (setAlertsModalVisible(true), fetchAlerts());
+          }}
+        >
+          <Text>alerts 🔔</Text>
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unreadCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
       {menuOpen && (
         <View style={styles.menuContainer}>
@@ -363,6 +465,118 @@ export default function MapScreen() {
             <TouchableOpacity
               style={styles.modalCloseBtn}
               onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalCloseBtnText}>Close</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+      <Modal
+        visible={alertsModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setAlertsModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalBackdrop}
+          activeOpacity={1}
+          onPress={() => setAlertsModalVisible(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.modalCard}
+            onPress={() => {}}
+          >
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalName}>Alerts</Text>
+            {alerts.length === 0 ? (
+              <Text style={styles.modalDescription}>No alerts yet.</Text>
+            ) : (
+              <ScrollView style={{ maxHeight: 300 }}>
+                {alerts.map((alert) => (
+                  <TouchableOpacity
+                    key={alert.alerts_id}
+                    style={[
+                      styles.alertRow,
+                      !alert.is_read && styles.alertRowUnread,
+                    ]}
+                    onPress={() =>
+                      markAlertAsRead(
+                        alert.alerts_id,
+                        alert.pets_id,
+                        alert.alert_type,
+                      )
+                    }
+                  >
+                    <Text style={styles.alertIcon}>
+                      {alert.alert_type === "lost" ? "🔴" : "🟢"}
+                    </Text>
+                    <Text style={styles.alertMessage}>
+                      {alert.alert_message}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+            <TouchableOpacity
+              style={styles.modalCloseBtn}
+              onPress={() => setAlertsModalVisible(false)}
+            >
+              <Text style={styles.modalCloseBtnText}>Close</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+      <Modal
+        visible={alertsModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setAlertsModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalBackdrop}
+          activeOpacity={1}
+          onPress={() => setAlertsModalVisible(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.modalCard}
+            onPress={() => {}}
+          >
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalName}>Alerts</Text>
+            {alerts.length === 0 ? (
+              <Text style={styles.modalDescription}>No alerts yet.</Text>
+            ) : (
+              <ScrollView style={{ maxHeight: 300 }}>
+                {alerts.map((alert) => (
+                  <TouchableOpacity
+                    key={alert.alerts_id}
+                    style={[
+                      styles.alertRow,
+                      !alert.is_read && styles.alertRowUnread,
+                    ]}
+                    onPress={() =>
+                      markAlertAsRead(
+                        alert.alerts_id,
+                        alert.pets_id,
+                        alert.alert_type,
+                      )
+                    }
+                  >
+                    <Text style={styles.alertIcon}>
+                      {alert.alert_type === "lost" ? "🔴" : "🟢"}
+                    </Text>
+                    <Text style={styles.alertMessage}>
+                      {alert.alert_message}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+            <TouchableOpacity
+              style={styles.modalCloseBtn}
+              onPress={() => setAlertsModalVisible(false)}
             >
               <Text style={styles.modalCloseBtnText}>Close</Text>
             </TouchableOpacity>
@@ -494,5 +708,41 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 16,
+  },
+  badge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: theme.colors.accent,
+    borderRadius: theme.borderRadius.full,
+    width: 18,
+    height: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeText: {
+    color: theme.colors.text.light,
+    fontSize: theme.fontSize.sm,
+    fontWeight: "bold",
+  },
+  alertRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.sm,
+    backgroundColor: theme.colors.background,
+    marginBottom: theme.spacing.xs,
+  },
+  alertRowUnread: {
+    backgroundColor: theme.colors.secondary + "44",
+  },
+  alertIcon: {
+    fontSize: theme.fontSize.md,
+  },
+  alertMessage: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.secondary,
+    flex: 1,
   },
 });
