@@ -493,7 +493,7 @@ export default function ReportSightingScreen() {
             <TouchableOpacity onPress={() => setLoadAi(true)}>
               <Text>
                 {" "}
-                {loadAi ? (
+                {!loadAi ? (
                   "Click here for an AI summary of your sighting photo"
                 ) : (
                   <GeminiImageDescriber
