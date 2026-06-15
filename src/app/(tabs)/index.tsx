@@ -260,6 +260,7 @@ export default function MapScreen() {
         <View style={styles.menuContainer}>
           <TouchableOpacity
             style={styles.menuBtn}
+            testID="lostPet-btn"
             onPress={() => {
               setMenuOpen(false);
               router.push("./lostPet");
@@ -269,6 +270,7 @@ export default function MapScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.menuBtn}
+            testID="sighting-btn"
             onPress={() => {
               setMenuOpen(false);
               router.push("./reportSighting");
