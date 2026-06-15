@@ -38,6 +38,7 @@ export default ({ config }) => {
     scheme: "lafossefinalproject",
     userInterfaceStyle: "automatic",
     ios: {
+      bundleIdentifier: "com.lafossefinalproject.findmypet",
       icon: "./assets/expo.icon",
       config: {
         googleMapsApiKey: process.env.EXPO_PUBLIC_IOS_MAPS_KEY,
@@ -69,7 +70,6 @@ export default ({ config }) => {
       "expo-navigation-bar",
       "expo-image-picker",
       "expo-camera",
-      "expo-notifications",
       [
         "expo-splash-screen",
         {
@@ -82,7 +82,7 @@ export default ({ config }) => {
       ],
     ],
     experiments: {
-      typedRoutes: true,
+      typedRoutes: false,
       reactCompiler: true,
     },
     extra: {
