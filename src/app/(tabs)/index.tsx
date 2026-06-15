@@ -5,7 +5,7 @@ import { useRouter } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { useEffect, useState } from "react"
 import { ActivityIndicator, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native"
-import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps"
+import MapView, { Marker, Region } from "react-native-maps"
 import { theme } from "../../themes"
 
 interface Pet {
@@ -110,6 +110,11 @@ export default function MapScreen() {
   const [sightings, setSightings] = useState<Sighting[]>([])
   const [lostPets, setLostPets] = useState<Pet[]>([])
   const [loading, setLoading] = useState(true)
+  const [token, setToken] = useState<string | null>(null)
+  const [userId, setUserId] = useState<number | null>(null)
+  const [alerts, setAlerts] = useState<any[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [alertsModalVisible, setAlertsModalVisible] = useState(false)
 
   async function fetchMapData() {
     try {
@@ -183,7 +188,7 @@ export default function MapScreen() {
       <StatusBar style="auto" hidden={true} />
       <MapView
         style={StyleSheet.absoluteFill}
-        provider={PROVIDER_GOOGLE}
+        // provider={PROVIDER_GOOGLE}
         region={region}
         testID="map-view"
         showsUserLocation={true} // show blue dot
