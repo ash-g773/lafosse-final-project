@@ -116,6 +116,19 @@ export default function MapScreen() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [alertsModalVisible, setAlertsModalVisible] = useState(false)
 
+  async function loadAuth() {
+    try {
+      const stored = await AsyncStorage.getItem("token");
+      setToken(stored);
+      if (stored) {
+        const payload = stored.split(".")[1];
+        const decoded = JSON.parse(atob(payload));
+        setUserId(decoded.users_id);
+      }
+    } catch (e) {
+      console.error("Failed to load auth:", e);
+    }
+  }
   async function fetchMapData() {
     try {
       const token = await AsyncStorage.getItem("token")
@@ -193,7 +206,7 @@ export default function MapScreen() {
         testID="map-view"
         showsUserLocation={true} // show blue dot
         showsMyLocationButton={true} // show recentre button
-        onUserLocationChange={() => {}}
+        onUserLocationChange={() => { }}
       >
         {lostPets.map((Pet) => (
           <Marker
@@ -269,7 +282,7 @@ export default function MapScreen() {
       </TouchableOpacity>
       <Modal visible={modalVisible} transparent={true} animationType="slide" onRequestClose={() => setModalVisible(false)}>
         <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setModalVisible(false)}>
-          <TouchableOpacity activeOpacity={1} style={styles.modalCard} onPress={() => {}}>
+          <TouchableOpacity activeOpacity={1} style={styles.modalCard} onPress={() => { }}>
             <View style={styles.modalHandle} />
 
             {modalType === "pet" && selectedPet && (
