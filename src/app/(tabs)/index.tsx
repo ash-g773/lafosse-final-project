@@ -155,7 +155,13 @@ export default function MapScreen() {
 
   async function handleLogout() {
     try {
-      await AsyncStorage.removeItem("token");
+      console.log("Logging out...");
+
+      // await AsyncStorage.removeItem("token");
+      await AsyncStorage.clear();
+
+      const check = await AsyncStorage.getItem("token");
+      console.log("Token after logout:", check);
       router.replace("/(auth)/landing" as any);
     } catch (e) {
       console.error("Error logging out:", e);
@@ -175,7 +181,7 @@ export default function MapScreen() {
       });
     }
     getLocation();
-    fetchMapData(); // call it here
+    fetchMapData();
     NavigationBar.setVisibilityAsync("hidden");
   }, []);
 
@@ -273,7 +279,7 @@ export default function MapScreen() {
             testID="sighting-btn"
             onPress={() => {
               setMenuOpen(false);
-              router.push("./reportSighting");
+              router.push("/(auth)/reportSighting");
             }}
           >
             <Text style={styles.menuText}>📍 Report Sighting</Text>
