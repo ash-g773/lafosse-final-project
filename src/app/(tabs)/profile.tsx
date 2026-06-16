@@ -294,40 +294,42 @@ export default function Profile() {
             <Text style={styles.successMsg}>Profile updated successfully!</Text>
           )}
           {error && <Text style={styles.errorMsg}>{error}</Text>}
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            value={fullName}
-            style={styles.input}
-            onChangeText={setFullName}
-            placeholder="Your Name"
-          />
+          <View style={styles.profile}>
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput
+              value={fullName}
+              style={styles.input}
+              onChangeText={setFullName}
+              placeholder="Your Name"
+            />
 
-          <Text style={styles.label}>Phone Number</Text>
-          <TextInput
-            style={styles.input}
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="Your Number"
-            keyboardType="phone-pad"
-          />
+            <Text style={styles.label}>Phone Number</Text>
+            <TextInput
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="Your Number"
+              keyboardType="phone-pad"
+            />
 
-          <Text style={styles.label}>Postcode</Text>
-          <TextInput
-            value={postcode}
-            style={styles.input}
-            onChangeText={setPostcode}
-            placeholder="Your Postcode"
-            autoCapitalize="characters"
-          />
+            <Text style={styles.label}>Postcode</Text>
+            <TextInput
+              value={postcode}
+              style={styles.input}
+              onChangeText={setPostcode}
+              placeholder="Your Postcode"
+              autoCapitalize="characters"
+            />
 
-          <Text style={styles.label}>Alert Radius (m)</Text>
-          <TextInput
-            value={alertRadius}
-            style={styles.input}
-            onChangeText={setAlertRadius}
-            placeholder="Choose your alert radius"
-            keyboardType="numeric"
-          />
+            <Text style={styles.label}>Alert Radius</Text>
+            <TextInput
+              value={alertRadius}
+              style={styles.input}
+              onChangeText={setAlertRadius}
+              placeholder="Choose your alert radius"
+              keyboardType="numeric"
+            />
+          </View>
           <TouchableOpacity
             style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
             onPress={handleSave}
@@ -588,10 +590,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 10,
   },
+  profile: {
+    flex: 1,
+    alignItems: "center",
+  },
   heading: {
     fontSize: theme.fontSize.xxl,
     fontWeight: "bold",
-    color: theme.colors.text.primary,
+    color: theme.colors.text.light,
     marginBottom: theme.spacing.md,
     marginTop: theme.spacing.xl,
     padding: 10,
@@ -600,10 +606,11 @@ const styles = StyleSheet.create({
   label: {
     fontSize: theme.fontSize.md,
     fontWeight: "bold",
-    color: theme.colors.text.primary,
+    color: theme.colors.text.light,
     padding: theme.spacing.sm,
   },
   input: {
+    width: "90%",
     backgroundColor: theme.colors.card,
     borderWidth: 1,
     borderColor: theme.colors.secondary,

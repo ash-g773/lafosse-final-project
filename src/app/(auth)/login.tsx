@@ -208,8 +208,9 @@ const styles = StyleSheet.create({
   },
   image: {
     marginTop: 50,
-    width: 100,
-    height: 100,
+    borderRadius: 30,
+    width: 150,
+    height: 150,
   },
   toReport: {
     marginTop: 150,
