@@ -115,7 +115,7 @@ describe('Pet', () => {
       expect(result).toHaveProperty('name', 'Metro')
       expect(result).toHaveProperty('status', 'lost')
       expect(db.query).toHaveBeenCalledWith(
-        'INSERT INTO pets (users_id, name, species, breed, colour, description, last_seen_location, lat, lng, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *;',
+        `INSERT INTO pets (users_id, name, species, breed, colour, description, last_seen_location, lat, lng, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *;`,
         [
           newPetData.users_id,
           newPetData.name,
@@ -149,3 +149,46 @@ describe('Pet', () => {
     })
   })
 })
+
+
+describe('update', () => {
+  it('should return the updated pet on successful update', async () => {
+    // Arrange
+    const pet = new Pet({ pets_id: 1, users_id: 1, name: 'Fluffy', species: 'cat', breed: 'Persian', colour: 'white', 
+        description: 'fluffy cat', last_seen_location: 'London', lat: 51.5, lng: -0.1, image_url: 'http://example.com/1.jpg', status: 'lost', created_at: new Date() })
+    const updatedData = { status: 'reunited' }
+    const updatedPet = { ...pet, status: 'reunited' }
+    jest.spyOn(db, 'query').mockResolvedValueOnce({ rows: [updatedPet] })
+
+    // Act
+    const result = await pet.update(updatedData)
+
+    // Assert
+    expect(result).toBeInstanceOf(Pet)
+    expect(result.pets_id).toBe(1)
+    expect(result.status).toBe('reunited')
+    expect(db.query).toHaveBeenCalledWith(
+      "UPDATE pets SET status = $1 WHERE pets_id = $2 RETURNING *;",
+      [updatedData.status, pet.pets_id]
+    )
+  })
+
+  it('should throw an Error when the update fails', async () => {
+    // Arrange
+    const pet = new Pet({ pets_id: 1, users_id: 1, name: 'Fluffy', species: 'cat', breed: 'Persian', colour: 'white', description: 'fluffy cat', last_seen_location: 'London', lat: 51.5, lng: -0.1, image_url: 'http://example.com/1.jpg', status: 'lost', created_at: new Date() })
+    jest.spyOn(db, 'query').mockResolvedValueOnce({ rows: [] })
+
+    // Act & Assert
+    await expect(pet.update({ status: 'reunited' })).rejects.toThrow('Unable to update pet status.')
+  })
+
+  it('should throw an Error on db query failure', async () => {
+    // Arrange
+    const pet = new Pet({ pets_id: 1, users_id: 1, name: 'Fluffy', species: 'cat', breed: 'Persian', colour: 'white', description: 'fluffy cat', last_seen_location: 'London', lat: 51.5, lng: -0.1, image_url: 'http://example.com/1.jpg', status: 'lost', created_at: new Date() })
+    jest.spyOn(db, 'query').mockRejectedValue(new Error('Database error'))
+
+    // Act & Assert
+    await expect(pet.update({ status: 'reunited' })).rejects.toThrow('Database error')
+  })
+})
+
