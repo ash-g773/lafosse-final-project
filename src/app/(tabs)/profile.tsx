@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
-  Modal,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -320,24 +320,24 @@ export default function Profile() {
             autoCapitalize="characters"
           />
 
-      <Text style={styles.label}>Alert Radius (m)</Text>
-      <TextInput
-        value={alertRadius}
-        style={styles.input}
-        onChangeText={setAlertRadius}
-        placeholder="Choose your alert radius"
-        keyboardType="numeric"
-      />
-      <TouchableOpacity
-        style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-        onPress={handleSave}
-        testID="save-btn"
-        disabled={saving || !hasChanges}
-      >
-        <Text style={styles.saveBtnText}>
-          {saving ? "Saving..." : "Save Changes"}
-        </Text>
-      </TouchableOpacity>
+          <Text style={styles.label}>Alert Radius (m)</Text>
+          <TextInput
+            value={alertRadius}
+            style={styles.input}
+            onChangeText={setAlertRadius}
+            placeholder="Choose your alert radius"
+            keyboardType="numeric"
+          />
+          <TouchableOpacity
+            style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
+            onPress={handleSave}
+            testID="save-btn"
+            disabled={saving || !hasChanges}
+          >
+            <Text style={styles.saveBtnText}>
+              {saving ? "Saving..." : "Save Changes"}
+            </Text>
+          </TouchableOpacity>
 
           <View style={styles.petsSection}>
             <TouchableOpacity
@@ -372,206 +372,210 @@ export default function Profile() {
                   </Text>
                 )}
 
-            {!petsLoading &&
-              lostPets.map((Pet) => (
-                <View key={Pet.pets_id} style={styles.petCard}>
-                  {Pet.image_url && (
-                    <Image
-                      style={styles.petImage}
-                      source={{ uri: Pet.image_url }}
-                    />
-                  )}
-                  <Text style={styles.petName}>{Pet.name}</Text>
-                  <Text style={styles.petDetail}>
-                    {Pet.species}
-                    {Pet.breed ? ` · ${Pet.breed}` : ""}
-                  </Text>
-                  {Pet.colour && (
-                    <Text style={styles.petDetail}>Colour: {Pet.colour}</Text>
-                  )}
-                  {Pet.description && (
-                    <Text style={styles.petDetail}>{Pet.description}</Text>
-                  )}
-                  {Pet.last_seen_location && (
-                    <Text style={styles.petDetail}>
-                      Last seen: {Pet.last_seen_location}
-                    </Text>
-                  )}
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      {
-                        backgroundColor:
-                          Pet.status === "lost"
-                            ? theme.colors.accent
-                            : theme.colors.success,
-                      },
-                    ]}
-                  >
-                    <Text style={styles.statusText}>
-                      {Pet.status === "lost" ? "🔴 Missing" : "🟢 Reunited"}
-                    </Text>
-                  </View>
-                  {Pet.status === "lost" && (
-                    <TouchableOpacity
-                      style={styles.reunitedBtn}
-                      testID={`reunite-btn-${Pet.pets_id}`}
-                      onPress={() => markAsReunited(Pet.pets_id)}
-                    >
-                      <Text style={styles.reunitedBtnText}>
-                        🟢 Mark as Reunited
+                {!petsLoading &&
+                  lostPets.map((Pet) => (
+                    <View key={Pet.pets_id} style={styles.petCard}>
+                      {Pet.image_url && (
+                        <Image
+                          style={styles.petImage}
+                          source={{ uri: Pet.image_url }}
+                        />
+                      )}
+                      <Text style={styles.petName}>{Pet.name}</Text>
+                      <Text style={styles.petDetail}>
+                        {Pet.species}
+                        {Pet.breed ? ` · ${Pet.breed}` : ""}
                       </Text>
-                    </TouchableOpacity>
-                  )}
-                  {Pet.status === "lost" && (
-                    <TouchableOpacity
-                      style={styles.aiMatchBtn}
-                      onPress={() => checkAiMatches(Pet.pets_id)}
-                    >
-                      <Text style={styles.aiMatchBtnText}>
-                        Check for matches
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                  {aiLoadingId === Pet.pets_id && (
-                    <ActivityIndicator
-                      size="small"
-                      color={theme.colors.primary}
-                    />
-                  )}
-
-                  {aiMatches[Pet.pets_id] && (
-                    <View style={styles.aiResults}>
-                      <Text style={styles.aiSummary}>
-                        {aiMatches[Pet.pets_id].summary}
-                      </Text>
-                      {aiMatches[Pet.pets_id].matches?.map((match: any) => (
+                      {Pet.colour && (
+                        <Text style={styles.petDetail}>
+                          Colour: {Pet.colour}
+                        </Text>
+                      )}
+                      {Pet.description && (
+                        <Text style={styles.petDetail}>{Pet.description}</Text>
+                      )}
+                      {Pet.last_seen_location && (
+                        <Text style={styles.petDetail}>
+                          Last seen: {Pet.last_seen_location}
+                        </Text>
+                      )}
+                      <View
+                        style={[
+                          styles.statusBadge,
+                          {
+                            backgroundColor:
+                              Pet.status === "lost"
+                                ? theme.colors.accent
+                                : theme.colors.success,
+                          },
+                        ]}
+                      >
+                        <Text style={styles.statusText}>
+                          {Pet.status === "lost" ? "🔴 Missing" : "🟢 Reunited"}
+                        </Text>
+                      </View>
+                      {Pet.status === "lost" && (
                         <TouchableOpacity
-                          key={match.sighting_id}
-                          onPress={() => {
-                            if (match.sighting) {
-                              setSelectedSighting(match.sighting);
-                              setModalVisible(true);
-                            } else {
-                              console.error(
-                                "No sighting data for match:",
-                                match,
-                              );
-                            }
-                          }}
-                          style={[
-                            styles.aiMatchCard,
-                            {
-                              borderLeftColor:
-                                match.likelihood === "High"
-                                  ? theme.colors.success
-                                  : match.likelihood === "Medium"
-                                    ? theme.colors.primary
-                                    : theme.colors.text.secondary,
-                            },
-                          ]}
+                          style={styles.reunitedBtn}
+                          testID={`reunite-btn-${Pet.pets_id}`}
+                          onPress={() => markAsReunited(Pet.pets_id)}
                         >
-                          <Text style={styles.aiLikelihood}>
-                            {match.likelihood === "High"
-                              ? "🟢"
-                              : match.likelihood === "Medium"
-                                ? "🟡"
-                                : "🔴"}{" "}
-                            {match.likelihood} match
-                          </Text>
-                          <Text style={styles.aiReasoning}>
-                            {match.reasoning}
+                          <Text style={styles.reunitedBtnText}>
+                            🟢 Mark as Reunited
                           </Text>
                         </TouchableOpacity>
-                      ))}
+                      )}
+                      {Pet.status === "lost" && (
+                        <TouchableOpacity
+                          style={styles.aiMatchBtn}
+                          onPress={() => checkAiMatches(Pet.pets_id)}
+                        >
+                          <Text style={styles.aiMatchBtnText}>
+                            Check for matches
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                      {aiLoadingId === Pet.pets_id && (
+                        <ActivityIndicator
+                          size="small"
+                          color={theme.colors.primary}
+                        />
+                      )}
+
+                      {aiMatches[Pet.pets_id] && (
+                        <View style={styles.aiResults}>
+                          <Text style={styles.aiSummary}>
+                            {aiMatches[Pet.pets_id].summary}
+                          </Text>
+                          {aiMatches[Pet.pets_id].matches?.map((match: any) => (
+                            <TouchableOpacity
+                              key={match.sighting_id}
+                              onPress={() => {
+                                if (match.sighting) {
+                                  setSelectedSighting(match.sighting);
+                                  setModalVisible(true);
+                                } else {
+                                  console.error(
+                                    "No sighting data for match:",
+                                    match,
+                                  );
+                                }
+                              }}
+                              style={[
+                                styles.aiMatchCard,
+                                {
+                                  borderLeftColor:
+                                    match.likelihood === "High"
+                                      ? theme.colors.success
+                                      : match.likelihood === "Medium"
+                                        ? theme.colors.primary
+                                        : theme.colors.text.secondary,
+                                },
+                              ]}
+                            >
+                              <Text style={styles.aiLikelihood}>
+                                {match.likelihood === "High"
+                                  ? "🟢"
+                                  : match.likelihood === "Medium"
+                                    ? "🟡"
+                                    : "🔴"}{" "}
+                                {match.likelihood} match
+                              </Text>
+                              <Text style={styles.aiReasoning}>
+                                {match.reasoning}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      )}
                     </View>
-                  )}
-                </View>
-              ))}
-          </>
-        )}
-      </View>
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalBackdrop}
-          activeOpacity={1}
-          onPress={() => setModalVisible(false)}
-        >
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.modalCard}
-            onPress={() => {}}
+                  ))}
+              </>
+            )}
+          </View>
+          <Modal
+            visible={modalVisible}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setModalVisible(false)}
           >
-            {/* handle bar */}
-            <View style={styles.modalHandle} />
-
-            <Text style={styles.modalTitle}>Possible Sighting</Text>
-
-            {selectedSighting?.image_url && (
-              <Image
-                source={{ uri: selectedSighting.image_url }}
-                style={styles.image}
-              />
-            )}
-
-            {selectedSighting?.sighting_description && (
-              <View style={styles.modalRow}>
-                <Text style={styles.modalLabel}>Description</Text>
-                <Text style={styles.modalText}>
-                  {selectedSighting.sighting_description}
-                </Text>
-              </View>
-            )}
-
-            {selectedSighting?.location_description && (
-              <View style={styles.modalRow}>
-                <Text style={styles.modalLabel}>📍 Location</Text>
-                <Text style={styles.modalText}>
-                  {selectedSighting.location_description}
-                </Text>
-              </View>
-            )}
-
-            {selectedSighting?.created_at && (
-              <View style={styles.modalRow}>
-                <Text style={styles.modalLabel}>🕐 Reported</Text>
-                <Text style={styles.modalText}>
-                  {new Date(selectedSighting.created_at).toLocaleDateString(
-                    "en-GB",
-                    {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    },
-                  )}
-                </Text>
-              </View>
-            )}
-
-            {selectedSighting?.guest_contact && (
-              <View style={styles.modalRow}>
-                <Text style={styles.modalLabel}>📞 Contact</Text>
-                <Text style={styles.modalText}>
-                  {selectedSighting.guest_contact}
-                </Text>
-              </View>
-            )}
-
             <TouchableOpacity
-              style={styles.modalCloseBtn}
+              style={styles.modalBackdrop}
+              activeOpacity={1}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={styles.modalCloseBtnText}>Close</Text>
+              <TouchableOpacity
+                activeOpacity={1}
+                style={styles.modalCard}
+                onPress={() => {}}
+              >
+                {/* handle bar */}
+                <View style={styles.modalHandle} />
+
+                <Text style={styles.modalTitle}>Possible Sighting</Text>
+
+                {selectedSighting?.image_url && (
+                  <Image
+                    source={{ uri: selectedSighting.image_url }}
+                    style={styles.image}
+                  />
+                )}
+
+                {selectedSighting?.sighting_description && (
+                  <View style={styles.modalRow}>
+                    <Text style={styles.modalLabel}>Description</Text>
+                    <Text style={styles.modalText}>
+                      {selectedSighting.sighting_description}
+                    </Text>
+                  </View>
+                )}
+
+                {selectedSighting?.location_description && (
+                  <View style={styles.modalRow}>
+                    <Text style={styles.modalLabel}>📍 Location</Text>
+                    <Text style={styles.modalText}>
+                      {selectedSighting.location_description}
+                    </Text>
+                  </View>
+                )}
+
+                {selectedSighting?.created_at && (
+                  <View style={styles.modalRow}>
+                    <Text style={styles.modalLabel}>🕐 Reported</Text>
+                    <Text style={styles.modalText}>
+                      {new Date(selectedSighting.created_at).toLocaleDateString(
+                        "en-GB",
+                        {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        },
+                      )}
+                    </Text>
+                  </View>
+                )}
+
+                {selectedSighting?.guest_contact && (
+                  <View style={styles.modalRow}>
+                    <Text style={styles.modalLabel}>📞 Contact</Text>
+                    <Text style={styles.modalText}>
+                      {selectedSighting.guest_contact}
+                    </Text>
+                  </View>
+                )}
+
+                <TouchableOpacity
+                  style={styles.modalCloseBtn}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.modalCloseBtnText}>Close</Text>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </TouchableOpacity>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
-    </ScrollView>
+          </Modal>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 const styles = StyleSheet.create({
