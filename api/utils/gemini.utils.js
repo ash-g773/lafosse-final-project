@@ -37,8 +37,15 @@ async function getAiMatches(pet, sightings) {
     }
   `;
 
+  console.log("Calling Gemini API...");
+  console.log("API Key exists:", !!process.env.GEMINI_MATCHING_KEY);
+  console.log(
+    "API Key prefix:",
+    process.env.EXPO_PUBLIC_MATCHING_KEY?.substring(0, 8),
+  );
+
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.EXPO_PUBLIC_MATCHING_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_MATCHING_KEY}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
