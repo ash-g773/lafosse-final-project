@@ -106,12 +106,13 @@ async function getAiMatches(pet, sightings) {
       ],
       summary: "We found a highly promising match.",
     };
+    console.log(best, best.score);
   }
 
   const topSightings = candidates.slice(0, 5);
 
   const prompt = `
-Compare this lost pet against the candidate sightings.
+ Compare this lost pet against the candidate sightings.
 
 Lost pet:
 ${JSON.stringify({
