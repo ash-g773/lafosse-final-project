@@ -134,7 +134,7 @@ async function getAiMatches(pet, sightings) {
       matches: candidates.slice(0, 3).map((s) => ({
         sighting_id: s.sightings_id,
         likelihood: "Medium",
-        reasoning: "Rule-based match.",
+        reasoning: "Possible match based on key details.",
         next_steps: "Review this sighting.",
       })),
       summary: "We found some possible matches.",

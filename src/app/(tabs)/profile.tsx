@@ -248,6 +248,7 @@ export default function Profile() {
         },
       );
       const data = await response.json();
+      console.log("AI Matches Data:", data);
 
       setAiMatches((prev: any) => ({ ...prev, [petId]: data }));
       console.log(data);
