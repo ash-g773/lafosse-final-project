@@ -97,6 +97,46 @@ const mockLostPets = [
   },
 ];
 
+const mockAiMatches = {
+  summary: "We found some possible matches.",
+  matches: [
+    {
+      sighting_id: 1,
+      likelihood: "High",
+      reasoning: "Strong match based on description and location.",
+      next_steps: "Review this sighting.",
+      sighting: {
+        sightings_id: 1,
+        sighting_description:
+          "A brown and white Beagle was seen near the park.",
+        location_description: "Highbury Fields, near the playground",
+        lat: "51.5551",
+        lng: "-0.1051",
+        image_url: "https://example.com/beagle.jpg",
+        created_at: "2026-06-16T10:00:00Z",
+        guest_contact: "07700123456",
+      },
+    },
+  ],
+};
+
+const mockAiMatchesNoSighting = {
+  summary: "We found a match.",
+  matches: [
+    {
+      sighting_id: 1,
+      likelihood: "High",
+      reasoning: "Strong match.",
+      next_steps: "Review this sighting.",
+    },
+  ],
+};
+
+const mockAiMatchesEmpty = {
+  summary: "No likely matches found.",
+  matches: [],
+};
+
 // fetch setup functions
 
 function setupMockFetchAndSave() {
@@ -183,6 +223,67 @@ function setupMockFetchWithPetsAndReunite() {
     });
 }
 
+function setupMockFetchWithAiMatches() {
+  mockFetch
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: mockProfile }),
+    })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: mockLostPets }),
+    })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockAiMatches,
+    });
+}
+
+function setupMockFetchWithAiMatchesNoSighting() {
+  mockFetch
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: mockProfile }),
+    })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: mockLostPets }),
+    })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockAiMatchesNoSighting,
+    });
+}
+
+function setupMockFetchWithEmptyAiMatches() {
+  mockFetch
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: mockProfile }),
+    })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: mockLostPets }),
+    })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockAiMatchesEmpty,
+    });
+}
+
+function setupMockFetchAiMatchesError() {
+  mockFetch
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: mockProfile }),
+    })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: mockLostPets }),
+    })
+    .mockRejectedValueOnce(new Error("Network error"));
+}
+
 beforeEach(() => {
   mockPush.mockReset();
   mockReplace.mockReset();
@@ -194,6 +295,15 @@ beforeEach(() => {
   );
 });
 
+const originalError = console.error;
+beforeAll(() => {
+  console.error = jest.fn();
+});
+
+afterAll(() => {
+  console.error = originalError;
+});
+
 describe("Profile page", () => {
   beforeEach(() => {
     mockFetch.mockReset();
@@ -201,13 +311,15 @@ describe("Profile page", () => {
 
   it("displays profile data when loaded", async () => {
     setupMockFetchSuccess();
-    const { getByDisplayValue } = await render(<Profile />);
+    const { getByDisplayValue, queryByTestId } = await render(<Profile />);
 
     await waitFor(() => {
-      expect(getByDisplayValue("Sarah Jones")).toBeTruthy();
-      expect(getByDisplayValue("07700900123")).toBeTruthy();
-      expect(getByDisplayValue("N4 3AB")).toBeTruthy();
+      expect(queryByTestId("ai-loading-indicator-1")).toBeNull();
     });
+
+    expect(getByDisplayValue("Sarah Jones")).toBeTruthy();
+    expect(getByDisplayValue("07700900123")).toBeTruthy();
+    expect(getByDisplayValue("N4 3AB")).toBeTruthy();
   });
 
   it("displays empty fields for new user", async () => {
@@ -399,5 +511,241 @@ describe("Profile page", () => {
     await waitFor(() => {
       expect(getByText("🟢 Reunited")).toBeTruthy();
     });
+  });
+  it("fetches and displays AI matches for a pet", async () => {
+    setupMockFetchWithAiMatches();
+    const { getByText, getByTestId } = render(<Profile />);
+
+    await waitFor(() => {
+      expect(getByText("View Lost Pet Reports ▼")).toBeTruthy();
+    });
+
+    fireEvent.press(getByText("View Lost Pet Reports ▼"));
+
+    await waitFor(() => {
+      expect(getByText("Luna")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("ai-match-btn-1"));
+
+    await waitFor(() => {
+      expect(getByText("We found some possible matches.")).toBeTruthy();
+      expect(getByText("🟢 High match")).toBeTruthy();
+      expect(
+        getByText("Strong match based on description and location."),
+      ).toBeTruthy();
+    });
+  });
+
+  it("shows loading indicator while fetching AI matches", async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: mockProfile }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: mockLostPets }),
+      })
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: async () => mockAiMatches,
+                }),
+              1000,
+            ),
+          ),
+      );
+
+    const { getByText, getByTestId, queryByTestId } = render(<Profile />);
+
+    await waitFor(() => {
+      expect(getByText("View Lost Pet Reports ▼")).toBeTruthy();
+    });
+
+    fireEvent.press(getByText("View Lost Pet Reports ▼"));
+
+    await waitFor(() => {
+      expect(getByText("Luna")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("ai-match-btn-1"));
+
+    // Check that loading indicator appears
+    expect(getByTestId("ai-loading-indicator-1")).toBeTruthy();
+
+    // Wait for the AI matches to load and loading indicator to disappear
+    await waitFor(
+      () => {
+        expect(queryByTestId("ai-loading-indicator-1")).toBeNull();
+      },
+      { timeout: 2000 },
+    );
+  });
+
+  it("handles AI matches fetch error gracefully", async () => {
+    setupMockFetchAiMatchesError();
+    const { getByText, getByTestId } = render(<Profile />);
+
+    await waitFor(() => {
+      expect(getByText("View Lost Pet Reports ▼")).toBeTruthy();
+    });
+
+    fireEvent.press(getByText("View Lost Pet Reports ▼"));
+
+    await waitFor(() => {
+      expect(getByText("Luna")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("ai-match-btn-1"));
+
+    await waitFor(() => {
+      expect(console.error).toHaveBeenCalledWith(
+        "AI match failed:",
+        expect.any(Error),
+      );
+    });
+  });
+
+  it("displays 'No likely matches found' when AI matches are empty", async () => {
+    setupMockFetchWithEmptyAiMatches();
+    const { getByText, getByTestId } = render(<Profile />);
+
+    await waitFor(() => {
+      expect(getByText("View Lost Pet Reports ▼")).toBeTruthy();
+    });
+
+    fireEvent.press(getByText("View Lost Pet Reports ▼"));
+
+    await waitFor(() => {
+      expect(getByText("Luna")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("ai-match-btn-1"));
+
+    await waitFor(() => {
+      expect(getByText("No likely matches found.")).toBeTruthy();
+    });
+  });
+  it("opens modal with sighting details when AI match is pressed", async () => {
+    setupMockFetchWithAiMatches();
+    const { getByText, getByTestId } = render(<Profile />);
+
+    await waitFor(() => {
+      fireEvent.press(getByText("View Lost Pet Reports ▼"));
+    });
+    await waitFor(() => {
+      fireEvent.press(getByTestId("ai-match-btn-1"));
+    });
+    await waitFor(() => {
+      fireEvent.press(getByText("🟢 High match"));
+    });
+
+    await waitFor(() => {
+      expect(getByText("Possible Sighting")).toBeTruthy();
+      expect(
+        getByText("A brown and white Beagle was seen near the park."),
+      ).toBeTruthy();
+      expect(getByText("📍 Location")).toBeTruthy();
+      expect(getByText("Highbury Fields, near the playground")).toBeTruthy();
+      expect(getByText("🕐 Reported")).toBeTruthy();
+      expect(getByText("16 June 2026")).toBeTruthy();
+      expect(getByText("📞 Contact")).toBeTruthy();
+      expect(getByText("07700123456")).toBeTruthy();
+    });
+  });
+
+  it("closes modal when close button is pressed", async () => {
+    setupMockFetchWithAiMatches();
+    const { getByText, getByTestId, queryByText } = render(<Profile />);
+
+    await waitFor(() => {
+      fireEvent.press(getByText("View Lost Pet Reports ▼"));
+    });
+    await waitFor(() => {
+      fireEvent.press(getByTestId("ai-match-btn-1"));
+    });
+    await waitFor(() => {
+      fireEvent.press(getByText("🟢 High match"));
+    });
+
+    expect(getByText("Possible Sighting")).toBeTruthy();
+
+    fireEvent.press(getByText("Close"));
+
+    await waitFor(() => {
+      expect(queryByText("Possible Sighting")).toBeNull();
+    });
+  });
+
+  it("closes modal when backdrop is pressed", async () => {
+    setupMockFetchWithAiMatches();
+    const { getByText, getByTestId, queryByText } = render(<Profile />);
+
+    await waitFor(() => {
+      fireEvent.press(getByText("View Lost Pet Reports ▼"));
+    });
+    await waitFor(() => {
+      fireEvent.press(getByTestId("ai-match-btn-1"));
+    });
+    await waitFor(() => {
+      fireEvent.press(getByText("🟢 High match"));
+    });
+
+    expect(getByText("Possible Sighting")).toBeTruthy();
+
+    fireEvent.press(getByTestId("modal-backdrop"));
+
+    await waitFor(() => {
+      expect(queryByText("Possible Sighting")).toBeNull();
+    });
+  });
+
+  it("displays sighting image in modal if available", async () => {
+    setupMockFetchWithAiMatches();
+    const { getByText, getByTestId } = render(<Profile />);
+
+    await waitFor(() => {
+      fireEvent.press(getByText("View Lost Pet Reports ▼"));
+    });
+    await waitFor(() => {
+      fireEvent.press(getByTestId("ai-match-btn-1"));
+    });
+    await waitFor(() => {
+      fireEvent.press(getByText("🟢 High match"));
+    });
+
+    await waitFor(() => {
+      expect(
+        getByText("A brown and white Beagle was seen near the park."),
+      ).toBeTruthy();
+    });
+  });
+
+  it("handles missing sighting data gracefully in modal", async () => {
+    setupMockFetchWithAiMatchesNoSighting();
+    const { getByText, getByTestId, queryByText } = render(<Profile />);
+
+    await waitFor(() => {
+      fireEvent.press(getByText("View Lost Pet Reports ▼"));
+    });
+    await waitFor(() => {
+      fireEvent.press(getByTestId("ai-match-btn-1"));
+    });
+    await waitFor(() => {
+      fireEvent.press(getByText("🟢 High match"));
+    });
+
+    // Modal should be open
+    expect(getByText("Possible Sighting")).toBeTruthy();
+    // Missing fields should not be rendered
+    expect(queryByText("Description")).toBeNull();
+    expect(queryByText("📍 Location")).toBeNull();
+    expect(queryByText("🕐 Reported")).toBeNull();
+    expect(queryByText("📞 Contact")).toBeNull();
   });
 });

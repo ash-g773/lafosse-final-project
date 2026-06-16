@@ -9,13 +9,13 @@ async function match(req, res) {
       return res.status(400).json({ error: "Invalid pet ID" });
     }
 
-    // Test connectivity (optional, but useful for debugging)
+    // Test connectivity (for debugging)
     try {
       const testResponse = await fetch("https://httpbin.org/get");
       console.log("Connectivity test status:", testResponse.status);
     } catch (connectivityErr) {
       console.error("Connectivity test failed:", connectivityErr.message);
-      // Proceed anyway, as this is just a test
+      // Proceed anyway bc this is just a test
     }
 
     // Fetch pet
@@ -39,14 +39,13 @@ async function match(req, res) {
     }
 
     // Call AI matching
-    const result = await getAiMatches(pet, relevantSightings);
+    const result = await getAiMatches(pet, sightings);
 
-    // attach full sighting data to each match
+    // Attach full sighting data to each match
     result.matches = result.matches.map((match) => ({
       ...match,
       sighting:
-        relevantSightings.find((s) => s.sightings_id === match.sighting_id) ||
-        null,
+        sightings.find((s) => s.sightings_id === match.sighting_id) || null,
     }));
 
     res.status(200).json(result);
