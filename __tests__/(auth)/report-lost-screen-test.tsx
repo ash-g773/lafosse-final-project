@@ -1,6 +1,22 @@
 import { render } from "@testing-library/react-native";
 import ReportLostScreen from "../../src/app/(tabs)/lostPet";
 
+jest.mock("react-native-maps", () => {
+  const { View } = require("react-native");
+  const MockMapView = ({ children }: any) => (
+    <View testID="map-view">{children}</View>
+  );
+  const MockMarker = ({ onPress, testID }: any) => (
+    <View testID={testID || "marker"} onTouchEnd={onPress} />
+  );
+  return {
+    __esModule: true,
+    default: MockMapView,
+    Marker: MockMarker,
+    PROVIDER_GOOGLE: "google",
+  };
+});
+
 describe("report lost screen tests", () => {
   it("has a photo modal", async () => {
     const { getByTestId } = await render(<ReportLostScreen />);
