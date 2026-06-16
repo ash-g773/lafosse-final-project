@@ -3,7 +3,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Image,
   StyleSheet,
@@ -62,16 +61,12 @@ export default function LoginScreen() {
         router.replace("/(tabs)" as any);
       } else {
         Alert.alert("Login failed: " + data.error);
-        setLoading(false);
       }
     } catch (error) {
       console.error("Login error:", error);
       Alert.alert("Network error - check your connection");
     }
   }
-
-  //adding loading for login
-  const [loading, setLoading] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -107,14 +102,9 @@ export default function LoginScreen() {
           onPress={() => {
             console.log("button pressed");
             login(username, password);
-            setLoading(true);
           }}
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Login</Text>
-          )}
+          <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
 
         <View style={styles.register}>
@@ -208,8 +198,9 @@ const styles = StyleSheet.create({
   },
   image: {
     marginTop: 50,
-    width: 100,
-    height: 100,
+    borderRadius: 30,
+    width: 150,
+    height: 150,
   },
   toReport: {
     marginTop: 150,

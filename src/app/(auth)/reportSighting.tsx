@@ -1,5 +1,6 @@
 import { theme } from "@/themes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { router } from "expo-router";
@@ -15,7 +16,6 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TextInputContentSizeChangeEvent,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -84,7 +84,14 @@ export default function ReportSightingScreen() {
     console.log(result);
 
     if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      console.log("Original URI:", uri);
+      const filename = uri.split("/").pop() || "sighting.jpg";
+      const destUri = FileSystem.cacheDirectory + filename;
+      console.log("Dest URI:", destUri);
+      await FileSystem.copyAsync({ from: uri, to: destUri });
+      console.log("Copy complete");
+      setSelectedImage(destUri);
       setModal2Visible(false);
     }
     console.log(selectedImage);
@@ -280,12 +287,6 @@ export default function ReportSightingScreen() {
     console.log(selectedImage);
   }
 
-  // expandable text box
-  const [height, setHeight] = useState(0);
-  const onContentsSizeChange = (event: TextInputContentSizeChangeEvent) => {
-    setHeight(Math.max(50, event.nativeEvent.contentSize.height));
-  };
-
   // rendering the actual page
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.primary }}>
@@ -330,6 +331,7 @@ export default function ReportSightingScreen() {
                   transparent={true}
                   visible={modal2Visible}
                   onRequestClose={() => {
+                    Alert.alert("modal closed");
                     setModal2Visible(!modal2Visible);
                   }}
                 >
@@ -394,6 +396,7 @@ export default function ReportSightingScreen() {
                     transparent={true}
                     visible={modalVisible}
                     onRequestClose={() => {
+                      Alert.alert("modal closed");
                       setModalVisible(!modalVisible);
                     }}
                   >
@@ -501,49 +504,37 @@ export default function ReportSightingScreen() {
                   autoCapitalize="none"
                   style={styles.input}
                   placeholder="Please input color"
-                  placeholderTextColor={theme.colors.text.secondary}
                   onChangeText={setAnimalColor}
                   testID="colorInput"
                 />
 
                 <Text style={styles.formLabels}>Description: </Text>
                 <TextInput
-                  multiline={true}
-                  placeholder="Time of sighting, behaviour etc."
-                  placeholderTextColor={theme.colors.text.secondary}
+                  placeholder="Time of sighting, important info, behaviour etc."
                   autoCapitalize="none"
-                  style={{
-                    height: height,
-                    backgroundColor: theme.colors.secondary_light,
-                    borderRadius: theme.borderRadius.md,
-                    padding: theme.spacing.md,
-                    fontSize: theme.fontSize.md,
-                    marginBottom: theme.spacing.md,
-                    color: theme.colors.text.primary,
-                  }}
-                  onContentSizeChange={onContentsSizeChange}
+                  style={styles.input}
                   onChangeText={setSightingDescription}
                   testID="descriptionInput"
                 />
 
-                <Text style={styles.aiResponse}>
-                  {" "}
+                <View style={styles.aiResponseContainer}>
                   {selectedImage ? (
                     <GeminiImageDescriber
                       imageUri={selectedImage}
                       imageMimeType={selectedImageMimeType}
                     />
                   ) : (
-                    "Please upload an image"
-                  )}{" "}
-                </Text>
+                    <Text style={styles.aiResponse}>
+                      Please upload an image
+                    </Text>
+                  )}
+                </View>
 
                 <Text style={styles.formLabels}>
                   Your contact info (optional):{" "}
                 </Text>
                 <TextInput
                   placeholder="+44 1234567890"
-                  placeholderTextColor={theme.colors.text.secondary}
                   autoCapitalize="none"
                   style={styles.input}
                   onChangeText={setGuestContact}
@@ -656,14 +647,6 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     color: theme.colors.text.secondary,
   },
-  inputDescription: {
-    backgroundColor: theme.colors.secondary_light,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
-    fontSize: theme.fontSize.md,
-    marginBottom: theme.spacing.md,
-    color: theme.colors.text.primary,
-  },
   button: {
     marginTop: theme.spacing.sm,
     backgroundColor: theme.colors.secondary,
@@ -694,6 +677,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text.light,
   },
   logo: {
+    borderRadius: 10,
     width: 50,
     height: 50,
   },
@@ -755,7 +739,6 @@ const styles = StyleSheet.create({
     elevation: 5,
     justifyContent: "space-around",
     flexDirection: "row",
-    borderRadius: 20,
   },
   locationConfirmed: {
     color: theme.colors.text.light,
@@ -765,6 +748,11 @@ const styles = StyleSheet.create({
   },
   locationButtonSelected: {
     backgroundColor: theme.colors.success,
+  },
+  aiResponseContainer: {
+    width: "100%",
+    marginTop: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
   },
   aiResponse: {
     color: theme.colors.text.light,
