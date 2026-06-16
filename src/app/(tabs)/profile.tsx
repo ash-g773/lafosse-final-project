@@ -218,12 +218,12 @@ export default function Profile() {
     }
   }
 
-  const [aiMatches, setAiMatches] = useState<any>(null);
+  const [aiMatches, setAiMatches] = useState<Record<number, any>>({});
   const [aiLoading, setAiLoading] = useState(false);
 
   async function checkAiMatches(petId: number) {
     setAiLoading(true);
-    console.log("AI button pressed");
+    setAiMatches((prev: any) => ({ ...prev, [petId]: null }));
     try {
       const token = await AsyncStorage.getItem("token");
 
@@ -235,7 +235,7 @@ export default function Profile() {
       );
       const data = await response.json();
 
-      setAiMatches(data);
+      setAiMatches((prev: any) => ({ ...prev, [petId]: data }));
       console.log(data);
     } catch (error) {
       console.error("AI match failed:", error);
@@ -410,10 +410,12 @@ export default function Profile() {
                     />
                   )}
 
-                  {aiMatches && (
+                  {aiMatches[Pet.pets_id] && (
                     <View style={styles.aiResults}>
-                      <Text style={styles.aiSummary}>{aiMatches.summary}</Text>
-                      {aiMatches.matches?.map((match: any) => (
+                      <Text style={styles.aiSummary}>
+                        {aiMatches[Pet.pets_id].summary}
+                      </Text>
+                      {aiMatches[Pet.pets_id].matches?.map((match: any) => (
                         <View
                           key={match.sighting_id}
                           style={[

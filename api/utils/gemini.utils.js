@@ -1,77 +1,140 @@
 async function getAiMatches(pet, sightings) {
-  const relevantSightings = sightings.filter((s) => {
-    const desc = s.sighting_description.toLowerCase();
-    const species = pet.species.toLowerCase();
-    // basic species filtering - if sighting mentions a different species, exclude it
-    if (
-      species === "cat" &&
-      (desc.includes("dog") || desc.includes("tortoise"))
-    )
-      return false;
-    if (
-      species === "dog" &&
-      (desc.includes("cat") || desc.includes("tortoise"))
-    )
-      return false;
-    return true;
-  });
+  function haversineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371000; // metres
 
-  if (relevantSightings.length === 0) {
+    const toRad = (deg) => (deg * Math.PI) / 180;
+
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function scoreSighting(pet, sighting) {
+    let score = 0;
+
+    const distance = haversineDistance(
+      Number(pet.lat),
+      Number(pet.lng),
+      Number(sighting.lat),
+      Number(sighting.lng),
+    );
+
+    const ageDays =
+      (Date.now() - new Date(sighting.created_at)) / (1000 * 60 * 60 * 24);
+
+    const desc = (sighting.sighting_description || "").toLowerCase();
+
+    // Species
+    if (desc.includes(pet.species.toLowerCase())) score += 100;
+
+    // Breed
+    if (pet.breed && desc.includes(pet.breed.toLowerCase())) score += 30;
+
+    // Colour
+    if (pet.colour) {
+      const colours = pet.colour.toLowerCase().split(/[ ,/]+/);
+
+      for (const colour of colours) {
+        if (colour.length > 2 && desc.includes(colour)) {
+          score += 30;
+        }
+      }
+    }
+
+    // Name
+    if (pet.name && desc.includes(pet.name.toLowerCase())) {
+      score += 100;
+    }
+
+    if (distance < 250) score += 60;
+    else if (distance < 1000) score += 40;
+    else if (distance < 3000) score += 20;
+
+    if (ageDays < 1) score += 30;
+    else if (ageDays < 3) score += 20;
+    else if (ageDays < 7) score += 10;
+
+    return score;
+  }
+
+  const scored = sightings.map((s) => ({
+    ...s,
+    score: scoreSighting(pet, s),
+  }));
+  scored.sort((a, b) => b.score - a.score);
+
+  const candidates = scored.filter((s) => s.score >= 50);
+  if (candidates.length === 0) {
     return {
       matches: [],
-      summary: `No recent sightings of ${pet.species.toLowerCase()}s found in your area.`,
+      summary: "No likely matches found",
     };
   }
 
-  const prompt = `
-    You are helping reunite a lost pet with their owner.
-    
-    LOST PET DETAILS:
-    - Species: ${pet.species} (CRITICAL: only match sightings of this exact species)
-    - Name: ${pet.name}
-    - Breed: ${pet.breed || "Unknown"}
-    - Colour/markings: ${pet.colour || "Unknown"}
-    - Description: ${pet.description || "No description"}
-    - Last seen near: ${pet.last_seen_location}
+  const best = candidates[0];
 
-    MATCHING RULES - assess in this strict priority order:
-    1. SPECIES MATCH IS MANDATORY - if a sighting describes a different animal species, likelihood must be "Unlikely" regardless of anything else
-    2. Physical characteristics (colour, size, breed, markings) - most important after species
-    3. Location proximity - how close to last seen location
-    4. Behaviour - least important, only use to support or contradict physical match
-
-    RECENT SIGHTINGS TO ASSESS:
-    ${relevantSightings
-      .map(
-        (s, i) => `
-      Sighting ${i + 1}:
-      - Description: ${s.sighting_description}
-      - Location: ${s.location_description || "Not specified"}
-      - Reported: ${new Date(s.created_at).toLocaleDateString()}
-    `,
-      )
-      .join("\n")}
-
-    IMPORTANT RULES FOR YOUR RESPONSE:
-    - Do NOT reference sighting numbers or IDs in your reasoning or summary
-    - Do NOT include "Unlikely" matches in the results at all - only return High, Medium or Low matches
-    - Keep reasoning focused on physical appearance first
-    - Summary should be written directly to the pet owner, not reference technical details
-    - If no sightings are a reasonable match, return an empty matches array with an encouraging summary
-
-    Respond ONLY in this exact JSON format, no markdown, no extra text:
-    {
-      "matches": [
+  if (best && best.score >= 180) {
+    return {
+      matches: [
         {
-          "sighting_id": ${relevantSightings[0]?.sightings_id},
-          "likelihood": "High",
-          "reasoning": "Physical description matches closely - same colour and size reported in a nearby location.",
-          "next_steps": "We recommend visiting this area as soon as possible."
-        }
+          sighting_id: best.sightings_id,
+          likelihood: "High",
+          reasoning:
+            "Very strong automatic match based on species, colour, breed and/or name.",
+          next_steps: "Contact the reporter as soon as possible.",
+        },
       ],
-      "summary": "We found 1 possible match for your pet in the area. Check the details below."
+      summary: "We found a highly promising match.",
+    };
+  }
+
+  const topSightings = candidates.slice(0, 5);
+
+  const prompt = `
+Compare this lost pet against the candidate sightings.
+
+Lost pet:
+${JSON.stringify({
+  species: pet.species,
+  breed: pet.breed,
+  colour: pet.colour,
+  description: pet.description,
+  last_seen: pet.last_seen_location,
+})}
+
+Candidate sightings:
+${JSON.stringify(
+  topSightings.map((s) => ({
+    sighting_id: s.sightings_id,
+    description: s.sighting_description,
+    location: s.location_description,
+    reported: s.created_at,
+  })),
+  null,
+  2,
+)}
+
+Return ONLY valid JSON.
+
+{
+  "matches": [
+    {
+      "sighting_id": 123,
+      "likelihood": "High",
+      "reasoning": "...",
+      "next_steps": "..."
     }
-  `;
+  ],
+  "summary": "..."
+}
+
+Do not include markdown.
+Do not invent sighting IDs.`;
 
   console.log("Calling Gemini API...");
   console.log("API Key exists:", !!process.env.GEMINI_MATCHING_KEY);
@@ -108,7 +171,10 @@ async function getAiMatches(pet, sightings) {
 
     const data = JSON.parse(responseText);
     const text = data.candidates[0].content.parts[0].text;
-    const cleaned = text.replace(/```json|```/g, "").trim();
+    const cleaned = text
+      .replace(/^```[a-zA-Z]*\n?/, "")
+      .replace(/```$/, "")
+      .trim();
     return JSON.parse(cleaned);
   } catch (err) {
     clearTimeout(timeout);
