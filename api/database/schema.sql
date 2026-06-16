@@ -64,6 +64,7 @@ CREATE TABLE alerts (
     alerts_id INT GENERATED ALWAYS AS IDENTITY,
     users_id INT NOT NULL,
     pets_id INT,
+    sightings_id INT,
     alert_type VARCHAR(20),
     alert_message TEXT,
     alert_radius INT,
@@ -71,6 +72,7 @@ CREATE TABLE alerts (
     created_at TIMESTAMP DEFAULT NOW(),
     PRIMARY KEY (alerts_id),
     FOREIGN KEY (pets_id) REFERENCES pets(pets_id),
+    FOREIGN KEY (sightings_id) REFERENCES sightings(sightings_id),
     FOREIGN KEY (users_id) REFERENCES users(users_id)
 );
 

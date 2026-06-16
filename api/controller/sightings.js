@@ -32,6 +32,7 @@ async function create(req, res) {
     const newSighting = await Sighting.create(data)
 
     await Alert.createForAllUsers(
+      null,
       newSighting.pets_id,
       "sighting",
       `New sighting reported: ${newSighting.sighting_description || "unknown animal"}`
