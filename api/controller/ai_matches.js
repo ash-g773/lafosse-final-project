@@ -34,3 +34,4 @@ async function match(req, res) {
     }
   }
 }
+module.exports = { match };
