@@ -1,6 +1,3 @@
-javascript;
-Copy;
-
 async function getAiMatches(pet, sightings) {
   function haversineDistance(lat1, lon1, lat2, lon2) {
     const R = 6371000; // metres
