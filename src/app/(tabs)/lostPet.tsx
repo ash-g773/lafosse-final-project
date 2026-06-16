@@ -49,6 +49,8 @@ export default function LostPetScreen() {
     longitude: number;
   } | null>(null);
 
+  const [readableLocation, setReadableLocation] = useState<string>("");
+
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   async function getCurrentLocation() {
@@ -58,10 +60,20 @@ export default function LostPetScreen() {
       return;
     }
 
-    let location = await Location.getCurrentPositionAsync({});
-    setLocation(location);
-    console.log(location);
-    console.log(errorMsg);
+    let loc = await Location.getCurrentPositionAsync({});
+    setLocation(loc);
+
+    const geocode = await Location.reverseGeocodeAsync({
+      latitude: loc.coords.latitude,
+      longitude: loc.coords.longitude,
+    });
+    if (geocode.length > 0) {
+      const g = geocode[0];
+      const readable = [g.name, g.street, g.district, g.city]
+        .filter(Boolean)
+        .join(", ");
+      setReadableLocation(readable);
+    }
   }
 
   useEffect(() => {
@@ -180,14 +192,7 @@ export default function LostPetScreen() {
       formData.append("breed", animalBreed ?? "");
       formData.append("colour", animalColor ?? "");
       formData.append("description", description ?? "");
-      formData.append(
-        "last_seen_location",
-        selectedLocation
-          ? `${selectedLocation.latitude}, ${selectedLocation.longitude}`
-          : location
-            ? `${location.coords.latitude}, ${location.coords.longitude}`
-            : "",
-      );
+      formData.append("last_seen_location", readableLocation || "Unknown location");
       formData.append(
         "lat",
         selectedLocation
@@ -312,8 +317,8 @@ export default function LostPetScreen() {
                     onPress={() => getCurrentLocation()}
                   >
                     <Text style={styles.buttonText}>
-                      {location && !selectedLocation
-                        ? "✓ Current location"
+                      {location && !selectedLocation && readableLocation
+                        ? `✓ ${readableLocation}`
                         : "At my current location"}
                     </Text>
                   </TouchableOpacity>
@@ -364,9 +369,8 @@ export default function LostPetScreen() {
 
                         <Pressable
                           style={styles.button}
-                          onPress={() => {
+                          onPress={async () => {
                             if (selectedLocation) {
-                              // save the map selection as the sighting location
                               setLocation({
                                 coords: {
                                   latitude: selectedLocation.latitude,
@@ -379,11 +383,18 @@ export default function LostPetScreen() {
                                 },
                                 timestamp: Date.now(),
                               } as Location.LocationObject);
-                              console.log(
-                                "coords:",
-                                selectedLocation.latitude,
-                                selectedLocation.longitude,
-                              );
+
+                              const geocode = await Location.reverseGeocodeAsync({
+                                latitude: selectedLocation.latitude,
+                                longitude: selectedLocation.longitude,
+                              });
+                              if (geocode.length > 0) {
+                                const g = geocode[0];
+                                const readable = [g.name, g.street, g.district, g.city]
+                                  .filter(Boolean)
+                                  .join(", ");
+                                setReadableLocation(readable);
+                              }
                             }
                             setModalVisible(false);
                           }}
@@ -405,9 +416,11 @@ export default function LostPetScreen() {
                     onPress={() => setModalVisible(true)}
                   >
                     <Text style={styles.buttonText}>
-                      {selectedLocation
-                        ? "✓ Location pinned"
-                        : "Somewhere else (open map)"}
+                      {selectedLocation && readableLocation
+                        ? `✓ ${readableLocation}`
+                        : selectedLocation
+                          ? "✓ Location pinned"
+                          : "Somewhere else (open map)"}
                     </Text>
                   </TouchableOpacity>
                 </View>
