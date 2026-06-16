@@ -94,6 +94,7 @@ async function getAiMatches(pet, sightings) {
   const best = candidates[0];
 
   if (best && best.score >= 180) {
+    console.log(best, best.score);
     return {
       matches: [
         {
@@ -106,7 +107,20 @@ async function getAiMatches(pet, sightings) {
       ],
       summary: "We found a highly promising match.",
     };
-    console.log(best, best.score);
+  }
+
+  if (candidates.length === 1 && best.score >= 140) {
+    return {
+      matches: [
+        {
+          sighting_id: best.sightings_id,
+          likelihood: "Medium",
+          reasoning: "Likely match based on the available information.",
+          next_steps: "Review this sighting.",
+        },
+      ],
+      summary: "We found one promising sighting.",
+    };
   }
 
   const topSightings = candidates.slice(0, 5);

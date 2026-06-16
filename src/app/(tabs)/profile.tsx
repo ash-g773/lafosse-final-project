@@ -416,8 +416,9 @@ export default function Profile() {
                         {aiMatches[Pet.pets_id].summary}
                       </Text>
                       {aiMatches[Pet.pets_id].matches?.map((match: any) => (
-                        <View
+                        <TouchableOpacity
                           key={match.sighting_id}
+                          //onPress={() => router.push(``)}
                           style={[
                             styles.aiMatchCard,
                             {
@@ -441,7 +442,7 @@ export default function Profile() {
                           <Text style={styles.aiReasoning}>
                             {match.reasoning}
                           </Text>
-                        </View>
+                        </TouchableOpacity>
                       ))}
                     </View>
                   )}
