@@ -1,16 +1,17 @@
-const cloudinary = require('../config/cloudinary')
+require("dotenv").config();
+const cloudinary = require("../config/cloudinary");
 
 function uploadToCloudinary(fileBuffer) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: 'paws' },
+      { folder: "paws" },
       (error, result) => {
-        if (error) reject(error)
-        else resolve(result.secure_url)
-      }
-    )
-    stream.end(fileBuffer)
-  })
+        if (error) reject(error);
+        else resolve(result.secure_url);
+      },
+    );
+    stream.end(fileBuffer);
+  });
 }
 
-module.exports = uploadToCloudinary
+module.exports = uploadToCloudinary;

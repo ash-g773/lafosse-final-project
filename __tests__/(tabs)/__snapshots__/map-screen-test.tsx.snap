@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MapScreen renders correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "flex": 1,
+      "gap": 16,
+      "justifyContent": "center",
+    }
+  }
+>
+  <ActivityIndicator
+    color="#2D6A7F"
+    size="large"
+  />
+  <Text>
+    Loading map data...
+  </Text>
+</View>
+`;
