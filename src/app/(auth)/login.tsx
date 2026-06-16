@@ -115,7 +115,6 @@ export default function LoginScreen() {
           ) : (
             <Text style={styles.buttonText}>Login</Text>
           )}
-          <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
 
         <View style={styles.register}>
