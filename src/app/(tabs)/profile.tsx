@@ -223,8 +223,10 @@ export default function Profile() {
 
   async function checkAiMatches(petId: number) {
     setAiLoading(true);
+    console.log("AI button pressed");
     try {
       const token = await AsyncStorage.getItem("token");
+
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_API_URL}/pets/${petId}/ai-matches`,
         {
@@ -232,7 +234,9 @@ export default function Profile() {
         },
       );
       const data = await response.json();
+
       setAiMatches(data);
+      console.log(data);
     } catch (error) {
       console.error("AI match failed:", error);
     } finally {
