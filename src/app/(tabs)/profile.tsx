@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -40,6 +41,19 @@ interface Pet {
   lng: string;
   image_url: string | null;
   status: string;
+  created_at: string;
+}
+
+interface Sighting {
+  sightings_id: number;
+  pets_id: number | null;
+  users_id: number | null;
+  guest_contact: string | null;
+  sighting_description: string;
+  location_description: string;
+  lat: string;
+  lng: string;
+  image_url: string | null;
   created_at: string;
 }
 
@@ -220,6 +234,38 @@ export default function Profile() {
     }
   }
 
+  const [aiMatches, setAiMatches] = useState<Record<number, any>>({});
+  const [aiLoadingId, setAiLoadingId] = useState<number | null>(null);
+
+  async function checkAiMatches(petId: number) {
+    setAiLoadingId(petId);
+    setAiMatches((prev: any) => ({ ...prev, [petId]: null }));
+    try {
+      const token = await AsyncStorage.getItem("token");
+
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/pets/${petId}/ai-matches`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      const data = await response.json();
+      console.log("AI Matches Data:", data);
+
+      setAiMatches((prev: any) => ({ ...prev, [petId]: data }));
+      console.log(data);
+    } catch (error) {
+      console.error("AI match failed:", error);
+    } finally {
+      setAiLoadingId(null);
+    }
+  }
+
+  const [selectedSighting, setSelectedSighting] = useState<Sighting | null>(
+    null,
+  );
+  const [modalVisible, setModalVisible] = useState(false);
+
   if (profileLoading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -381,11 +427,154 @@ export default function Profile() {
                           </Text>
                         </TouchableOpacity>
                       )}
+                      {Pet.status === "lost" && (
+                        <TouchableOpacity
+                          style={styles.aiMatchBtn}
+                          onPress={() => checkAiMatches(Pet.pets_id)}
+                        >
+                          <Text style={styles.aiMatchBtnText}>
+                            Check for matches
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                      {aiLoadingId === Pet.pets_id && (
+                        <ActivityIndicator
+                          size="small"
+                          color={theme.colors.primary}
+                        />
+                      )}
+
+                      {aiMatches[Pet.pets_id] && (
+                        <View style={styles.aiResults}>
+                          <Text style={styles.aiSummary}>
+                            {aiMatches[Pet.pets_id].summary}
+                          </Text>
+                          {aiMatches[Pet.pets_id].matches?.map((match: any) => (
+                            <TouchableOpacity
+                              key={match.sighting_id}
+                              onPress={() => {
+                                if (match.sighting) {
+                                  setSelectedSighting(match.sighting);
+                                  setModalVisible(true);
+                                } else {
+                                  console.error(
+                                    "No sighting data for match:",
+                                    match,
+                                  );
+                                }
+                              }}
+                              style={[
+                                styles.aiMatchCard,
+                                {
+                                  borderLeftColor:
+                                    match.likelihood === "High"
+                                      ? theme.colors.success
+                                      : match.likelihood === "Medium"
+                                        ? theme.colors.primary
+                                        : theme.colors.text.secondary,
+                                },
+                              ]}
+                            >
+                              <Text style={styles.aiLikelihood}>
+                                {match.likelihood === "High"
+                                  ? "🟢"
+                                  : match.likelihood === "Medium"
+                                    ? "🟡"
+                                    : "🔴"}{" "}
+                                {match.likelihood} match
+                              </Text>
+                              <Text style={styles.aiReasoning}>
+                                {match.reasoning}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      )}
                     </View>
                   ))}
               </>
             )}
           </View>
+          <Modal
+            visible={modalVisible}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setModalVisible(false)}
+          >
+            <TouchableOpacity
+              style={styles.modalBackdrop}
+              activeOpacity={1}
+              onPress={() => setModalVisible(false)}
+            >
+              <TouchableOpacity
+                activeOpacity={1}
+                style={styles.modalCard}
+                onPress={() => {}}
+              >
+                {/* handle bar */}
+                <View style={styles.modalHandle} />
+
+                <Text style={styles.modalTitle}>Possible Sighting</Text>
+
+                {selectedSighting?.image_url && (
+                  <Image
+                    source={{ uri: selectedSighting.image_url }}
+                    style={styles.image}
+                  />
+                )}
+
+                {selectedSighting?.sighting_description && (
+                  <View style={styles.modalRow}>
+                    <Text style={styles.modalLabel}>Description</Text>
+                    <Text style={styles.modalText}>
+                      {selectedSighting.sighting_description}
+                    </Text>
+                  </View>
+                )}
+
+                {selectedSighting?.location_description && (
+                  <View style={styles.modalRow}>
+                    <Text style={styles.modalLabel}>📍 Location</Text>
+                    <Text style={styles.modalText}>
+                      {selectedSighting.location_description}
+                    </Text>
+                  </View>
+                )}
+
+                {selectedSighting?.created_at && (
+                  <View style={styles.modalRow}>
+                    <Text style={styles.modalLabel}>🕐 Reported</Text>
+                    <Text style={styles.modalText}>
+                      {new Date(selectedSighting.created_at).toLocaleDateString(
+                        "en-GB",
+                        {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        },
+                      )}
+                    </Text>
+                  </View>
+                )}
+
+                {selectedSighting?.guest_contact && (
+                  <View style={styles.modalRow}>
+                    <Text style={styles.modalLabel}>📞 Contact</Text>
+                    <Text style={styles.modalText}>
+                      {selectedSighting.guest_contact}
+                    </Text>
+                  </View>
+                )}
+
+                <TouchableOpacity
+                  style={styles.modalCloseBtn}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.modalCloseBtnText}>Close</Text>
+                </TouchableOpacity>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </Modal>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -524,5 +713,104 @@ const styles = StyleSheet.create({
     color: theme.colors.text.light,
     fontWeight: "bold",
     fontSize: theme.fontSize.sm,
+  },
+  aiMatchBtn: {
+    backgroundColor: theme.colors.tertiary || "#2D6A7F",
+    padding: theme.spacing.sm,
+    borderRadius: theme.borderRadius.md,
+    alignItems: "center",
+    marginTop: theme.spacing.sm,
+  },
+  aiMatchBtnText: {
+    color: theme.colors.text.light,
+    fontWeight: "bold",
+    fontSize: theme.fontSize.sm,
+  },
+  aiResults: {
+    marginTop: theme.spacing.sm,
+    gap: theme.spacing.sm,
+  },
+  aiSummary: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.primary,
+    fontStyle: "italic",
+    marginBottom: theme.spacing.xs,
+  },
+  aiMatchCard: {
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.sm,
+    padding: theme.spacing.sm,
+    borderLeftWidth: 4,
+    gap: theme.spacing.xs,
+  },
+  aiLikelihood: {
+    fontWeight: "bold",
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.primary,
+  },
+  aiReasoning: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.text.secondary,
+  },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
+  modalCard: {
+    backgroundColor: "white",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: theme.spacing.xl,
+    paddingBottom: 40,
+    gap: theme.spacing.md,
+    minHeight: "45%",
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: 2,
+    alignSelf: "center",
+    marginBottom: theme.spacing.sm,
+  },
+  modalTitle: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: "bold",
+    color: theme.colors.text.primary,
+    textAlign: "center",
+    marginBottom: theme.spacing.xs,
+  },
+  modalRow: {
+    gap: 4,
+  },
+  modalLabel: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: "bold",
+    color: theme.colors.text.secondary,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  modalText: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.primary,
+  },
+  modalCloseBtn: {
+    backgroundColor: theme.colors.primary,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    alignItems: "center",
+    marginTop: theme.spacing.sm,
+  },
+  modalCloseBtnText: {
+    color: theme.colors.text.light,
+    fontWeight: "bold",
+    fontSize: theme.fontSize.md,
+  },
+  image: {
+    height: 200,
+    width: "100%",
+    borderRadius: theme.borderRadius.md,
+    resizeMode: "cover",
   },
 });
