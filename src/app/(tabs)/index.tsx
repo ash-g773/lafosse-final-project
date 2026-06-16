@@ -231,8 +231,8 @@ export default function MapScreen() {
 
       const lostPetsData = await lostPetsRes.json();
       const sightingsData = await sightingsRes.json();
-      setLostPets(lostPetsData);
-      setSightings(sightingsData);
+      setLostPets(Array.isArray(lostPetsData) ? lostPetsData : []);
+      setSightings(Array.isArray(sightingsData) ? sightingsData : []);
     } catch (error) {
       console.log(`${process.env.EXPO_PUBLIC_API_URL}`);
       console.error("Failed to fetch map data:", error);
