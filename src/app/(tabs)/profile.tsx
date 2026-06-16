@@ -160,10 +160,18 @@ export default function Profile() {
     }
   }
 
+  const [reunitedModalVisible, setReunitedModalVisible] = useState(false);
+  const [reunitedPetName, setReunitedPetName] = useState("");
+
   async function markAsReunited(petId: number) {
+    console.log("markAsReunited called with petId:", petId);
     try {
       const token = await AsyncStorage.getItem("token");
       if (!token) return;
+
+      const pet = lostPets.find((p) => p.pets_id === petId);
+      const petName = pet?.name || "your pet";
+      console.log("Pet name:", petName);
 
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_API_URL}/pets/${petId}/status`,
@@ -186,6 +194,9 @@ export default function Profile() {
           pet.pets_id === petId ? { ...pet, status: "reunited" } : pet,
         ),
       );
+      setReunitedPetName(petName);
+      setReunitedModalVisible(true);
+      console.log("Modal should now be visible");
     } catch (error) {
       console.error("Failed to update status:", error);
     }
@@ -212,7 +223,7 @@ export default function Profile() {
             full_name: fullName,
             phone: phone,
             postcode: postcode,
-            alert_radius: parseInt(alertRadius),
+            alert_radius: alertRadius ? parseInt(alertRadius) : 5000,
           }),
         },
       );
@@ -340,7 +351,6 @@ export default function Profile() {
               {saving ? "Saving..." : "Save Changes"}
             </Text>
           </TouchableOpacity>
-
           <View style={styles.petsSection}>
             <TouchableOpacity
               style={styles.viewPetsBtn}
@@ -568,6 +578,37 @@ export default function Profile() {
                   onPress={() => setModalVisible(false)}
                 >
                   <Text style={styles.modalCloseBtnText}>Close</Text>
+                </TouchableOpacity>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </Modal>
+          javascript Copy
+          <Modal
+            visible={reunitedModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setReunitedModalVisible(false)}
+          >
+            <TouchableOpacity
+              style={[styles.modalBackdrop, { zIndex: 1000 }]}
+              activeOpacity={1}
+              onPress={() => setReunitedModalVisible(false)}
+            >
+              <TouchableOpacity
+                activeOpacity={1}
+                style={[styles.reunitedModal, { zIndex: 1001 }]}
+                onPress={() => {}}
+              >
+                <Text style={styles.reunitedModalTitle}>🎉 Great News!</Text>
+                <Text style={styles.reunitedModalText}>
+                  {reunitedPetName} has been marked as reunited. We're so happy
+                  they're back where they belong!
+                </Text>
+                <TouchableOpacity
+                  style={styles.reunitedModalBtn}
+                  onPress={() => setReunitedModalVisible(false)}
+                >
+                  <Text style={styles.reunitedModalBtnText}>Continue</Text>
                 </TouchableOpacity>
               </TouchableOpacity>
             </TouchableOpacity>
@@ -809,5 +850,36 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: theme.borderRadius.md,
     resizeMode: "cover",
+  },
+  reunitedModal: {
+    backgroundColor: "white",
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.xl,
+    margin: theme.spacing.lg,
+    alignItems: "center",
+    gap: theme.spacing.md,
+  },
+  reunitedModalTitle: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: "bold",
+    color: theme.colors.success,
+  },
+  reunitedModalText: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.primary,
+    textAlign: "center",
+  },
+  reunitedModalBtn: {
+    backgroundColor: theme.colors.primary,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    marginTop: theme.spacing.md,
+    width: "100%",
+    alignItems: "center",
+  },
+  reunitedModalBtnText: {
+    color: theme.colors.text.light,
+    fontWeight: "bold",
+    fontSize: theme.fontSize.md,
   },
 });
