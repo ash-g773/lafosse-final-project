@@ -25,12 +25,25 @@ async function getAiMatches(pet, sightings) {
     );
 
     const ageDays =
-      (Date.now() - new Date(sighting.created_at)) / (1000 * 60 * 60 * 24);
-
+      (Date.now() - new Date(sighting.created_at).getTime()) /
+      (1000 * 60 * 60 * 24);
     const desc = (sighting.sighting_description || "").toLowerCase();
 
     // Species
-    if (desc.includes(pet.species.toLowerCase())) score += 100;
+    const species = pet.species.toLowerCase();
+
+    if (species === "cat" && desc.includes("dog")) return -1000;
+    if (species === "dog" && desc.includes("cat")) return -1000;
+    if (
+      species === "tortoise" &&
+      (desc.includes("cat") || desc.includes("dog"))
+    ) {
+      return -1000;
+    }
+
+    if (desc.includes(species)) {
+      score += 100;
+    }
 
     // Breed
     if (pet.breed && desc.includes(pet.breed.toLowerCase())) score += 30;
@@ -39,8 +52,10 @@ async function getAiMatches(pet, sightings) {
     if (pet.colour) {
       const colours = pet.colour.toLowerCase().split(/[ ,/]+/);
 
+      const ignore = new Set(["and", "with", "the", "light", "dark"]);
+
       for (const colour of colours) {
-        if (colour.length > 2 && desc.includes(colour)) {
+        if (colour.length > 2 && !ignore.has(colour) && desc.includes(colour)) {
           score += 30;
         }
       }
@@ -68,7 +83,7 @@ async function getAiMatches(pet, sightings) {
   }));
   scored.sort((a, b) => b.score - a.score);
 
-  const candidates = scored.filter((s) => s.score >= 50);
+  const candidates = scored.filter((s) => s.score >= 80);
   if (candidates.length === 0) {
     return {
       matches: [],
@@ -134,7 +149,16 @@ Return ONLY valid JSON.
 }
 
 Do not include markdown.
-Do not invent sighting IDs.`;
+Do not invent sighting IDs.
+If none of the candidate sightings are a reasonable match,
+return:
+
+{
+  "matches": [],
+  "summary": "No likely matches found."
+}
+
+Only include High, Medium or Low confidence matches that are genuinely plausible.`;
 
   console.log("Calling Gemini API...");
   console.log("API Key exists:", !!process.env.GEMINI_MATCHING_KEY);
@@ -170,10 +194,17 @@ Do not invent sighting IDs.`;
     }
 
     const data = JSON.parse(responseText);
+    if (
+      !data.candidates?.length ||
+      !data.candidates[0].content?.parts?.length
+    ) {
+      throw new Error("Gemini returned no content");
+    }
+
     const text = data.candidates[0].content.parts[0].text;
     const cleaned = text
-      .replace(/^```[a-zA-Z]*\n?/, "")
-      .replace(/```$/, "")
+      .replace(/^```[^\n]*\n?/, "")
+      .replace(/\n?```$/, "")
       .trim();
     return JSON.parse(cleaned);
   } catch (err) {
