@@ -33,7 +33,7 @@ async function create(req, res) {
 
     await Alert.createForAllUsers(
       null,
-      newSighting.pets_id,
+      newSighting.sightings_id,
       "sighting",
       `New sighting reported: ${newSighting.sighting_description || "unknown animal"}`
     )
