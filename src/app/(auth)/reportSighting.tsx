@@ -279,9 +279,6 @@ export default function ReportSightingScreen() {
     console.log(selectedImage);
   }
 
-  //ai desc show
-  const [loadAi, setLoadAi] = useState(false);
-
   // rendering the actual page
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.primary }}>
@@ -512,19 +509,17 @@ export default function ReportSightingScreen() {
                   testID="descriptionInput"
                 />
 
-                <TouchableOpacity onPress={() => setLoadAi(true)}>
-                  <Text>
-                    {" "}
-                    {!loadAi ? (
-                      "Click here for an AI summary of your sighting photo"
-                    ) : (
-                      <GeminiImageDescriber
-                        imageUri={selectedImage}
-                        imageMimeType={selectedImageMimeType}
-                      />
-                    )}{" "}
-                  </Text>
-                </TouchableOpacity>
+                <Text style={styles.aiResponse}>
+                  {" "}
+                  {selectedImage ? (
+                    <GeminiImageDescriber
+                      imageUri={selectedImage}
+                      imageMimeType={selectedImageMimeType}
+                    />
+                  ) : (
+                    "Please upload an image"
+                  )}{" "}
+                </Text>
 
                 <Text style={styles.formLabels}>
                   Your contact info (optional):{" "}
@@ -743,5 +738,10 @@ const styles = StyleSheet.create({
   },
   locationButtonSelected: {
     backgroundColor: theme.colors.success,
+  },
+  aiResponse: {
+    color: theme.colors.text.light,
+    textAlign: "center",
+    fontSize: theme.fontSize.md,
   },
 });
