@@ -11,7 +11,6 @@ async function getAiMatches(pet, sightings) {
     Here are recent sightings in the area. For each one assess:
     1. How likely it is to be my pet (High/Medium/Low/Unlikely)
     2. Why you think that
-    3. What the owner should do next
 
     Sightings:
     ${sightings
@@ -32,7 +31,6 @@ async function getAiMatches(pet, sightings) {
           "sighting_id": 1,
           "likelihood": "High",
           "reasoning": "explanation here",
-          "next_steps": "what to do next"
         }
       ],
       "summary": "One sentence overall assessment"

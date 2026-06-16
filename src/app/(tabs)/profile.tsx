@@ -218,6 +218,28 @@ export default function Profile() {
     }
   }
 
+  const [aiMatches, setAiMatches] = useState<any>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  async function checkAiMatches(petId: number) {
+    setAiLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/pets/${petId}/ai-matches`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      const data = await response.json();
+      setAiMatches(data);
+    } catch (error) {
+      console.error("AI match failed:", error);
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
   if (profileLoading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -367,6 +389,56 @@ export default function Profile() {
                       </Text>
                     </TouchableOpacity>
                   )}
+                  {Pet.status === "lost" && (
+                    <TouchableOpacity
+                      style={styles.aiMatchBtn}
+                      onPress={() => checkAiMatches(Pet.pets_id)}
+                    >
+                      <Text style={styles.aiMatchBtnText}>
+                        Check for matches (AI powered)
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  {aiLoading && (
+                    <ActivityIndicator
+                      size="small"
+                      color={theme.colors.primary}
+                    />
+                  )}
+
+                  {aiMatches && (
+                    <View style={styles.aiResults}>
+                      <Text style={styles.aiSummary}>{aiMatches.summary}</Text>
+                      {aiMatches.matches?.map((match: any) => (
+                        <View
+                          key={match.sighting_id}
+                          style={[
+                            styles.aiMatchCard,
+                            {
+                              borderLeftColor:
+                                match.likelihood === "High"
+                                  ? theme.colors.success
+                                  : match.likelihood === "Medium"
+                                    ? theme.colors.primary
+                                    : theme.colors.text.secondary,
+                            },
+                          ]}
+                        >
+                          <Text style={styles.aiLikelihood}>
+                            {match.likelihood === "High"
+                              ? "🟢"
+                              : match.likelihood === "Medium"
+                                ? "🟡"
+                                : "🔴"}{" "}
+                            {match.likelihood} match
+                          </Text>
+                          <Text style={styles.aiReasoning}>
+                            {match.reasoning}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
                 </View>
               ))}
           </>
@@ -503,5 +575,43 @@ const styles = StyleSheet.create({
     color: theme.colors.text.light,
     fontWeight: "bold",
     fontSize: theme.fontSize.sm,
+  },
+  aiMatchBtn: {
+    backgroundColor: theme.colors.tertiary || "#2D6A7F",
+    padding: theme.spacing.sm,
+    borderRadius: theme.borderRadius.md,
+    alignItems: "center",
+    marginTop: theme.spacing.sm,
+  },
+  aiMatchBtnText: {
+    color: theme.colors.text.light,
+    fontWeight: "bold",
+    fontSize: theme.fontSize.sm,
+  },
+  aiResults: {
+    marginTop: theme.spacing.sm,
+    gap: theme.spacing.sm,
+  },
+  aiSummary: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.primary,
+    fontStyle: "italic",
+    marginBottom: theme.spacing.xs,
+  },
+  aiMatchCard: {
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.sm,
+    padding: theme.spacing.sm,
+    borderLeftWidth: 4,
+    gap: theme.spacing.xs,
+  },
+  aiLikelihood: {
+    fontWeight: "bold",
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.primary,
+  },
+  aiReasoning: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.text.secondary,
   },
 });
