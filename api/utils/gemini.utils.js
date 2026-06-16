@@ -88,16 +88,27 @@ async function getAiMatches(pet, sightings) {
   const second = candidates.length >= 2 ? candidates[1] : null;
   const scoreGap = top && second ? top.score - second.score : 999;
 
+  // helper function - create match object with sighting
+  function createMatch(sighting, likelihood, reasoning, nextSteps) {
+    return {
+      sighting_id: sighting.sightings_id,
+      likelihood,
+      reasoning,
+      next_steps: nextSteps,
+      sighting: sighting, // Always include the sighting object
+    };
+  }
+
   // High confidence match
   if (top && top.score >= 100 && scoreGap > 20) {
     return {
       matches: [
-        {
-          sighting_id: top.sightings_id,
-          likelihood: "High",
-          reasoning: "Very strong automatic match based on key details.",
-          next_steps: "Contact the reporter as soon as possible.",
-        },
+        createMatch(
+          top,
+          "High",
+          "Very strong automatic match based on key details.",
+          "Contact the reporter as soon as possible.",
+        ),
       ],
       summary: "We found a highly promising match.",
     };
@@ -115,12 +126,12 @@ async function getAiMatches(pet, sightings) {
   if (candidates.length === 1 && top.score >= 140) {
     return {
       matches: [
-        {
-          sighting_id: top.sightings_id,
-          likelihood: "Medium",
-          reasoning: "Likely match based on the available information.",
-          next_steps: "Review this sighting.",
-        },
+        createMatch(
+          top,
+          "Medium",
+          "Likely match based on the available information.",
+          "Review this sighting.",
+        ),
       ],
       summary: "We found one promising sighting.",
     };
@@ -131,12 +142,16 @@ async function getAiMatches(pet, sightings) {
     top && top.score < 180 && candidates.length > 1 && scoreGap < 30;
   if (!needsAi) {
     return {
-      matches: candidates.slice(0, 3).map((s) => ({
-        sighting_id: s.sightings_id,
-        likelihood: "Medium",
-        reasoning: "Possible match based on key details.",
-        next_steps: "Review this sighting.",
-      })),
+      matches: candidates
+        .slice(0, 3)
+        .map((s) =>
+          createMatch(
+            s,
+            "Medium",
+            "Possible match based on key details.",
+            "Review this sighting.",
+          ),
+        ),
       summary: "We found some possible matches.",
     };
   }
@@ -241,6 +256,7 @@ Only include High, Medium or Low confidence matches that are genuinely plausible
       throw new Error("Failed to parse Gemini response as JSON");
     }
 
+    // Enrich AI matches with sighting objects
     const enrichedMatches = aiResult.matches.map((match) => {
       const sighting = topSightings.find(
         (s) => s.sightings_id === match.sighting_id,

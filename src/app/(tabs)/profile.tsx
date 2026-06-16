@@ -439,8 +439,15 @@ export default function Profile() {
                         <TouchableOpacity
                           key={match.sighting_id}
                           onPress={() => {
-                            setSelectedSighting(match.sighting);
-                            setModalVisible(true);
+                            if (match.sighting) {
+                              setSelectedSighting(match.sighting);
+                              setModalVisible(true);
+                            } else {
+                              console.error(
+                                "No sighting data for match:",
+                                match,
+                              );
+                            }
                           }}
                           style={[
                             styles.aiMatchCard,
