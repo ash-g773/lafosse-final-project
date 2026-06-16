@@ -31,15 +31,13 @@ class Alert {
   }
 
     static async createForAllUsers(pets_id, sightings_id, alert_type, alert_message) {
-        console.log("createForAllUsers called with:", { pets_id, sightings_id, alert_type, alert_message })
         const users = await db.query("SELECT users_id FROM users;");
-        console.log("users found:", users.rows)
         for (const user of users.rows) {
-            await db.query("INSERT INTO alerts (users_id, pets_id, sightings_id, alert_type, alert_message) VALUES ($1, $2, $3, $4);", [user.users_id, pets_id, sightings_id, alert_type, alert_message])
+            const values = [user.users_id, pets_id, sightings_id, alert_type, alert_message]
             console.log("inserting with values:", values)
-            await db.query(
-                "INSERT INTO alerts (users_id, pets_id, sightings_id, alert_type, alert_message) VALUES ($1, $2, $3, $4, $5);",
-                values)
+            const query = "INSERT INTO alerts (users_id, pets_id, sightings_id, alert_type, alert_message) VALUES ($1, $2, $3, $4, $5)"
+            console.log("query:", query)
+            await db.query(query, values);
         }
     }
 }
