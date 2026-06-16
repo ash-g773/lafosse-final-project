@@ -7,7 +7,9 @@ import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -228,236 +230,252 @@ export default function LostPetScreen() {
   }
   // rendering the actual page
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.topBar} testID="login&logo">
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => router.replace("/(tabs)")}
-        >
-          <Text style={styles.buttonText}>Back</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.toReport}
-          onPress={() => router.replace("/(tabs)/profile")}
-        >
-          <Text style={styles.buttonText}>Go to profile</Text>
-        </TouchableOpacity>
-
-        <Image
-          style={styles.logo}
-          source={require("../../../assets/images/logo.png")}
-        />
-      </View>
-
-      <Text style={styles.title}>Report a Lost Pet</Text>
-      <ScrollView>
-        <View style={styles.sightingForm}>
-          <View style={styles.uploadImage}>
-            <Text style={styles.subtitle}>
-              Please upload a photo of your pet:
-            </Text>
-            <TouchableOpacity style={styles.button} onPress={pickImage}>
-              <Image
-                source={
-                  selectedImage
-                    ? { uri: selectedImage }
-                    : require("../../../assets/images/add-pic.png")
-                }
-                style={{ width: 150, height: 150 }}
-                testID="addPic"
-              />
+    <View style={{ flex: 1, backgroundColor: theme.colors.primary }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1, backgroundColor: theme.colors.primary }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+      >
+        <SafeAreaView style={styles.container} edges={["top"]}>
+          <View style={styles.topBar} testID="login&logo">
+            <TouchableOpacity
+              style={styles.backBtn}
+              onPress={() => router.replace("/(tabs)")}
+            >
+              <Text style={styles.buttonText}>Back</Text>
             </TouchableOpacity>
-            <Text style={styles.subtitle}>
-              Please ensure you can clearly see the animal in your photo.
-            </Text>
+
+            <TouchableOpacity
+              style={styles.toReport}
+              onPress={() => router.replace("/(tabs)/profile")}
+            >
+              <Text style={styles.buttonText}>Go to profile</Text>
+            </TouchableOpacity>
+
+            <Image
+              style={styles.logo}
+              source={require("../../../assets/images/logo.png")}
+            />
           </View>
 
-          <View style={styles.form}>
-            <Text style={styles.formLabels}>Your pet's name (optional)</Text>
-            <TextInput
-              placeholder=""
-              autoCapitalize="none"
-              style={styles.input}
-              onChangeText={setPetName}
-            />
-            <Text style={styles.formLabels}>Where did you last see them?</Text>
-            <View style={styles.location}>
-              {/* once selected i.e. when location!null this needs to change to just display location */}
-              <TouchableOpacity
-                style={[
-                  styles.locationButton,
-                  location &&
-                    !selectedLocation &&
-                    styles.locationButtonSelected,
-                ]}
-                onPress={() => getCurrentLocation()}
-              >
-                <Text style={styles.buttonText}>
-                  {location && !selectedLocation
-                    ? "✓ Current location"
-                    : "At my current location"}
+          <Text style={styles.title}>Report a Lost Pet</Text>
+          <ScrollView>
+            <View style={styles.sightingForm}>
+              <View style={styles.uploadImage}>
+                <Text style={styles.subtitle}>
+                  Please upload a photo of your pet:
                 </Text>
-              </TouchableOpacity>
+                <TouchableOpacity style={styles.button} onPress={pickImage}>
+                  <Image
+                    source={
+                      selectedImage
+                        ? { uri: selectedImage }
+                        : require("../../../assets/images/add-pic.png")
+                    }
+                    style={{ width: 150, height: 150 }}
+                    testID="addPic"
+                  />
+                </TouchableOpacity>
+                <Text style={styles.subtitle}>
+                  Please ensure you can clearly see the animal in your photo.
+                </Text>
+              </View>
 
-              <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => {
-                  Alert.alert("modal closed");
-                  setModalVisible(!modalVisible);
-                }}
-              >
-                <View style={styles.modalContainer}>
-                  <View style={styles.modalInner}>
-                    <Text style={styles.mapMessage}>
-                      Please select the location of the sighting on the map (use
-                      two fingers to move)
+              <View style={styles.form}>
+                <Text style={styles.formLabels}>
+                  Your pet's name (optional)
+                </Text>
+                <TextInput
+                  placeholder=""
+                  autoCapitalize="none"
+                  style={styles.input}
+                  onChangeText={setPetName}
+                />
+                <Text style={styles.formLabels}>
+                  Where did you last see them?
+                </Text>
+                <View style={styles.location}>
+                  {/* once selected i.e. when location!null this needs to change to just display location */}
+                  <TouchableOpacity
+                    style={[
+                      styles.locationButton,
+                      location &&
+                        !selectedLocation &&
+                        styles.locationButtonSelected,
+                    ]}
+                    onPress={() => getCurrentLocation()}
+                  >
+                    <Text style={styles.buttonText}>
+                      {location && !selectedLocation
+                        ? "✓ Current location"
+                        : "At my current location"}
                     </Text>
-                    <MapView
-                      style={styles.map}
-                      provider={PROVIDER_GOOGLE}
-                      region={region}
-                      showsUserLocation={true} // show blue dot
-                      showsMyLocationButton={true} // show recentre button
-                      onUserLocationChange={() => {}}
-                      onPress={(e) =>
-                        setSelectedLocation(e.nativeEvent.coordinate)
-                      }
-                    >
-                      {selectedLocation && (
-                        <Marker
-                          coordinate={selectedLocation}
-                          draggable={true} // lets user drag pin after placing it
-                          onDragEnd={(e) => {
-                            // update location when pin is dragged
-                            setSelectedLocation(e.nativeEvent.coordinate);
-                          }}
-                          pinColor={theme.colors.accent}
-                        />
-                      )}
-                    </MapView>
-                    {selectedLocation && (
-                      <Text style={styles.locationConfirmed}>
-                        📍 Location selected — drag the pin to adjust
-                      </Text>
-                    )}
+                  </TouchableOpacity>
 
-                    <Pressable
-                      style={styles.button}
-                      onPress={() => {
-                        if (selectedLocation) {
-                          // save the map selection as the sighting location
-                          setLocation({
-                            coords: {
-                              latitude: selectedLocation.latitude,
-                              longitude: selectedLocation.longitude,
-                              altitude: null,
-                              accuracy: null,
-                              altitudeAccuracy: null,
-                              heading: null,
-                              speed: null,
-                            },
-                            timestamp: Date.now(),
-                          } as Location.LocationObject);
-                          console.log(
-                            "coords:",
-                            selectedLocation.latitude,
-                            selectedLocation.longitude,
-                          );
-                        }
-                        setModalVisible(false);
-                      }}
-                    >
-                      <Text style={styles.buttonText}>
-                        {selectedLocation ? "Confirm location" : "Close map"}
-                      </Text>
-                    </Pressable>
-                  </View>
+                  <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => {
+                      Alert.alert("modal closed");
+                      setModalVisible(!modalVisible);
+                    }}
+                  >
+                    <View style={styles.modalContainer}>
+                      <View style={styles.modalInner}>
+                        <Text style={styles.mapMessage}>
+                          Please select the location of the sighting on the map
+                          (use two fingers to move)
+                        </Text>
+                        <MapView
+                          style={styles.map}
+                          provider={PROVIDER_GOOGLE}
+                          region={region}
+                          showsUserLocation={true} // show blue dot
+                          showsMyLocationButton={true} // show recentre button
+                          onUserLocationChange={() => {}}
+                          onPress={(e) =>
+                            setSelectedLocation(e.nativeEvent.coordinate)
+                          }
+                        >
+                          {selectedLocation && (
+                            <Marker
+                              coordinate={selectedLocation}
+                              draggable={true} // lets user drag pin after placing it
+                              onDragEnd={(e) => {
+                                // update location when pin is dragged
+                                setSelectedLocation(e.nativeEvent.coordinate);
+                              }}
+                              pinColor={theme.colors.accent}
+                            />
+                          )}
+                        </MapView>
+                        {selectedLocation && (
+                          <Text style={styles.locationConfirmed}>
+                            📍 Location selected — drag the pin to adjust
+                          </Text>
+                        )}
+
+                        <Pressable
+                          style={styles.button}
+                          onPress={() => {
+                            if (selectedLocation) {
+                              // save the map selection as the sighting location
+                              setLocation({
+                                coords: {
+                                  latitude: selectedLocation.latitude,
+                                  longitude: selectedLocation.longitude,
+                                  altitude: null,
+                                  accuracy: null,
+                                  altitudeAccuracy: null,
+                                  heading: null,
+                                  speed: null,
+                                },
+                                timestamp: Date.now(),
+                              } as Location.LocationObject);
+                              console.log(
+                                "coords:",
+                                selectedLocation.latitude,
+                                selectedLocation.longitude,
+                              );
+                            }
+                            setModalVisible(false);
+                          }}
+                        >
+                          <Text style={styles.buttonText}>
+                            {selectedLocation
+                              ? "Confirm location"
+                              : "Close map"}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  </Modal>
+                  <TouchableOpacity
+                    style={[
+                      styles.locationButton,
+                      selectedLocation && styles.locationButtonSelected,
+                    ]}
+                    onPress={() => setModalVisible(true)}
+                  >
+                    <Text style={styles.buttonText}>
+                      {selectedLocation
+                        ? "✓ Location pinned"
+                        : "Somewhere else (open map)"}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-              </Modal>
+
+                <Text style={styles.formLabels}>
+                  What type of animal are they?
+                </Text>
+                <DropDownPicker
+                  open={open}
+                  value={animalType}
+                  items={items}
+                  setOpen={setOpen}
+                  setValue={setValue}
+                  setItems={setItems}
+                  placeholder="Select..."
+                  listMode="SCROLLVIEW"
+                  style={styles.input}
+                  testID="dropdown"
+                />
+                <Text style={styles.formLabels}>
+                  What breed are they? (optional)
+                </Text>
+                <TextInput
+                  autoCapitalize="none"
+                  style={styles.input}
+                  placeholder="Please input breed"
+                  onChangeText={setAnimalBreed}
+                />
+                <Text style={styles.formLabels}>
+                  What color / pattern are they?
+                </Text>
+                <TextInput
+                  autoCapitalize="none"
+                  style={styles.input}
+                  placeholder="Please input color"
+                  onChangeText={setAnimalColor}
+                  testID="colorInput"
+                />
+
+                <Text style={styles.formLabels}>More information: </Text>
+                <TextInput
+                  placeholder="Your contact info (optional) and any additional info"
+                  autoCapitalize="none"
+                  style={styles.moreInfo}
+                  onChangeText={setDescription}
+                  multiline={true}
+                  testID="descriptionInput"
+                />
+              </View>
+
               <TouchableOpacity
-                style={[
-                  styles.locationButton,
-                  selectedLocation && styles.locationButtonSelected,
-                ]}
-                onPress={() => setModalVisible(true)}
+                style={[styles.submitButton, submitting && { opacity: 0.6 }]}
+                onPress={() =>
+                  submitForm(
+                    petName,
+                    animalType,
+                    animalBreed,
+                    description,
+                    animalColor,
+                    location,
+                    selectedImage,
+                  )
+                }
+                disabled={submitting}
               >
                 <Text style={styles.buttonText}>
-                  {selectedLocation
-                    ? "✓ Location pinned"
-                    : "Somewhere else (open map)"}
+                  {submitting ? "Submitting..." : "Submit"}
                 </Text>
               </TouchableOpacity>
             </View>
-
-            <Text style={styles.formLabels}>What type of animal are they?</Text>
-            <DropDownPicker
-              open={open}
-              value={animalType}
-              items={items}
-              setOpen={setOpen}
-              setValue={setValue}
-              setItems={setItems}
-              placeholder="Select..."
-              listMode="SCROLLVIEW"
-              style={styles.input}
-              testID="dropdown"
-            />
-            <Text style={styles.formLabels}>
-              What breed are they? (optional)
-            </Text>
-            <TextInput
-              autoCapitalize="none"
-              style={styles.input}
-              placeholder="Please input breed"
-              onChangeText={setAnimalBreed}
-            />
-            <Text style={styles.formLabels}>
-              What color / pattern are they?
-            </Text>
-            <TextInput
-              autoCapitalize="none"
-              style={styles.input}
-              placeholder="Please input color"
-              onChangeText={setAnimalColor}
-              testID="colorInput"
-            />
-
-            <Text style={styles.formLabels}>More information: </Text>
-            <TextInput
-              placeholder="Your contact info (optional) and any additional info"
-              autoCapitalize="none"
-              style={styles.moreInfo}
-              onChangeText={setDescription}
-              multiline={true}
-              testID="descriptionInput"
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.submitButton, submitting && { opacity: 0.6 }]}
-            onPress={() =>
-              submitForm(
-                petName,
-                animalType,
-                animalBreed,
-                description,
-                animalColor,
-                location,
-                selectedImage,
-              )
-            }
-            disabled={submitting}
-          >
-            <Text style={styles.buttonText}>
-              {submitting ? "Submitting..." : "Submit"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          </ScrollView>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
