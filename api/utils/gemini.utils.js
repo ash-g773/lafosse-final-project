@@ -44,11 +44,13 @@ async function getAiMatches(pet, sightings) {
     process.env.GEMINI_MATCHING_KEY?.substring(0, 8),
   );
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
-
+  const timeout = setTimeout(() => {
+    console.log("Aborting - timeout reached");
+    controller.abort();
+  }, 15000);
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_MATCHING_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key=${process.env.GEMINI_MATCHING_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -62,7 +64,7 @@ async function getAiMatches(pet, sightings) {
 
     console.log("Gemini response status:", response.status);
     const responseText = await response.text();
-    console.log("Gemini response body:", responseText);
+    console.log("Gemini response body:", responseText.substring(0, 200));
 
     if (!response.ok) {
       throw new Error(`Gemini API error: ${response.status} - ${responseText}`);
