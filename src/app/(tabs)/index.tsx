@@ -175,7 +175,7 @@ export default function MapScreen() {
       // close alerts modal
       setAlertsModalVisible(false);
 
-      // navigate to the relevant pet or sighting
+      // navigate to pet or sighting report
       if (alert_type === "lost" && pets_id) {
         const response = await fetch(
           `${process.env.EXPO_PUBLIC_API_URL}/pets/${pets_id}`,
