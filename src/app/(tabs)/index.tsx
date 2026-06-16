@@ -292,7 +292,7 @@ export default function MapScreen() {
         testID="map-view"
         showsUserLocation={true} // show blue dot
         showsMyLocationButton={true} // show recentre button
-        onUserLocationChange={() => {}}
+        onUserLocationChange={() => { }}
       >
         {lostPets
           .filter((Pet) => Pet.status === "lost")
@@ -336,29 +336,30 @@ export default function MapScreen() {
       </MapView>
       <View style={styles.topButtons}>
         <TouchableOpacity
-          style={styles.iconBtn}
+          style={styles.glassBtn}
           testID="profile-btn"
           onPress={() => router.push("./profile")}
         >
-          <Text>Profile</Text>
+          <Text style={styles.glassBtnText}>Profile</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.iconBtn}
+          style={styles.glassBtn}
           testID="logout-btn"
           onPress={handleLogout}
         >
-          <Text>Log Out</Text>
+          <Text style={styles.glassBtnText}>Log Out</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
-          style={styles.iconBtn}
+          style={styles.glassBtn}
           testID="alerts-btn"
           onPress={() => {
-            (setAlertsModalVisible(true), fetchAlerts());
+            setAlertsModalVisible(true);
+            fetchAlerts();
           }}
         >
-          <Text>Alerts</Text>
-          <Text>🔔</Text>
+          <Text style={styles.glassBtnText}>Alerts</Text>
           {unreadCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{unreadCount}</Text>
@@ -540,22 +541,31 @@ const styles = StyleSheet.create({
   },
   topButtons: {
     position: "absolute",
-    top: 50,
+    top: 60,
     left: 16,
-    gap: 8,
+    gap: 10,
   },
-  iconBtn: {
-    backgroundColor: theme.colors.secondary + "CC",
-    borderRadius: 999,
-    width: 55,
-    height: 45,
+  glassBtn: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: theme.colors.secondary + "55",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.4)",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
     elevation: 4,
+    minWidth: 110,
+  },
+  glassBtnText: {
+    fontSize: theme.fontSize.md,
+    fontWeight: "600",
+    color: theme.colors.text.light,
   },
   plusBtn: {
     position: "absolute",
@@ -657,15 +667,14 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   badge: {
-    position: "absolute",
-    top: -4,
-    right: -4,
     backgroundColor: theme.colors.accent,
     borderRadius: theme.borderRadius.full,
-    width: 18,
-    height: 18,
+    minWidth: 20,
+    height: 20,
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: 4,
+    marginLeft: theme.spacing.sm,
   },
   badgeText: {
     color: theme.colors.text.light,
