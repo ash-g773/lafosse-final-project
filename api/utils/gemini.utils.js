@@ -1,22 +1,50 @@
 async function getAiMatches(pet, sightings) {
+  const relevantSightings = sightings.filter((s) => {
+    const desc = s.sighting_description.toLowerCase();
+    const species = pet.species.toLowerCase();
+    // basic species filtering - if sighting mentions a different species, exclude it
+    if (
+      species === "cat" &&
+      (desc.includes("dog") || desc.includes("tortoise"))
+    )
+      return false;
+    if (
+      species === "dog" &&
+      (desc.includes("cat") || desc.includes("tortoise"))
+    )
+      return false;
+    return true;
+  });
+
+  if (relevantSightings.length === 0) {
+    return {
+      matches: [],
+      summary: `No recent sightings of ${pet.species.toLowerCase()}s found in your area.`,
+    };
+  }
+
   const prompt = `
-    I am looking for my lost pet. Here are the details:
+    You are helping reunite a lost pet with their owner.
+    
+    LOST PET DETAILS:
+    - Species: ${pet.species} (CRITICAL: only match sightings of this exact species)
     - Name: ${pet.name}
-    - Species: ${pet.species}
     - Breed: ${pet.breed || "Unknown"}
-    - Colour: ${pet.colour || "Unknown"}
+    - Colour/markings: ${pet.colour || "Unknown"}
     - Description: ${pet.description || "No description"}
-    - Last seen: ${pet.last_seen_location}
+    - Last seen near: ${pet.last_seen_location}
 
-    Here are recent sightings in the area. For each one assess:
-    1. How likely it is to be my pet (High/Medium/Low/Unlikely)
-    2. Why you think that
+    MATCHING RULES - assess in this strict priority order:
+    1. SPECIES MATCH IS MANDATORY - if a sighting describes a different animal species, likelihood must be "Unlikely" regardless of anything else
+    2. Physical characteristics (colour, size, breed, markings) - most important after species
+    3. Location proximity - how close to last seen location
+    4. Behaviour - least important, only use to support or contradict physical match
 
-    Sightings:
-    ${sightings
+    RECENT SIGHTINGS TO ASSESS:
+    ${relevantSightings
       .map(
         (s, i) => `
-      Sighting ${i + 1} (ID: ${s.sightings_id}):
+      Sighting ${i + 1}:
       - Description: ${s.sighting_description}
       - Location: ${s.location_description || "Not specified"}
       - Reported: ${new Date(s.created_at).toLocaleDateString()}
@@ -24,16 +52,24 @@ async function getAiMatches(pet, sightings) {
       )
       .join("\n")}
 
+    IMPORTANT RULES FOR YOUR RESPONSE:
+    - Do NOT reference sighting numbers or IDs in your reasoning or summary
+    - Do NOT include "Unlikely" matches in the results at all - only return High, Medium or Low matches
+    - Keep reasoning focused on physical appearance first
+    - Summary should be written directly to the pet owner, not reference technical details
+    - If no sightings are a reasonable match, return an empty matches array with an encouraging summary
+
     Respond ONLY in this exact JSON format, no markdown, no extra text:
     {
       "matches": [
         {
-          "sighting_id": 1,
+          "sighting_id": ${relevantSightings[0]?.sightings_id},
           "likelihood": "High",
-          "reasoning": "explanation here",
+          "reasoning": "Physical description matches closely - same colour and size reported in a nearby location.",
+          "next_steps": "We recommend visiting this area as soon as possible."
         }
       ],
-      "summary": "One sentence overall assessment"
+      "summary": "We found 1 possible match for your pet in the area. Check the details below."
     }
   `;
 
@@ -50,7 +86,7 @@ async function getAiMatches(pet, sightings) {
   }, 15000);
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${process.env.GEMINI_MATCHING_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_MATCHING_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
