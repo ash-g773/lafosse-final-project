@@ -1,4 +1,5 @@
 import { theme } from "@/themes";
+import * as Clipboard from "expo-clipboard";
 import * as FileSystem from "expo-file-system/legacy";
 import { useState } from "react";
 import {
@@ -106,6 +107,12 @@ export default function GeminiImageDescriber({
         <View style={styles.resultCard}>
           <Text style={styles.resultLabel}>Gemini says:</Text>
           <Text style={styles.resultText}>{description}</Text>
+          <TouchableOpacity
+            style={styles.primaryButton2}
+            onPress={async () => Clipboard.setStringAsync(description)}
+          >
+            <Text style={styles.primaryButtonText}>Copy to clipboard</Text>
+          </TouchableOpacity>
         </View>
       )}
     </ScrollView>
@@ -118,42 +125,48 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   primaryButton: {
-    backgroundColor: theme.colors.tertiary,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 12,
+    backgroundColor: theme.colors.primary,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.borderRadius.md,
     width: "100%",
     alignItems: "center",
-    marginTop: 8,
+  },
+  primaryButton2: {
+    marginTop: theme.spacing.sm,
+    backgroundColor: theme.colors.primary,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.borderRadius.md,
+    width: "100%",
+    alignItems: "center",
   },
   primaryButtonText: {
     color: theme.colors.secondary_light,
     fontWeight: "600",
-    fontSize: 16,
+    fontSize: theme.fontSize.md,
     textAlign: "center",
   },
   disabledButton: {
     backgroundColor: theme.colors.tertiary,
   },
   resultCard: {
-    marginTop: 24,
+    marginTop: theme.spacing.lg,
     backgroundColor: theme.colors.secondary_light,
-    borderRadius: 14,
-    padding: 18,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
     width: "100%",
-    elevation: 3,
   },
   resultLabel: {
-    fontSize: 12,
+    fontSize: theme.fontSize.sm,
     fontWeight: "600",
     color: theme.colors.tertiary,
     textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   resultText: {
-    fontSize: 15,
-    color: "#222",
+    fontSize: theme.fontSize.md,
+    color: "black",
     lineHeight: 22,
   },
 });

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -227,152 +229,164 @@ export default function Profile() {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <TouchableOpacity
-        style={styles.backBtn}
-        testID="back-btn"
-        onPress={() => router.back()}
+    <View style={{ flex: 1, backgroundColor: theme.colors.primary }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1, backgroundColor: theme.colors.primary }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
       >
-        <Text>Back</Text>
-      </TouchableOpacity>
-      <Text style={styles.heading}>Your Profile</Text>
-      {success && (
-        <Text style={styles.successMsg}>Profile updated successfully!</Text>
-      )}
-      {error && <Text style={styles.errorMsg}>{error}</Text>}
-      <Text style={styles.label}>Full Name</Text>
-      <TextInput
-        value={fullName}
-        style={styles.input}
-        onChangeText={setFullName}
-        placeholder="Your Name"
-      />
+        <ScrollView style={styles.container}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            testID="back-btn"
+            onPress={() => router.back()}
+          >
+            <Text>Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.heading}>Your Profile</Text>
+          {success && (
+            <Text style={styles.successMsg}>Profile updated successfully!</Text>
+          )}
+          {error && <Text style={styles.errorMsg}>{error}</Text>}
+          <Text style={styles.label}>Full Name</Text>
+          <TextInput
+            value={fullName}
+            style={styles.input}
+            onChangeText={setFullName}
+            placeholder="Your Name"
+          />
 
-      <Text style={styles.label}>Phone Number</Text>
-      <TextInput
-        style={styles.input}
-        value={phone}
-        onChangeText={setPhone}
-        placeholder="Your Number"
-        keyboardType="phone-pad"
-      />
+          <Text style={styles.label}>Phone Number</Text>
+          <TextInput
+            style={styles.input}
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="Your Number"
+            keyboardType="phone-pad"
+          />
 
-      <Text style={styles.label}>Postcode</Text>
-      <TextInput
-        value={postcode}
-        style={styles.input}
-        onChangeText={setPostcode}
-        placeholder="Your Postcode"
-        autoCapitalize="characters"
-      />
+          <Text style={styles.label}>Postcode</Text>
+          <TextInput
+            value={postcode}
+            style={styles.input}
+            onChangeText={setPostcode}
+            placeholder="Your Postcode"
+            autoCapitalize="characters"
+          />
 
-      <Text style={styles.label}>Alert Radius</Text>
-      <TextInput
-        value={alertRadius}
-        style={styles.input}
-        onChangeText={setAlertRadius}
-        placeholder="Choose your alert radius"
-        keyboardType="numeric"
-      />
-      <TouchableOpacity
-        style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-        onPress={handleSave}
-        testID="save-btn"
-        disabled={saving || !hasChanges}
-      >
-        <Text style={styles.saveBtnText}>
-          {saving ? "Saving..." : "Save Changes"}
-        </Text>
-      </TouchableOpacity>
+          <Text style={styles.label}>Alert Radius</Text>
+          <TextInput
+            value={alertRadius}
+            style={styles.input}
+            onChangeText={setAlertRadius}
+            placeholder="Choose your alert radius"
+            keyboardType="numeric"
+          />
+          <TouchableOpacity
+            style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
+            onPress={handleSave}
+            testID="save-btn"
+            disabled={saving || !hasChanges}
+          >
+            <Text style={styles.saveBtnText}>
+              {saving ? "Saving..." : "Save Changes"}
+            </Text>
+          </TouchableOpacity>
 
-      <View style={styles.petsSection}>
-        <TouchableOpacity
-          style={styles.viewPetsBtn}
-          onPress={() => {
-            if (!showPets) {
-              fetchLostPets(); // fetch when opening
-            }
-            setShowPets(!showPets);
-          }}
-        >
-          <Text style={styles.viewPetsBtnText}>
-            {showPets ? "Hide Lost Pet Reports ▲" : "View Lost Pet Reports ▼"}
-          </Text>
-        </TouchableOpacity>
-
-        {showPets && (
-          <>
-            {petsLoading && (
-              <ActivityIndicator
-                size="small"
-                color={theme.colors.primary}
-                style={{ marginTop: theme.spacing.md }}
-              />
-            )}
-
-            {!petsLoading && lostPets.length === 0 && (
-              <Text style={styles.noPetsMsg}>
-                You have no previous lost pet reports.
+          <View style={styles.petsSection}>
+            <TouchableOpacity
+              style={styles.viewPetsBtn}
+              onPress={() => {
+                if (!showPets) {
+                  fetchLostPets(); // fetch when opening
+                }
+                setShowPets(!showPets);
+              }}
+            >
+              <Text style={styles.viewPetsBtnText}>
+                {showPets
+                  ? "Hide Lost Pet Reports ▲"
+                  : "View Lost Pet Reports ▼"}
               </Text>
-            )}
+            </TouchableOpacity>
 
-            {!petsLoading &&
-              lostPets.map((Pet) => (
-                <View key={Pet.pets_id} style={styles.petCard}>
-                  {Pet.image_url && (
-                    <Image
-                      style={styles.petImage}
-                      source={{ uri: Pet.image_url }}
-                    />
-                  )}
-                  <Text style={styles.petName}>{Pet.name}</Text>
-                  <Text style={styles.petDetail}>
-                    {Pet.species}
-                    {Pet.breed ? ` · ${Pet.breed}` : ""}
+            {showPets && (
+              <>
+                {petsLoading && (
+                  <ActivityIndicator
+                    size="small"
+                    color={theme.colors.primary}
+                    style={{ marginTop: theme.spacing.md }}
+                  />
+                )}
+
+                {!petsLoading && lostPets.length === 0 && (
+                  <Text style={styles.noPetsMsg}>
+                    You have no previous lost pet reports.
                   </Text>
-                  {Pet.colour && (
-                    <Text style={styles.petDetail}>Colour: {Pet.colour}</Text>
-                  )}
-                  {Pet.description && (
-                    <Text style={styles.petDetail}>{Pet.description}</Text>
-                  )}
-                  {Pet.last_seen_location && (
-                    <Text style={styles.petDetail}>
-                      Last seen: {Pet.last_seen_location}
-                    </Text>
-                  )}
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      {
-                        backgroundColor:
-                          Pet.status === "lost"
-                            ? theme.colors.accent
-                            : theme.colors.success,
-                      },
-                    ]}
-                  >
-                    <Text style={styles.statusText}>
-                      {Pet.status === "lost" ? "🔴 Missing" : "🟢 Reunited"}
-                    </Text>
-                  </View>
-                  {Pet.status === "lost" && (
-                    <TouchableOpacity
-                      style={styles.reunitedBtn}
-                      testID={`reunite-btn-${Pet.pets_id}`}
-                      onPress={() => markAsReunited(Pet.pets_id)}
-                    >
-                      <Text style={styles.reunitedBtnText}>
-                        🟢 Mark as Reunited
+                )}
+
+                {!petsLoading &&
+                  lostPets.map((Pet) => (
+                    <View key={Pet.pets_id} style={styles.petCard}>
+                      {Pet.image_url && (
+                        <Image
+                          style={styles.petImage}
+                          source={{ uri: Pet.image_url }}
+                        />
+                      )}
+                      <Text style={styles.petName}>{Pet.name}</Text>
+                      <Text style={styles.petDetail}>
+                        {Pet.species}
+                        {Pet.breed ? ` · ${Pet.breed}` : ""}
                       </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              ))}
-          </>
-        )}
-      </View>
-    </ScrollView>
+                      {Pet.colour && (
+                        <Text style={styles.petDetail}>
+                          Colour: {Pet.colour}
+                        </Text>
+                      )}
+                      {Pet.description && (
+                        <Text style={styles.petDetail}>{Pet.description}</Text>
+                      )}
+                      {Pet.last_seen_location && (
+                        <Text style={styles.petDetail}>
+                          Last seen: {Pet.last_seen_location}
+                        </Text>
+                      )}
+                      <View
+                        style={[
+                          styles.statusBadge,
+                          {
+                            backgroundColor:
+                              Pet.status === "lost"
+                                ? theme.colors.accent
+                                : theme.colors.success,
+                          },
+                        ]}
+                      >
+                        <Text style={styles.statusText}>
+                          {Pet.status === "lost" ? "🔴 Missing" : "🟢 Reunited"}
+                        </Text>
+                      </View>
+                      {Pet.status === "lost" && (
+                        <TouchableOpacity
+                          style={styles.reunitedBtn}
+                          testID={`reunite-btn-${Pet.pets_id}`}
+                          onPress={() => markAsReunited(Pet.pets_id)}
+                        >
+                          <Text style={styles.reunitedBtnText}>
+                            🟢 Mark as Reunited
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  ))}
+              </>
+            )}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 const styles = StyleSheet.create({
