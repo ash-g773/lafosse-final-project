@@ -39,7 +39,16 @@ async function match(req, res) {
     }
 
     // Call AI matching
-    const result = await getAiMatches(pet, sightings);
+    const result = await getAiMatches(pet, relevantSightings);
+
+    // attach full sighting data to each match
+    result.matches = result.matches.map((match) => ({
+      ...match,
+      sighting:
+        relevantSightings.find((s) => s.sightings_id === match.sighting_id) ||
+        null,
+    }));
+
     res.status(200).json(result);
   } catch (err) {
     console.error("Error in match controller:", err);

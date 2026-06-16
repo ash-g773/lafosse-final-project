@@ -25,11 +25,13 @@ async function getAiMatches(pet, sightings) {
     const species = pet.species.toLowerCase();
 
     // Species conflicts
-    if (species === "cat" && desc.includes("dog")) return -1000;
-    if (species === "dog" && desc.includes("cat")) return -1000;
+    const speciesConflicts = {
+      cat: ["dog"],
+      dog: ["cat"],
+      tortoise: ["cat", "dog"],
+    };
     if (
-      species === "tortoise" &&
-      (desc.includes("cat") || desc.includes("dog"))
+      speciesConflicts[species]?.some((conflict) => desc.includes(conflict))
     ) {
       return -1000;
     }
@@ -43,7 +45,7 @@ async function getAiMatches(pet, sightings) {
     // Colour match
     if (pet.colour) {
       const colours = pet.colour.toLowerCase().split(/[ ,/]+/);
-      const ignore = new Set(["and", "with", "the", "light", "dark"]);
+      const ignore = new Set(["and", "with", "the"]);
       for (const colour of colours) {
         if (colour.length > 2 && !ignore.has(colour) && desc.includes(colour)) {
           score += 30;
@@ -52,17 +54,40 @@ async function getAiMatches(pet, sightings) {
     }
 
     // Name match
-    if (pet.name && desc.includes(pet.name.toLowerCase())) score += 100;
+    if (pet.name && desc.includes(pet.name.toLowerCase())) {
+      score += 100;
+    }
 
-    // Distance scoring
-    if (distance < 250) score += 60;
-    else if (distance < 1000) score += 40;
-    else if (distance < 3000) score += 20;
+    // Distance scoring (configurable thresholds)
+    const distanceThresholds = [
+      { max: 250, points: 60 },
+      { max: 1000, points: 40 },
+      { max: 3000, points: 20 },
+    ];
+    for (const { max, points } of distanceThresholds) {
+      if (distance < max) {
+        score += points;
+        break;
+      }
+    }
 
-    // Age scoring
-    if (ageDays < 1) score += 30;
-    else if (ageDays < 3) score += 20;
-    else if (ageDays < 7) score += 10;
+    // Age scoring (configurable thresholds)
+    const ageThresholds = [
+      { max: 1, points: 30 },
+      { max: 3, points: 20 },
+      { max: 7, points: 10 },
+    ];
+    for (const { max, points } of ageThresholds) {
+      if (ageDays < max) {
+        score += points;
+        break;
+      }
+    }
+
+    // Bonus for longer descriptions
+    if (desc.length > 20) {
+      score += 10;
+    }
 
     return score;
   }

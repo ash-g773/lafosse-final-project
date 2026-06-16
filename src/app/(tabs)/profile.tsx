@@ -233,10 +233,10 @@ export default function Profile() {
   }
 
   const [aiMatches, setAiMatches] = useState<Record<number, any>>({});
-  const [aiLoading, setAiLoading] = useState(false);
+  const [aiLoadingId, setAiLoadingId] = useState<number | null>(null);
 
   async function checkAiMatches(petId: number) {
-    setAiLoading(true);
+    setAiLoadingId(petId);
     setAiMatches((prev: any) => ({ ...prev, [petId]: null }));
     try {
       const token = await AsyncStorage.getItem("token");
@@ -255,7 +255,7 @@ export default function Profile() {
     } catch (error) {
       console.error("AI match failed:", error);
     } finally {
-      setAiLoading(false);
+      setAiLoadingId(null);
     }
   }
 
@@ -419,11 +419,11 @@ export default function Profile() {
                       onPress={() => checkAiMatches(Pet.pets_id)}
                     >
                       <Text style={styles.aiMatchBtnText}>
-                        Check for matches (AI powered)
+                        Check for matches
                       </Text>
                     </TouchableOpacity>
                   )}
-                  {aiLoading && (
+                  {aiLoadingId === Pet.pets_id && (
                     <ActivityIndicator
                       size="small"
                       color={theme.colors.primary}
@@ -474,30 +474,6 @@ export default function Profile() {
                           </Text>
                         </TouchableOpacity>
                       ))}
-                      <Modal
-                        visible={modalVisible}
-                        transparent
-                        animationType="slide"
-                        onRequestClose={() => setModalVisible(false)}
-                      >
-                        <View style={styles.modalCard}>
-                          {selectedSighting?.image_url && (
-                            <Image
-                              source={{ uri: selectedSighting.image_url }}
-                              style={styles.image}
-                            />
-                          )}
-
-                          <Text>{selectedSighting?.sighting_description}</Text>
-                          <Text>{selectedSighting?.location_description}</Text>
-
-                          <TouchableOpacity
-                            onPress={() => setModalVisible(false)}
-                          >
-                            <Text>Close</Text>
-                          </TouchableOpacity>
-                        </View>
-                      </Modal>
                     </View>
                   )}
                 </View>
@@ -505,6 +481,86 @@ export default function Profile() {
           </>
         )}
       </View>
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalBackdrop}
+          activeOpacity={1}
+          onPress={() => setModalVisible(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.modalCard}
+            onPress={() => {}}
+          >
+            {/* handle bar */}
+            <View style={styles.modalHandle} />
+
+            <Text style={styles.modalTitle}>Possible Sighting</Text>
+
+            {selectedSighting?.image_url && (
+              <Image
+                source={{ uri: selectedSighting.image_url }}
+                style={styles.image}
+              />
+            )}
+
+            {selectedSighting?.sighting_description && (
+              <View style={styles.modalRow}>
+                <Text style={styles.modalLabel}>Description</Text>
+                <Text style={styles.modalText}>
+                  {selectedSighting.sighting_description}
+                </Text>
+              </View>
+            )}
+
+            {selectedSighting?.location_description && (
+              <View style={styles.modalRow}>
+                <Text style={styles.modalLabel}>📍 Location</Text>
+                <Text style={styles.modalText}>
+                  {selectedSighting.location_description}
+                </Text>
+              </View>
+            )}
+
+            {selectedSighting?.created_at && (
+              <View style={styles.modalRow}>
+                <Text style={styles.modalLabel}>🕐 Reported</Text>
+                <Text style={styles.modalText}>
+                  {new Date(selectedSighting.created_at).toLocaleDateString(
+                    "en-GB",
+                    {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    },
+                  )}
+                </Text>
+              </View>
+            )}
+
+            {selectedSighting?.guest_contact && (
+              <View style={styles.modalRow}>
+                <Text style={styles.modalLabel}>📞 Contact</Text>
+                <Text style={styles.modalText}>
+                  {selectedSighting.guest_contact}
+                </Text>
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={styles.modalCloseBtn}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalCloseBtnText}>Close</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </ScrollView>
   );
 }
@@ -675,6 +731,11 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.sm,
     color: theme.colors.text.secondary,
   },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
   modalCard: {
     backgroundColor: "white",
     borderTopLeftRadius: 24,
@@ -682,12 +743,52 @@ const styles = StyleSheet.create({
     padding: theme.spacing.xl,
     paddingBottom: 40,
     gap: theme.spacing.md,
-    minHeight: "35%", // takes up bottom third of screen
+    minHeight: "45%",
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: 2,
+    alignSelf: "center",
+    marginBottom: theme.spacing.sm,
+  },
+  modalTitle: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: "bold",
+    color: theme.colors.text.primary,
+    textAlign: "center",
+    marginBottom: theme.spacing.xs,
+  },
+  modalRow: {
+    gap: 4,
+  },
+  modalLabel: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: "bold",
+    color: theme.colors.text.secondary,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  modalText: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.primary,
+  },
+  modalCloseBtn: {
+    backgroundColor: theme.colors.primary,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    alignItems: "center",
+    marginTop: theme.spacing.sm,
+  },
+  modalCloseBtnText: {
+    color: theme.colors.text.light,
+    fontWeight: "bold",
+    fontSize: theme.fontSize.md,
   },
   image: {
     height: 200,
-    width: "80%",
-    alignSelf: "center",
+    width: "100%",
     borderRadius: theme.borderRadius.md,
     resizeMode: "cover",
   },
