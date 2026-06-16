@@ -34,7 +34,7 @@ async function create(req, res) {
     await Alert.createForAllUsers(
       newSighting.pets_id,
       "sighting",
-      `New sighting reported: ${newSighting.sighting_description?.slice(0, 80) || "unknown animal"}`
+      `New sighting reported: ${newSighting.sighting_description || "unknown animal"}`
     )
 
     res.status(201).json(newSighting)
