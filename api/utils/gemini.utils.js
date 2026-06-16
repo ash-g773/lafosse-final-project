@@ -41,7 +41,7 @@ async function getAiMatches(pet, sightings) {
   console.log("API Key exists:", !!process.env.GEMINI_MATCHING_KEY);
   console.log(
     "API Key prefix:",
-    process.env.EXPO_PUBLIC_MATCHING_KEY?.substring(0, 8),
+    process.env.GEMINI_MATCHING_KEY?.substring(0, 8),
   );
 
   const response = await fetch(

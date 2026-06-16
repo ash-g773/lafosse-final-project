@@ -292,7 +292,7 @@ export default function Profile() {
         autoCapitalize="characters"
       />
 
-      <Text style={styles.label}>Alert Radius</Text>
+      <Text style={styles.label}>Alert Radius (m)</Text>
       <TextInput
         value={alertRadius}
         style={styles.input}
