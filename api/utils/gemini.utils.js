@@ -95,7 +95,7 @@ if (candidates.length === 0) {
 
   const scoreGap = top && second ? top.score - second.score : 999;
 
-  if (top && top.score >= 180 && scoreGap > 20) {
+  if (top && top.score >= 100 && scoreGap > 20) {
     console.log(best, best.score);
     return {
       matches: [
