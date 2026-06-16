@@ -70,7 +70,6 @@ export default ({ config }) => {
       "expo-navigation-bar",
       "expo-image-picker",
       "expo-camera",
-      "expo-clipboard",
       [
         "expo-splash-screen",
         {
