@@ -1,5 +1,6 @@
 import { theme } from "@/themes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { router } from "expo-router";
@@ -83,7 +84,14 @@ export default function ReportSightingScreen() {
     console.log(result);
 
     if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      console.log("Original URI:", uri);
+      const filename = uri.split("/").pop() || "sighting.jpg";
+      const destUri = FileSystem.cacheDirectory + filename;
+      console.log("Dest URI:", destUri);
+      await FileSystem.copyAsync({ from: uri, to: destUri });
+      console.log("Copy complete");
+      setSelectedImage(destUri);
       setModal2Visible(false);
     }
     console.log(selectedImage);

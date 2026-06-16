@@ -159,8 +159,9 @@ export default function MapScreen() {
         { headers: { Authorization: `Bearer ${stored}` } },
       );
       const data = await response.json();
-      setAlerts(data.data);
-      setUnreadCount(data.data.filter((a: any) => !a.is_read).length);
+      const alertsData = data.data ?? [];
+      setAlerts(alertsData);
+      setUnreadCount(alertsData.filter((a: any) => !a.is_read).length);
     } catch (err) {
       console.error("Failed to fetch alerts:", err);
     }
@@ -491,7 +492,7 @@ export default function MapScreen() {
           >
             <View style={styles.modalHandle} />
             <Text style={styles.modalName}>Alerts</Text>
-            {alerts.length === 0 ? (
+            {!alerts || alerts.length === 0 ? (
               <Text style={styles.modalDescription}>No alerts yet.</Text>
             ) : (
               <ScrollView style={{ maxHeight: 300 }}>
