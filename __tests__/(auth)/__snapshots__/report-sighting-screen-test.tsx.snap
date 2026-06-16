@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`report lost screen tests renders correctly 1`] = `
+exports[`report sighting screen tests renders correctly 1`] = `
 <View
   style={
     {
@@ -154,7 +154,7 @@ exports[`report lost screen tests renders correctly 1`] = `
               }
             }
           >
-            Go to profile
+            Log in / Register
           </Text>
         </View>
         <Image
@@ -170,6 +170,7 @@ exports[`report lost screen tests renders correctly 1`] = `
               "width": 50,
             }
           }
+          testID="logo"
         />
       </View>
       <Text
@@ -184,9 +185,16 @@ exports[`report lost screen tests renders correctly 1`] = `
           }
         }
       >
-        Report a Lost Pet
+        Report a Sighting
       </Text>
-      <RCTScrollView>
+      <RCTScrollView
+        contentContainerStyle={
+          {
+            "flexGrow": 1,
+          }
+        }
+        keyboardShouldPersistTaps="handled"
+      >
         <View>
           <View
             style={
@@ -213,7 +221,7 @@ exports[`report lost screen tests renders correctly 1`] = `
                   }
                 }
               >
-                Please upload a photo of your pet:
+                Please upload a photo of the sighting:
               </Text>
               <View
                 accessibilityState={
@@ -299,32 +307,7 @@ exports[`report lost screen tests renders correctly 1`] = `
                   }
                 }
               >
-                Your pet's name (optional)
-              </Text>
-              <TextInput
-                autoCapitalize="none"
-                onChangeText={[Function]}
-                placeholder=""
-                style={
-                  {
-                    "backgroundColor": "#EDF6F9",
-                    "borderRadius": 16,
-                    "color": "#5E8A96",
-                    "fontSize": 16,
-                    "marginBottom": 16,
-                    "padding": 16,
-                  }
-                }
-              />
-              <Text
-                style={
-                  {
-                    "color": "#FFFFFF",
-                    "marginTop": 4,
-                  }
-                }
-              >
-                Where did you last see them?
+                Where did you see them?
               </Text>
               <View
                 style={
@@ -453,7 +436,7 @@ exports[`report lost screen tests renders correctly 1`] = `
                   }
                 }
               >
-                What type of animal are they?
+                Type of Animal: 
               </Text>
               <View
                 style={
@@ -533,7 +516,7 @@ exports[`report lost screen tests renders correctly 1`] = `
                       ]
                     }
                   >
-                    Select...
+                    Select an animal...
                   </Text>
                   <View
                     style={
@@ -572,33 +555,7 @@ exports[`report lost screen tests renders correctly 1`] = `
                   }
                 }
               >
-                What breed are they? (optional)
-              </Text>
-              <TextInput
-                autoCapitalize="none"
-                onChangeText={[Function]}
-                placeholder="Please input breed"
-                placeholderTextColor="#5E8A96"
-                style={
-                  {
-                    "backgroundColor": "#EDF6F9",
-                    "borderRadius": 16,
-                    "color": "#5E8A96",
-                    "fontSize": 16,
-                    "marginBottom": 16,
-                    "padding": 16,
-                  }
-                }
-              />
-              <Text
-                style={
-                  {
-                    "color": "#FFFFFF",
-                    "marginTop": 4,
-                  }
-                }
-              >
-                What color / pattern are they?
+                Color / Pattern: 
               </Text>
               <TextInput
                 autoCapitalize="none"
@@ -625,20 +582,20 @@ exports[`report lost screen tests renders correctly 1`] = `
                   }
                 }
               >
-                More information: 
+                Description: 
               </Text>
               <TextInput
                 autoCapitalize="none"
                 multiline={true}
                 onChangeText={[Function]}
                 onContentSizeChange={[Function]}
-                placeholder="Your contact info (optional) and any additional info"
+                placeholder="Time of sighting, behaviour etc."
                 placeholderTextColor="#5E8A96"
                 style={
                   {
                     "backgroundColor": "#EDF6F9",
                     "borderRadius": 16,
-                    "color": "#5E8A96",
+                    "color": "#1B262C",
                     "fontSize": 16,
                     "height": 0,
                     "marginBottom": 16,
@@ -646,6 +603,55 @@ exports[`report lost screen tests renders correctly 1`] = `
                   }
                 }
                 testID="descriptionInput"
+              />
+              <View
+                style={
+                  {
+                    "marginBottom": 16,
+                    "marginTop": 8,
+                    "width": "100%",
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#FFFFFF",
+                      "fontSize": 16,
+                      "textAlign": "center",
+                    }
+                  }
+                >
+                  Please upload an image
+                </Text>
+              </View>
+              <Text
+                style={
+                  {
+                    "color": "#FFFFFF",
+                    "marginTop": 4,
+                  }
+                }
+              >
+                Your contact info (optional):
+                 
+              </Text>
+              <TextInput
+                autoCapitalize="none"
+                onChangeText={[Function]}
+                placeholder="+44 1234567890"
+                placeholderTextColor="#5E8A96"
+                style={
+                  {
+                    "backgroundColor": "#EDF6F9",
+                    "borderRadius": 16,
+                    "color": "#5E8A96",
+                    "fontSize": 16,
+                    "marginBottom": 16,
+                    "padding": 16,
+                  }
+                }
+                testID="contactInput"
               />
             </View>
             <View

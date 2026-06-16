@@ -167,7 +167,12 @@ export default function MapScreen() {
     }
   }
 
-  async function markAlertAsRead(alerts_id: number, pets_id: number | null, sightings_id: number | null, alert_type: string) {
+  async function markAlertAsRead(
+    alerts_id: number,
+    pets_id: number | null,
+    sightings_id: number | null,
+    alert_type: string,
+  ) {
     try {
       const stored = await AsyncStorage.getItem("token");
       await fetch(
@@ -292,7 +297,7 @@ export default function MapScreen() {
         testID="map-view"
         showsUserLocation={true} // show blue dot
         showsMyLocationButton={true} // show recentre button
-        onUserLocationChange={() => { }}
+        onUserLocationChange={() => {}}
       >
         {lostPets
           .filter((Pet) => Pet.status === "lost")
@@ -427,12 +432,14 @@ export default function MapScreen() {
                   />
                 )}
                 <Text style={styles.modalDescription}>
-                  {selectedPet.species.charAt(0).toUpperCase() + selectedPet.species.slice(1)}
+                  {selectedPet.species.charAt(0).toUpperCase() +
+                    selectedPet.species.slice(1)}
                   {selectedPet.breed ? ` · ${selectedPet.breed}` : ""}
                 </Text>
                 {selectedPet.colour && (
                   <Text style={styles.modalDescription}>
-                    {selectedPet.colour.charAt(0).toUpperCase() + selectedPet.colour.slice(1)}
+                    {selectedPet.colour.charAt(0).toUpperCase() +
+                      selectedPet.colour.slice(1)}
                   </Text>
                 )}
                 <Text style={styles.modalDescription}>
@@ -491,7 +498,9 @@ export default function MapScreen() {
             onPress={() => {}}
           >
             <View style={styles.modalHandle} />
-            <Text style={styles.modalName}>Alerts</Text>
+            <Text style={styles.modalName} testID="alerts-modal-title">
+              Alerts
+            </Text>
             {!alerts || alerts.length === 0 ? (
               <Text style={styles.modalDescription}>No alerts yet.</Text>
             ) : (
@@ -515,7 +524,11 @@ export default function MapScreen() {
                     <Text style={styles.alertIcon}>
                       {alert.alert_type === "lost" ? "🔴" : "🟢"}
                     </Text>
-                    <Text style={styles.alertMessage} numberOfLines={5} ellipsizeMode="tail">
+                    <Text
+                      style={styles.alertMessage}
+                      numberOfLines={5}
+                      ellipsizeMode="tail"
+                    >
                       {alert.alert_message}
                     </Text>
                   </TouchableOpacity>
@@ -701,10 +714,10 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.md,
   },
   alertMessage: {
-  fontSize: theme.fontSize.sm,
-  color: theme.colors.text.secondary,
-  flexShrink: 1,
-  flexWrap: "wrap",
-  lineHeight: 20,
-},
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.text.secondary,
+    flexShrink: 1,
+    flexWrap: "wrap",
+    lineHeight: 20,
+  },
 });

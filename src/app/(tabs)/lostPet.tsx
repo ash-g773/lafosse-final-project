@@ -192,7 +192,10 @@ export default function LostPetScreen() {
       formData.append("breed", animalBreed ?? "");
       formData.append("colour", animalColor ?? "");
       formData.append("description", description ?? "");
-      formData.append("last_seen_location", readableLocation || "Unknown location");
+      formData.append(
+        "last_seen_location",
+        readableLocation || "Unknown location",
+      );
       formData.append(
         "lat",
         selectedLocation
@@ -384,13 +387,19 @@ export default function LostPetScreen() {
                                 timestamp: Date.now(),
                               } as Location.LocationObject);
 
-                              const geocode = await Location.reverseGeocodeAsync({
-                                latitude: selectedLocation.latitude,
-                                longitude: selectedLocation.longitude,
-                              });
+                              const geocode =
+                                await Location.reverseGeocodeAsync({
+                                  latitude: selectedLocation.latitude,
+                                  longitude: selectedLocation.longitude,
+                                });
                               if (geocode.length > 0) {
                                 const g = geocode[0];
-                                const readable = [g.name, g.street, g.district, g.city]
+                                const readable = [
+                                  g.name,
+                                  g.street,
+                                  g.district,
+                                  g.city,
+                                ]
                                   .filter(Boolean)
                                   .join(", ");
                                 setReadableLocation(readable);
@@ -485,6 +494,7 @@ export default function LostPetScreen() {
 
               <TouchableOpacity
                 style={[styles.submitButton, submitting && { opacity: 0.6 }]}
+                testID="submitButton"
                 onPress={() =>
                   submitForm(
                     petName,
