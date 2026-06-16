@@ -77,6 +77,7 @@ export default function RegisterScreen() {
 
         <TouchableOpacity
           style={styles.button}
+          testID="register-btn"
           onPress={() => {
             register(username, password);
           }}
@@ -87,14 +88,12 @@ export default function RegisterScreen() {
         <View style={styles.register}>
           <Text style={styles.linkButtonText}>Already have an account?</Text>
 
-          <TouchableOpacity style={styles.linkButton}>
-            <Text
-              style={styles.linkButtonTextBold}
-              onPress={() => router.push("/(auth)/login")}
-            >
-              {" "}
-              Login Here
-            </Text>
+          <TouchableOpacity
+            style={styles.linkButton}
+            testID="login-btn"
+            onPress={() => router.push("/(auth)/login")}
+          >
+            <Text style={styles.linkButtonTextBold}> Login Here</Text>
           </TouchableOpacity>
         </View>
 

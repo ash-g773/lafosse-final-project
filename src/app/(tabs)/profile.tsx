@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -21,6 +22,22 @@ interface UserProfile {
   lat: string | null;
   lng: string | null;
   alert_radius: number;
+  created_at: string;
+}
+
+interface Pet {
+  pets_id: number;
+  users_id: number;
+  name: string;
+  species: string;
+  breed: string | null;
+  colour: string | null;
+  description: string | null;
+  last_seen_location: string | null;
+  lat: string; //look at backend fix so these can be number
+  lng: string;
+  image_url: string | null;
+  status: string;
   created_at: string;
 }
 
@@ -96,6 +113,67 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const [lostPets, setLostPets] = useState<Pet[]>([]);
+  const [petsLoading, setPetsLoading] = useState(false);
+  const [showPets, setShowPets] = useState(false);
+
+  async function fetchLostPets() {
+    if (!userId) return;
+    setPetsLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/profile/${userId}/pets`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const json = await response.json();
+      const data = json.data;
+      console.log("Lost pets data:", data);
+      setLostPets(data);
+    } catch (error) {
+      console.error("Failed to fetch lost pets:", error);
+    } finally {
+      setPetsLoading(false);
+    }
+  }
+
+  async function markAsReunited(petId: number) {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) return;
+
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/pets/${petId}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            status: "reunited",
+          }),
+        },
+      );
+      if (!response.ok) {
+        throw new Error("Failed to update status");
+      }
+      setLostPets((prev) =>
+        prev.map((pet) =>
+          pet.pets_id === petId ? { ...pet, status: "reunited" } : pet,
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to update status:", error);
+    }
+  }
 
   async function handleSave() {
     setSaving(true);
@@ -206,6 +284,94 @@ export default function Profile() {
           {saving ? "Saving..." : "Save Changes"}
         </Text>
       </TouchableOpacity>
+
+      <View style={styles.petsSection}>
+        <TouchableOpacity
+          style={styles.viewPetsBtn}
+          onPress={() => {
+            if (!showPets) {
+              fetchLostPets(); // fetch when opening
+            }
+            setShowPets(!showPets);
+          }}
+        >
+          <Text style={styles.viewPetsBtnText}>
+            {showPets ? "Hide Lost Pet Reports ▲" : "View Lost Pet Reports ▼"}
+          </Text>
+        </TouchableOpacity>
+
+        {showPets && (
+          <>
+            {petsLoading && (
+              <ActivityIndicator
+                size="small"
+                color={theme.colors.primary}
+                style={{ marginTop: theme.spacing.md }}
+              />
+            )}
+
+            {!petsLoading && lostPets.length === 0 && (
+              <Text style={styles.noPetsMsg}>
+                You have no previous lost pet reports.
+              </Text>
+            )}
+
+            {!petsLoading &&
+              lostPets.map((Pet) => (
+                <View key={Pet.pets_id} style={styles.petCard}>
+                  {Pet.image_url && (
+                    <Image
+                      style={styles.petImage}
+                      source={{ uri: Pet.image_url }}
+                    />
+                  )}
+                  <Text style={styles.petName}>{Pet.name}</Text>
+                  <Text style={styles.petDetail}>
+                    {Pet.species}
+                    {Pet.breed ? ` · ${Pet.breed}` : ""}
+                  </Text>
+                  {Pet.colour && (
+                    <Text style={styles.petDetail}>Colour: {Pet.colour}</Text>
+                  )}
+                  {Pet.description && (
+                    <Text style={styles.petDetail}>{Pet.description}</Text>
+                  )}
+                  {Pet.last_seen_location && (
+                    <Text style={styles.petDetail}>
+                      Last seen: {Pet.last_seen_location}
+                    </Text>
+                  )}
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      {
+                        backgroundColor:
+                          Pet.status === "lost"
+                            ? theme.colors.accent
+                            : theme.colors.success,
+                      },
+                    ]}
+                  >
+                    <Text style={styles.statusText}>
+                      {Pet.status === "lost" ? "🔴 Missing" : "🟢 Reunited"}
+                    </Text>
+                  </View>
+                  {Pet.status === "lost" && (
+                    <TouchableOpacity
+                      style={styles.reunitedBtn}
+                      testID={`reunite-btn-${Pet.pets_id}`}
+                      onPress={() => markAsReunited(Pet.pets_id)}
+                    >
+                      <Text style={styles.reunitedBtnText}>
+                        🟢 Mark as Reunited
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+          </>
+        )}
+      </View>
     </ScrollView>
   );
 }
@@ -272,5 +438,70 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.md,
     textAlign: "center",
     padding: theme.spacing.sm,
+  },
+  noPetsMsg: {
+    textAlign: "center",
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.md,
+    padding: theme.spacing.sm,
+  },
+  statusText: {
+    color: theme.colors.text.light,
+    fontWeight: "bold",
+    fontSize: theme.fontSize.md,
+  },
+  statusBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.full,
+    marginTop: theme.spacing.sm,
+  },
+  petDetail: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.secondary,
+  },
+  petName: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: "bold",
+    color: theme.colors.text.primary,
+  },
+  petCard: {
+    backgroundColor: theme.colors.secondary + "B3",
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    margin: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.secondary,
+    gap: theme.spacing.xs,
+  },
+  petImage: { width: "100%", height: 150, borderRadius: theme.borderRadius.sm },
+  viewPetsBtn: {
+    backgroundColor: theme.colors.primary,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    alignItems: "center",
+  },
+  viewPetsBtnText: {
+    color: theme.colors.text.light,
+    fontWeight: "bold",
+    fontSize: theme.fontSize.md,
+  },
+  petsSection: {
+    margin: theme.spacing.lg,
+    gap: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
+  },
+  reunitedBtn: {
+    flex: 1,
+    backgroundColor: theme.colors.success,
+    padding: theme.spacing.sm,
+    borderRadius: theme.borderRadius.md,
+    alignItems: "center",
+  },
+  reunitedBtnText: {
+    color: theme.colors.text.light,
+    fontWeight: "bold",
+    fontSize: theme.fontSize.sm,
   },
 });

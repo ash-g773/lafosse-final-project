@@ -1,14 +1,20 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import MapScreen from "../../src/app/(tabs)/index";
 
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
 
+jest.mock("@react-native-async-storage/async-storage", () => ({
+  getItem: jest.fn(),
+  removeItem: jest.fn(),
+}));
+
 //expo-router
 jest.mock("expo-router", () => ({
   useRouter: () => ({
-    push: jest.fn(),
-    back: jest.fn(),
+    push: mockPush,
+    replace: mockReplace,
   }),
   Stack: { Screen: () => null },
 }));
@@ -133,9 +139,14 @@ describe("MapScreen", () => {
     await render(<MapScreen />);
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining("/pets"));
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining("/pets"),
+        expect.any(Object),
+      );
+
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining("/sightings"),
+        expect.any(Object),
       );
     });
   });
@@ -155,7 +166,7 @@ describe("MapScreen", () => {
     const { getByTestId } = await render(<MapScreen />);
 
     await waitFor(() => {
-      expect(getByTestId("plus-btn")).toBeTruthy;
+      expect(getByTestId("plus-btn")).toBeTruthy();
     });
   });
 
@@ -163,7 +174,7 @@ describe("MapScreen", () => {
     const { getByTestId, getByText } = await render(<MapScreen />);
 
     await waitFor(() => {
-      expect(getByTestId("plus-btn")).toBeTruthy;
+      expect(getByTestId("plus-btn")).toBeTruthy();
 
       fireEvent.press(getByTestId("plus-btn"));
 
@@ -175,7 +186,7 @@ describe("MapScreen", () => {
     const { getByTestId, queryByText } = await render(<MapScreen />);
 
     await waitFor(() => {
-      expect(getByTestId("plus-btn")).toBeTruthy;
+      expect(getByTestId("plus-btn")).toBeTruthy();
 
       fireEvent.press(getByTestId("plus-btn"));
       fireEvent.press(getByTestId("plus-btn"));
@@ -206,10 +217,130 @@ describe("MapScreen", () => {
     expect(getByText("Luna")).toBeTruthy();
     expect(getByText("🔴 Missing")).toBeTruthy();
   });
+  it("shows sighting details when marker is pressed", async () => {
+    setupMockFetch();
+
+    const { getByTestId, getByText } = render(<MapScreen />);
+
+    await waitFor(() => {
+      expect(getByTestId("sighting-marker-1")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("sighting-marker-1"));
+
+    expect(getByText("Sighting Reported")).toBeTruthy();
+    expect(getByText("🟢 Sighting")).toBeTruthy();
+  });
+  it("closes modal when close button pressed", async () => {
+    setupMockFetch();
+
+    const { getByTestId, getByText, queryByText } = render(<MapScreen />);
+
+    await waitFor(() => {
+      fireEvent.press(getByTestId("pet-marker-1"));
+    });
+
+    expect(getByText("Luna")).toBeTruthy();
+
+    fireEvent.press(getByText("Close"));
+
+    await waitFor(() => {
+      expect(queryByText("Luna")).toBeNull();
+    });
+  });
   it("handles fetch error", async () => {
     mockFetch.mockRejectedValue(new Error("Network error"));
 
     // should not crash
     expect(async () => await render(<MapScreen />)).not.toThrow();
+  });
+
+  it("takes user to landing page and clears storage when logout button is pressed", async () => {
+    setupMockFetch();
+
+    const { getByTestId } = render(<MapScreen />);
+
+    await waitFor(() => {
+      expect(getByTestId("logout-btn")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("logout-btn"));
+
+    await waitFor(() => {
+      expect(AsyncStorage.removeItem).toHaveBeenCalledWith("token");
+      expect(mockReplace).toHaveBeenCalledWith("/(auth)/landing");
+    });
+  });
+  it("navigates to profile page", async () => {
+    setupMockFetch();
+
+    const { getByTestId } = render(<MapScreen />);
+
+    await waitFor(() => {
+      fireEvent.press(getByTestId("profile-btn"));
+      expect(mockPush).toHaveBeenCalledWith("./profile");
+    });
+  });
+  it("navigates to report pet page", async () => {
+    setupMockFetch();
+
+    const { getByTestId } = render(<MapScreen />);
+
+    await waitFor(() => {
+      expect(getByTestId("plus-btn")).toBeTruthy();
+      fireEvent.press(getByTestId("plus-btn"));
+
+      fireEvent.press(getByTestId("lostPet-btn"));
+      expect(mockPush).toHaveBeenCalledWith("./lostPet");
+    });
+  });
+  it("navigates to report sighting page", async () => {
+    setupMockFetch();
+
+    const { getByTestId } = render(<MapScreen />);
+
+    await waitFor(() => {
+      expect(getByTestId("plus-btn")).toBeTruthy();
+      fireEvent.press(getByTestId("plus-btn"));
+
+      fireEvent.press(getByTestId("sighting-btn"));
+      expect(mockPush).toHaveBeenCalledWith("./reportSighting");
+    });
+  });
+  it("handles denied location permission", async () => {
+    const Location = require("expo-location");
+
+    Location.requestForegroundPermissionsAsync.mockResolvedValueOnce({
+      status: "denied",
+    });
+
+    setupMockFetch();
+
+    expect(() => render(<MapScreen />)).not.toThrow();
+  });
+  it("handles logout errors", async () => {
+    setupMockFetch();
+
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
+    (AsyncStorage.removeItem as jest.Mock).mockRejectedValueOnce(
+      new Error("storage error"),
+    );
+
+    const { getByTestId } = render(<MapScreen />);
+
+    await waitFor(() => {
+      fireEvent.press(getByTestId("logout-btn"));
+    });
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalled();
+    });
+
+    consoleSpy.mockRestore();
+  });
+  it("renders correctly", async () => {
+    const { toJSON } = await render(<MapScreen />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -59,4 +59,11 @@ describe("landing-page", () => {
     const { toJSON } = await render(<Landing />);
     expect(toJSON()).toMatchSnapshot();
   });
+  it("navigates to report sighting when report button is pressed", () => {
+    const { getByTestId } = render(<Landing />);
+
+    fireEvent.press(getByTestId("reportBtn"));
+
+    expect(mockPush).toHaveBeenCalledWith("/(auth)/reportSighting");
+  });
 });

@@ -4,7 +4,7 @@ exports[`landing-page renders correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#8FAF7E",
+      "backgroundColor": "#83C5BE",
       "flex": 2,
     }
   }
@@ -12,8 +12,8 @@ exports[`landing-page renders correctly 1`] = `
   <ViewManagerAdapter_ExpoLinearGradient
     colors={
       [
-        4281158178,
-        4287606654,
+        4281166463,
+        4286825918,
       ]
     }
     locations={
@@ -118,7 +118,7 @@ exports[`landing-page renders correctly 1`] = `
         }
         accessible={true}
         collapsable={false}
-        focusable={false}
+        focusable={true}
         onClick={[Function]}
         onResponderGrant={[Function]}
         onResponderMove={[Function]}
@@ -129,7 +129,7 @@ exports[`landing-page renders correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#2D4A22",
+            "backgroundColor": "#2D6A7F",
             "borderRadius": 16,
             "marginLeft": 16,
             "marginRight": 16,
@@ -184,8 +184,8 @@ exports[`landing-page renders correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#8FAF7E66",
-            "borderColor": "#2D4A22",
+            "backgroundColor": "#83C5BE66",
+            "borderColor": "#2D6A7F",
             "borderRadius": 16,
             "borderWidth": 1,
             "margin": 16,
@@ -199,7 +199,7 @@ exports[`landing-page renders correctly 1`] = `
         <Text
           style={
             {
-              "color": "#2D4A22",
+              "color": "#2D6A7F",
               "fontSize": 16,
               "fontWeight": "bold",
             }

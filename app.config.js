@@ -82,7 +82,7 @@ export default ({ config }) => {
       ],
     ],
     experiments: {
-      typedRoutes: false,
+      typedRoutes: true,
       reactCompiler: true,
     },
     extra: {

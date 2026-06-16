@@ -98,6 +98,7 @@ export default function LoginScreen() {
 
         <TouchableOpacity
           style={styles.button}
+          testID="login-btn"
           onPress={() => {
             console.log("button pressed");
             login(username, password);
@@ -109,20 +110,19 @@ export default function LoginScreen() {
         <View style={styles.register}>
           <Text style={styles.linkButtonText}>Don't have an account?</Text>
 
-          <TouchableOpacity style={styles.linkButton}>
-            <Text
-              style={styles.linkButtonTextBold}
-              onPress={() => router.push("/(auth)/register")}
-            >
-              {" "}
-              Register Here
-            </Text>
+          <TouchableOpacity
+            style={styles.linkButton}
+            testID="register-btn"
+            onPress={() => router.push("/(auth)/register")}
+          >
+            <Text style={styles.linkButtonTextBold}> Register Here</Text>
           </TouchableOpacity>
         </View>
 
         <View>
           <TouchableOpacity
             style={styles.toReport}
+            testID="report-btn"
             onPress={() => router.replace("/(auth)/reportSighting")}
           >
             <Text style={styles.buttonText}>Report a sighting</Text>

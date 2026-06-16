@@ -1,4 +1,5 @@
 import { theme } from "@/themes";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { router } from "expo-router";
@@ -6,7 +7,9 @@ import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -18,6 +21,7 @@ import {
 import DropDownPicker from "react-native-dropdown-picker";
 import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
+import GeminiImageDescriber from "../components/GeminiImageDescriber";
 
 export default function ReportSightingScreen() {
   // type of animal dropdown
@@ -54,6 +58,9 @@ export default function ReportSightingScreen() {
   const [selectedImage, setSelectedImage] = useState<string | undefined>(
     undefined,
   );
+  const [selectedImageMimeType, setSelectedImageMimeType] = useState<
+    string | undefined
+  >(undefined);
 
   const pickImage = async () => {
     const permissionResult =
@@ -149,6 +156,27 @@ export default function ReportSightingScreen() {
     location: Location.LocationObject | undefined,
     imageUrl: string | undefined,
   ) {
+    // check whether any of the above are blank, throw error
+    // if (!sightingDescription || !location || !imageCloudinaryURL) {
+    //   throw Alert.alert("Please fill in all required fields!");
+    // }
+    console.log("submitForm started");
+
+    const token = await AsyncStorage.getItem("token");
+
+    // decode userId from token if it exists
+    let userId: number | null = null;
+    if (token) {
+      try {
+        const payload = token.split(".")[1];
+        const decoded = JSON.parse(atob(payload));
+        console.log(decoded);
+        userId = decoded.users_id;
+      } catch {
+        userId = null;
+      }
+    }
+
     setSubmitting(true);
     try {
       const fullSightingDescription = combineDescriptors(
@@ -156,6 +184,14 @@ export default function ReportSightingScreen() {
         sightingDescription,
         animalColor,
       );
+
+      // only add auth header if token exists
+      const headers: Record<string, string> = {
+        Accept: "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
 
       const formData = new FormData();
 
@@ -172,36 +208,40 @@ export default function ReportSightingScreen() {
 
       formData.append("sighting_description", fullSightingDescription);
       formData.append("guest_contact", guestContact ?? "");
-      formData.append(
-        "lat",
-        location ? String(location.coords.latitude) : "",
-      );
-      formData.append(
-        "lng",
-        location ? String(location.coords.longitude) : "",
-      );
+      formData.append("lat", location ? String(location.coords.latitude) : "");
+      formData.append("lng", location ? String(location.coords.longitude) : "");
 
+      console.log("About to POST to backend");
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_API_URL}/sightings/`,
         {
           method: "POST",
+          headers,
           body: formData,
         },
       );
 
+      console.log("Response status:", response.status);
+
       const data = await response.json();
+      console.log("Response body:", data);
 
       if (response.status === 201) {
         Alert.alert(
           "Success!",
           "Your sighting report has been submitted successfully. Thank you for helping to bring community pets back home!",
         );
-        router.replace("/(auth)/landing");
+
+        if (token) {
+          router.replace("/(tabs)");
+        } else {
+          router.replace("/(auth)/landing");
+        }
       } else {
         Alert.alert(
           "Something went wrong...",
           "Your sighting report was not successful. Please try again later. " +
-          data.error,
+            (data?.error ?? ""),
         );
       }
     } catch (e) {
@@ -233,250 +273,296 @@ export default function ReportSightingScreen() {
 
     if (!result.canceled) {
       setSelectedImage(result.assets[0].uri);
+      setSelectedImageMimeType(result.assets[0].mimeType);
       setModal2Visible(false);
     }
     console.log(selectedImage);
   }
 
+  //ai desc show
+  const [loadAi, setLoadAi] = useState(false);
+
   // rendering the actual page
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.buttonText}>Back</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.toReport}
-          onPress={() => router.replace("/(auth)/login")}
-        >
-          <Text style={styles.buttonText}>Log in / Register</Text>
-        </TouchableOpacity>
-
-        <Image
-          style={styles.logo}
-          source={require("../../../assets/images/logo.png")}
-          testID="logo"
-        />
-      </View>
-
-      <Text style={styles.title}>Report a Sighting</Text>
-      <ScrollView>
-        <View style={styles.sightingForm}>
-          <View style={styles.uploadImage}>
-            <Text style={styles.subtitle}>
-              Please upload a photo of the sighting:
-            </Text>
-            <Modal
-              animationType="slide"
-              transparent={true}
-              visible={modal2Visible}
-              onRequestClose={() => {
-                Alert.alert("modal closed");
-                setModal2Visible(!modal2Visible);
-              }}
-            >
-              <View style={styles.modal2Container}>
-                <View style={styles.modal2Inner}>
-                  <TouchableOpacity style={styles.button} onPress={openCamera}>
-                    <Text style={styles.buttonText}>Camera</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.button} onPress={pickImage}>
-                    <Text style={styles.buttonText}>Gallery</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
+    <View style={{ flex: 1, backgroundColor: theme.colors.primary }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1, backgroundColor: theme.colors.primary }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+      >
+        <SafeAreaView style={styles.container} edges={["top"]}>
+          <View style={styles.topBar} testID="login&logo">
             <TouchableOpacity
-              style={styles.button}
-              onPress={() => setModal2Visible(true)}
+              style={styles.backBtn}
+              onPress={() => router.back()}
             >
-              <Image
-                source={
-                  selectedImage
-                    ? { uri: selectedImage }
-                    : require("../../../assets/images/add-pic.png")
-                }
-                style={{ width: 150, height: 150 }}
-              />
+              <Text style={styles.buttonText}>Back</Text>
             </TouchableOpacity>
-            <Text style={styles.subtitle}>
-              Please ensure you can clearly see the animal in your photo.
-            </Text>
+            <TouchableOpacity
+              style={styles.toReport}
+              onPress={() => router.replace("/(auth)/login")}
+            >
+              <Text style={styles.buttonText}>Log in / Register</Text>
+            </TouchableOpacity>
+            <Image
+              style={styles.logo}
+              source={require("../../../assets/images/logo.png")}
+              testID="logo"
+            />
           </View>
 
-          <View style={styles.form}>
-            <Text style={styles.formLabels}>Where did you see them?</Text>
-            <View style={styles.location}>
-              {/* once selected i.e. when location!null this needs to change to just display location */}
-              <TouchableOpacity
-                style={[
-                  styles.locationButton,
-                  location &&
-                  !selectedLocation &&
-                  styles.locationButtonSelected,
-                ]}
-                onPress={() => getCurrentLocation()}
-              >
-                <Text style={styles.buttonText}>
-                  {location && !selectedLocation
-                    ? "✓ Current location"
-                    : "At my current location"}
+          <Text style={styles.title}>Report a Sighting</Text>
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ flexGrow: 1 }}
+          >
+            <View style={styles.sightingForm}>
+              <View style={styles.uploadImage}>
+                <Text style={styles.subtitle}>
+                  Please upload a photo of the sighting:
                 </Text>
-              </TouchableOpacity>
-
-              <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => {
-                  Alert.alert("modal closed");
-                  setModalVisible(!modalVisible);
-                }}
-              >
-                <View style={styles.modalContainer}>
-                  <View style={styles.modalInner}>
-                    <Text style={styles.mapMessage}>
-                      Please select the location of the sighting on the map (use
-                      two fingers to move)
-                    </Text>
-
-                    <MapView
-                      style={styles.map}
-                      provider={PROVIDER_GOOGLE}
-                      region={region}
-                      showsUserLocation={true} // show blue dot
-                      showsMyLocationButton={true} // show recentre button
-                      onUserLocationChange={() => { }}
-                      onPress={(e) =>
-                        setSelectedLocation(e.nativeEvent.coordinate)
-                      }
-                    >
-                      {selectedLocation && (
-                        <Marker
-                          coordinate={selectedLocation}
-                          draggable={true} // lets user drag pin after placing it
-                          onDragEnd={(e) => {
-                            // update location when pin is dragged
-                            setSelectedLocation(e.nativeEvent.coordinate);
-                          }}
-                          pinColor={theme.colors.accent}
-                        />
-                      )}
-                    </MapView>
-                    {selectedLocation && (
-                      <Text style={styles.locationConfirmed}>
-                        📍 Location selected — drag the pin to adjust
-                      </Text>
-                    )}
-
-                    <Pressable
-                      style={styles.button}
-                      onPress={() => {
-                        if (selectedLocation) {
-                          // save the map selection as the sighting location
-                          setLocation({
-                            coords: {
-                              latitude: selectedLocation.latitude,
-                              longitude: selectedLocation.longitude,
-                              altitude: null,
-                              accuracy: null,
-                              altitudeAccuracy: null,
-                              heading: null,
-                              speed: null,
-                            },
-                            timestamp: Date.now(),
-                          } as Location.LocationObject);
-                          console.log(
-                            "coords:",
-                            selectedLocation.latitude,
-                            selectedLocation.longitude,
-                          );
-                        }
-                        setModalVisible(false);
-                      }}
-                    >
-                      <Text style={styles.buttonText}>
-                        {selectedLocation ? "Confirm location" : "Close map"}
-                      </Text>
-                    </Pressable>
+                <Modal
+                  animationType="slide"
+                  transparent={true}
+                  visible={modal2Visible}
+                  onRequestClose={() => {
+                    Alert.alert("modal closed");
+                    setModal2Visible(!modal2Visible);
+                  }}
+                >
+                  <View style={styles.modal2Container}>
+                    <View style={styles.modal2Inner}>
+                      <TouchableOpacity
+                        style={styles.button}
+                        onPress={openCamera}
+                      >
+                        <Text style={styles.buttonText}>Camera</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.button}
+                        onPress={pickImage}
+                      >
+                        <Text style={styles.buttonText}>Gallery</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
+                </Modal>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => setModal2Visible(true)}
+                >
+                  <Image
+                    source={
+                      selectedImage
+                        ? { uri: selectedImage }
+                        : require("../../../assets/images/add-pic.png")
+                    }
+                    style={{ width: 150, height: 150 }}
+                    testID="addPic"
+                  />
+                </TouchableOpacity>
+                <Text style={styles.subtitle}>
+                  Please ensure you can clearly see the animal in your photo.
+                </Text>
+              </View>
+
+              <View style={styles.form}>
+                <Text style={styles.formLabels}>Where did you see them?</Text>
+                <View style={styles.location}>
+                  {/* once selected i.e. when location!null this needs to change to just display location */}
+                  <TouchableOpacity
+                    style={[
+                      styles.locationButton,
+                      location &&
+                        !selectedLocation &&
+                        styles.locationButtonSelected,
+                    ]}
+                    onPress={() => getCurrentLocation()}
+                  >
+                    <Text style={styles.buttonText}>
+                      {location && !selectedLocation
+                        ? "✓ Current location"
+                        : "At my current location"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => {
+                      Alert.alert("modal closed");
+                      setModalVisible(!modalVisible);
+                    }}
+                  >
+                    <View style={styles.modalContainer}>
+                      <View style={styles.modalInner}>
+                        <Text style={styles.mapMessage}>
+                          Please select the location of the sighting on the map
+                          (use two fingers to move)
+                        </Text>
+
+                        <MapView
+                          style={styles.map}
+                          provider={PROVIDER_GOOGLE}
+                          region={region}
+                          showsUserLocation={true} // show blue dot
+                          showsMyLocationButton={true} // show recentre button
+                          onUserLocationChange={() => {}}
+                          onPress={(e) =>
+                            setSelectedLocation(e.nativeEvent.coordinate)
+                          }
+                        >
+                          {selectedLocation && (
+                            <Marker
+                              coordinate={selectedLocation}
+                              draggable={true} // lets user drag pin after placing it
+                              onDragEnd={(e) => {
+                                // update location when pin is dragged
+                                setSelectedLocation(e.nativeEvent.coordinate);
+                              }}
+                              pinColor={theme.colors.accent}
+                            />
+                          )}
+                        </MapView>
+                        {selectedLocation && (
+                          <Text style={styles.locationConfirmed}>
+                            📍 Location selected — drag the pin to adjust
+                          </Text>
+                        )}
+
+                        <Pressable
+                          style={styles.button}
+                          onPress={() => {
+                            if (selectedLocation) {
+                              // save the map selection as the sighting location
+                              setLocation({
+                                coords: {
+                                  latitude: selectedLocation.latitude,
+                                  longitude: selectedLocation.longitude,
+                                  altitude: null,
+                                  accuracy: null,
+                                  altitudeAccuracy: null,
+                                  heading: null,
+                                  speed: null,
+                                },
+                                timestamp: Date.now(),
+                              } as Location.LocationObject);
+                              console.log(
+                                "coords:",
+                                selectedLocation.latitude,
+                                selectedLocation.longitude,
+                              );
+                            }
+                            setModalVisible(false);
+                          }}
+                        >
+                          <Text style={styles.buttonText}>
+                            {selectedLocation
+                              ? "Confirm location"
+                              : "Close map"}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  </Modal>
+                  <TouchableOpacity
+                    style={[
+                      styles.locationButton,
+                      selectedLocation && styles.locationButtonSelected,
+                    ]}
+                    onPress={() => setModalVisible(true)}
+                  >
+                    <Text style={styles.buttonText}>
+                      {selectedLocation
+                        ? "✓ Location pinned"
+                        : "Somewhere else (open map)"}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-              </Modal>
+
+                <Text style={styles.formLabels}>Type of Animal: </Text>
+                <DropDownPicker
+                  open={open}
+                  value={animalType}
+                  items={items}
+                  setOpen={setOpen}
+                  setValue={setValue}
+                  setItems={setItems}
+                  placeholder="Select an animal..."
+                  listMode="SCROLLVIEW"
+                  style={styles.input}
+                  testID="dropdown"
+                />
+                <Text style={styles.formLabels}>Color / Pattern: </Text>
+                <TextInput
+                  autoCapitalize="none"
+                  style={styles.input}
+                  placeholder="Please input color"
+                  onChangeText={setAnimalColor}
+                  testID="colorInput"
+                />
+
+                <Text style={styles.formLabels}>Description: </Text>
+                <TextInput
+                  placeholder="Time of sighting, important info, behaviour etc."
+                  autoCapitalize="none"
+                  style={styles.input}
+                  onChangeText={setSightingDescription}
+                  testID="descriptionInput"
+                />
+
+                <TouchableOpacity onPress={() => setLoadAi(true)}>
+                  <Text>
+                    {" "}
+                    {!loadAi ? (
+                      "Click here for an AI summary of your sighting photo"
+                    ) : (
+                      <GeminiImageDescriber
+                        imageUri={selectedImage}
+                        imageMimeType={selectedImageMimeType}
+                      />
+                    )}{" "}
+                  </Text>
+                </TouchableOpacity>
+
+                <Text style={styles.formLabels}>
+                  Your contact info (optional):{" "}
+                </Text>
+                <TextInput
+                  placeholder="+44 1234567890"
+                  autoCapitalize="none"
+                  style={styles.input}
+                  onChangeText={setGuestContact}
+                  testID="contactInput"
+                />
+              </View>
+
               <TouchableOpacity
-                style={[
-                  styles.locationButton,
-                  selectedLocation && styles.locationButtonSelected,
-                ]}
-                onPress={() => setModalVisible(true)}
+                style={[styles.submitButton, submitting && { opacity: 0.6 }]}
+                onPress={() => {
+                  console.log("submit button pressed");
+                  submitForm(
+                    animalType,
+                    sightingDescription,
+                    animalColor,
+                    guestContact,
+                    location,
+                    selectedImage,
+                  );
+                }}
+                testID="submitButton"
+                disabled={submitting}
               >
                 <Text style={styles.buttonText}>
-                  {selectedLocation
-                    ? "✓ Location pinned"
-                    : "Somewhere else (open map)"}
+                  {submitting ? "Submitting..." : "Submit"}
                 </Text>
               </TouchableOpacity>
             </View>
-
-            <Text style={styles.formLabels}>Type of Animal: </Text>
-            <DropDownPicker
-              open={open}
-              value={animalType}
-              items={items}
-              setOpen={setOpen}
-              setValue={setValue}
-              setItems={setItems}
-              placeholder="Select an animal..."
-              listMode="SCROLLVIEW"
-              style={styles.input}
-            />
-            <Text style={styles.formLabels}>Color / Pattern: </Text>
-            <TextInput
-              autoCapitalize="none"
-              style={styles.input}
-              placeholder="Please input color"
-              onChangeText={setAnimalColor}
-            />
-
-            <Text style={styles.formLabels}>Description: </Text>
-            <TextInput
-              placeholder="Time of sighting, important info, behaviour etc."
-              autoCapitalize="none"
-              style={styles.input}
-              onChangeText={setSightingDescription}
-            />
-
-            <Text style={styles.formLabels}>
-              Your contact info (optional):{" "}
-            </Text>
-            <TextInput
-              placeholder="+44 1234567890"
-              autoCapitalize="none"
-              style={styles.input}
-              onChangeText={setGuestContact}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.submitButton, submitting && { opacity: 0.6 }]}
-            onPress={() =>
-              submitForm(
-                animalType,
-                sightingDescription,
-                animalColor,
-                guestContact,
-                location,
-                selectedImage,
-              )
-            }
-            disabled={submitting}
-          >
-            <Text style={styles.buttonText}>
-              {submitting ? "Submitting..." : "Submit"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          </ScrollView>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
