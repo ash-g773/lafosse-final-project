@@ -20,7 +20,7 @@ import {
   View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
-import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
+import MapView, { Marker, Region } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 import GeminiImageDescriber from "../components/GeminiImageDescriber";
 
@@ -120,9 +120,11 @@ export default function ReportSightingScreen() {
     sightingDescription: string | undefined,
     animalColor: string | undefined,
   ) {
-    const fullSightingDescription =
-      animalType + "; " + sightingDescription + "; " + animalColor;
-    return fullSightingDescription;
+    const parts = [];
+    if (animalType) parts.push(animalType.charAt(0).toUpperCase() + animalType.slice(1));
+    if (animalColor) parts.push(animalColor.toLowerCase());
+    if (sightingDescription) parts.push(sightingDescription);
+    return parts.join(" · ");
   }
 
   const [region, setRegion] = useState<Region>({
@@ -409,7 +411,7 @@ export default function ReportSightingScreen() {
 
                         <MapView
                           style={styles.map}
-                          provider={PROVIDER_GOOGLE}
+                          // provider={PROVIDER_GOOGLE}
                           region={region}
                           showsUserLocation={true} // show blue dot
                           showsMyLocationButton={true} // show recentre button
