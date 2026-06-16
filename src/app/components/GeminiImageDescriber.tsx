@@ -56,7 +56,7 @@ export default function GeminiImageDescriber({
                 },
               },
               {
-                text: "Describe this image in 2 sentences, be concise and factual.",
+                text: "You are helping identify a lost or found pet. The person reporting has already noted the animal's species and colour separately. Look at this image and write one short natural sentence describing only the distinctive physical features that would help someone recognise this specific animal — things like markings, patterns, fur length, build, eye colour, collar, or anything unusual. Write as if texting a neighbour, Do not mention species or colour.",
               },
             ],
           },
