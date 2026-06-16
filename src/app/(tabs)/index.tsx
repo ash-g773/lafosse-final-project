@@ -14,7 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import MapView, { Marker, Region } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { theme } from "../../themes";
 
 interface Pet {
@@ -288,7 +288,7 @@ export default function MapScreen() {
       <StatusBar style="auto" hidden={true} />
       <MapView
         style={StyleSheet.absoluteFill}
-        // provider={PROVIDER_GOOGLE}
+        provider={PROVIDER_GOOGLE}
         region={region}
         testID="map-view"
         showsUserLocation={true} // show blue dot
