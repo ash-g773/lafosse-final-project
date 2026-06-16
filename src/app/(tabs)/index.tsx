@@ -243,13 +243,7 @@ export default function MapScreen() {
 
   async function handleLogout() {
     try {
-      console.log("Logging out...");
-
-      // await AsyncStorage.removeItem("token");
-      await AsyncStorage.clear();
-
-      const check = await AsyncStorage.getItem("token");
-      console.log("Token after logout:", check);
+      await AsyncStorage.removeItem("token");
       router.replace("/(auth)/landing" as any);
     } catch (e) {
       console.error("Error logging out:", e);
@@ -269,8 +263,14 @@ export default function MapScreen() {
       });
     }
     getLocation();
-    fetchMapData();
+    fetchMapData(); // call it here
     NavigationBar.setVisibilityAsync("hidden");
+  }, []);
+
+  useEffect(() => {
+    fetchAlerts();
+    const interval = setInterval(fetchAlerts, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
@@ -342,6 +342,7 @@ export default function MapScreen() {
         >
           <Text>Profile</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.iconBtn}
           testID="logout-btn"
@@ -356,8 +357,8 @@ export default function MapScreen() {
             (setAlertsModalVisible(true), fetchAlerts());
           }}
         >
-          <Text style={styles.alertsText}>Alerts</Text>
-          <Text style={styles.alertsText}>🔔</Text>
+          <Text>Alerts</Text>
+          <Text>🔔</Text>
           {unreadCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{unreadCount}</Text>
@@ -382,7 +383,7 @@ export default function MapScreen() {
             testID="sighting-btn"
             onPress={() => {
               setMenuOpen(false);
-              router.push("/(auth)/reportSighting");
+              router.push("./reportSighting");
             }}
           >
             <Text style={styles.menuText}>📍 Report Sighting</Text>
@@ -466,62 +467,6 @@ export default function MapScreen() {
             <TouchableOpacity
               style={styles.modalCloseBtn}
               onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.modalCloseBtnText}>Close</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
-      <Modal
-        visible={alertsModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setAlertsModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalBackdrop}
-          activeOpacity={1}
-          onPress={() => setAlertsModalVisible(false)}
-        >
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.modalCard}
-            onPress={() => {}}
-          >
-            <View style={styles.modalHandle} />
-            <Text style={styles.modalName}>Alerts</Text>
-            {alerts.length === 0 ? (
-              <Text style={styles.modalDescription}>No alerts yet.</Text>
-            ) : (
-              <ScrollView style={{ maxHeight: 300 }}>
-                {alerts.map((alert) => (
-                  <TouchableOpacity
-                    key={alert.alerts_id}
-                    style={[
-                      styles.alertRow,
-                      !alert.is_read && styles.alertRowUnread,
-                    ]}
-                    onPress={() =>
-                      markAlertAsRead(
-                        alert.alerts_id,
-                        alert.pets_id,
-                        alert.alert_type,
-                      )
-                    }
-                  >
-                    <Text style={styles.alertIcon}>
-                      {alert.alert_type === "lost" ? "🔴" : "🟢"}
-                    </Text>
-                    <Text style={styles.alertMessage}>
-                      {alert.alert_message}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            )}
-            <TouchableOpacity
-              style={styles.modalCloseBtn}
-              onPress={() => setAlertsModalVisible(false)}
             >
               <Text style={styles.modalCloseBtnText}>Close</Text>
             </TouchableOpacity>
@@ -745,8 +690,5 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.md,
     color: theme.colors.text.secondary,
     flex: 1,
-  },
-  alertsText: {
-    alignSelf: "center",
   },
 });

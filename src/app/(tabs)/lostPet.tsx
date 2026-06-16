@@ -229,7 +229,7 @@ export default function LostPetScreen() {
   // rendering the actual page
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.topBar}>
+      <View style={styles.topBar} testID="login&logo">
         <TouchableOpacity
           style={styles.backBtn}
           onPress={() => router.replace("/(tabs)")}
@@ -265,6 +265,7 @@ export default function LostPetScreen() {
                     : require("../../../assets/images/add-pic.png")
                 }
                 style={{ width: 150, height: 150 }}
+                testID="addPic"
               />
             </TouchableOpacity>
             <Text style={styles.subtitle}>
@@ -287,8 +288,8 @@ export default function LostPetScreen() {
                 style={[
                   styles.locationButton,
                   location &&
-                  !selectedLocation &&
-                  styles.locationButtonSelected,
+                    !selectedLocation &&
+                    styles.locationButtonSelected,
                 ]}
                 onPress={() => getCurrentLocation()}
               >
@@ -320,7 +321,7 @@ export default function LostPetScreen() {
                       region={region}
                       showsUserLocation={true} // show blue dot
                       showsMyLocationButton={true} // show recentre button
-                      onUserLocationChange={() => { }}
+                      onUserLocationChange={() => {}}
                       onPress={(e) =>
                         setSelectedLocation(e.nativeEvent.coordinate)
                       }
@@ -402,6 +403,7 @@ export default function LostPetScreen() {
               placeholder="Select..."
               listMode="SCROLLVIEW"
               style={styles.input}
+              testID="dropdown"
             />
             <Text style={styles.formLabels}>
               What breed are they? (optional)
@@ -420,15 +422,17 @@ export default function LostPetScreen() {
               style={styles.input}
               placeholder="Please input color"
               onChangeText={setAnimalColor}
+              testID="colorInput"
             />
 
             <Text style={styles.formLabels}>More information: </Text>
             <TextInput
-              placeholder="Any helpful info incase someone spots your pet"
+              placeholder="Your contact info (optional) and any additional info"
               autoCapitalize="none"
               style={styles.moreInfo}
               onChangeText={setDescription}
               multiline={true}
+              testID="descriptionInput"
             />
           </View>
 
