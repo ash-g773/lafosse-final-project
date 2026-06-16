@@ -427,12 +427,12 @@ export default function MapScreen() {
                   />
                 )}
                 <Text style={styles.modalDescription}>
-                  {selectedPet.species}
+                  {selectedPet.species.charAt(0).toUpperCase() + selectedPet.species.slice(1)}
                   {selectedPet.breed ? ` · ${selectedPet.breed}` : ""}
                 </Text>
                 {selectedPet.colour && (
                   <Text style={styles.modalDescription}>
-                    Colour: {selectedPet.colour}
+                    {selectedPet.colour.charAt(0).toUpperCase() + selectedPet.colour.slice(1)}
                   </Text>
                 )}
                 <Text style={styles.modalDescription}>
