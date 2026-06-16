@@ -32,7 +32,7 @@ async function create(req, res) {
     const newPet = await Pet.create(data)
 
     await Alert.createForAllUsers(
-      newPet.pets_id,
+      newPet.pets_id,null,
       "lost",
       `Lost ${newPet.species}: ${newPet.name}${newPet.colour ? " · " + newPet.colour : ""} near ${newPet.last_seen_location}`
     )
