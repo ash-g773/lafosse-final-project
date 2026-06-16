@@ -122,7 +122,8 @@ export default function ReportSightingScreen() {
     animalColor: string | undefined,
   ) {
     const parts = [];
-    if (animalType) parts.push(animalType.charAt(0).toUpperCase() + animalType.slice(1));
+    if (animalType)
+      parts.push(animalType.charAt(0).toUpperCase() + animalType.slice(1));
     if (animalColor) parts.push(animalColor.toLowerCase());
     if (sightingDescription) parts.push(sightingDescription);
     return parts.join(" · ");
@@ -261,6 +262,7 @@ export default function ReportSightingScreen() {
       setSubmitting(false);
     }
   }
+
   async function openCamera() {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -543,7 +545,9 @@ export default function ReportSightingScreen() {
                       imageMimeType={selectedImageMimeType}
                     />
                   ) : (
-                    <Text style={styles.aiResponse}>Please upload an image</Text>
+                    <Text style={styles.aiResponse}>
+                      Please upload an image
+                    </Text>
                   )}
                 </View>
 
@@ -665,14 +669,6 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     color: theme.colors.text.secondary,
   },
-  inputDescription: {
-    backgroundColor: theme.colors.secondary_light,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
-    fontSize: theme.fontSize.md,
-    marginBottom: theme.spacing.md,
-    color: theme.colors.text.primary,
-  },
   button: {
     marginTop: theme.spacing.sm,
     backgroundColor: theme.colors.secondary,
@@ -703,6 +699,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text.light,
   },
   logo: {
+    borderRadius: 10,
     width: 50,
     height: 50,
   },
@@ -764,7 +761,6 @@ const styles = StyleSheet.create({
     elevation: 5,
     justifyContent: "space-around",
     flexDirection: "row",
-    borderRadius: 20,
   },
   locationConfirmed: {
     color: theme.colors.text.light,
