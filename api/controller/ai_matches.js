@@ -3,6 +3,10 @@ const { getAiMatches } = require("../utils/gemini.utils");
 
 async function match(req, res) {
   try {
+    console.log("Testing connectivity...");
+    const testResponse = await fetch("https://httpbin.org/get");
+    console.log("Connectivity test status:", testResponse.status);
+
     const id = parseInt(req.params.id);
 
     const pet = await Pet.getOneById(id);

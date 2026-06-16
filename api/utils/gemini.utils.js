@@ -43,29 +43,42 @@ async function getAiMatches(pet, sightings) {
     "API Key prefix:",
     process.env.GEMINI_MATCHING_KEY?.substring(0, 8),
   );
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_MATCHING_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-      }),
-    },
-  );
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_MATCHING_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+        }),
+        signal: controller.signal,
+      },
+    );
+    clearTimeout(timeout);
 
-  if (!response.ok) {
-    throw new Error(`Gemini API error: ${response.status}`);
+    console.log("Gemini response status:", response.status);
+    const responseText = await response.text();
+    console.log("Gemini response body:", responseText);
+
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status} - ${responseText}`);
+    }
+
+    const data = JSON.parse(responseText);
+    const text = data.candidates[0].content.parts[0].text;
+    const cleaned = text.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleaned);
+  } catch (err) {
+    clearTimeout(timeout);
+    if (err.name === "AbortError") {
+      throw new Error("Gemini API timed out");
+    }
+    throw err;
   }
-
-  const data = await response.json();
-  const text = data.candidates[0].content.parts[0].text;
-
-  // clean markdown if Gemini adds it despite instructions
-  const cleaned = text.replace(/```json|```/g, "").trim();
-
-  return JSON.parse(cleaned);
 }
 
 module.exports = { getAiMatches };
