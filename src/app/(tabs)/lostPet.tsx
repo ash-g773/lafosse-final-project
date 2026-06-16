@@ -20,7 +20,7 @@ import {
   View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
-import MapView, { Marker, Region } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LostPetScreen() {
@@ -340,7 +340,7 @@ export default function LostPetScreen() {
                         </Text>
                         <MapView
                           style={styles.map}
-                          // provider={PROVIDER_GOOGLE}
+                          provider={PROVIDER_GOOGLE}
                           region={region}
                           showsUserLocation={true} // show blue dot
                           showsMyLocationButton={true} // show recentre button
