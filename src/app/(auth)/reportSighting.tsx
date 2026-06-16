@@ -85,7 +85,6 @@ export default function ReportSightingScreen() {
     console.log(result);
 
     if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
       const uri = result.assets[0].uri;
       console.log("Original URI:", uri);
       const filename = uri.split("/").pop() || "sighting.jpg";
@@ -122,9 +121,12 @@ export default function ReportSightingScreen() {
     sightingDescription: string | undefined,
     animalColor: string | undefined,
   ) {
-    const fullSightingDescription =
-      animalType + "; " + sightingDescription + "; " + animalColor;
-    return fullSightingDescription;
+    const parts = [];
+    if (animalType)
+      parts.push(animalType.charAt(0).toUpperCase() + animalType.slice(1));
+    if (animalColor) parts.push(animalColor.toLowerCase());
+    if (sightingDescription) parts.push(sightingDescription);
+    return parts.join(" · ");
   }
 
   const [region, setRegion] = useState<Region>({

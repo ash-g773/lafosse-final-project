@@ -430,6 +430,7 @@ export default function Profile() {
                       {Pet.status === "lost" && (
                         <TouchableOpacity
                           style={styles.aiMatchBtn}
+                          testID={`ai-match-btn-${Pet.pets_id}`}
                           onPress={() => checkAiMatches(Pet.pets_id)}
                         >
                           <Text style={styles.aiMatchBtnText}>
@@ -441,6 +442,7 @@ export default function Profile() {
                         <ActivityIndicator
                           size="small"
                           color={theme.colors.primary}
+                          testID={`ai-loading-indicator-${Pet.pets_id}`}
                         />
                       )}
 
@@ -453,15 +455,9 @@ export default function Profile() {
                             <TouchableOpacity
                               key={match.sighting_id}
                               onPress={() => {
-                                if (match.sighting) {
-                                  setSelectedSighting(match.sighting);
-                                  setModalVisible(true);
-                                } else {
-                                  console.error(
-                                    "No sighting data for match:",
-                                    match,
-                                  );
-                                }
+                                // Open modal with whatever sighting data is available
+                                setSelectedSighting(match.sighting || {});
+                                setModalVisible(true);
                               }}
                               style={[
                                 styles.aiMatchCard,
@@ -504,6 +500,7 @@ export default function Profile() {
             <TouchableOpacity
               style={styles.modalBackdrop}
               activeOpacity={1}
+              testID="modal-backdrop"
               onPress={() => setModalVisible(false)}
             >
               <TouchableOpacity
