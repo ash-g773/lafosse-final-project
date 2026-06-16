@@ -31,6 +31,7 @@ export default function GeminiImageDescriber({
   const [loading, setLoading] = useState(false);
 
   const describeImage = async () => {
+    console.log("describeImage called, imageUri:", imageUri)
     if (!imageUri) {
       Alert.alert("Please upload an image first");
       return;
@@ -55,7 +56,7 @@ export default function GeminiImageDescriber({
                 },
               },
               {
-                text: "Describe this image in 2 sentences, be concise and factual.",
+                text: "You are helping identify a lost or found pet. The person reporting has already noted the animal's species and colour separately. Look at this image and write one short natural sentence describing only the distinctive physical features that would help someone recognise this specific animal — things like markings, patterns, fur length, build, eye colour, collar, or anything unusual. Write as if texting a neighbour, Do not mention species or colour.",
               },
             ],
           },
@@ -68,12 +69,13 @@ export default function GeminiImageDescriber({
         body: JSON.stringify(body),
       });
 
+      const data =await response.json() as any
+
       if (!response.ok) {
-        const err = await response.json();
-        Alert.alert(err.message ?? `HTTP ${response.status}`);
+        Alert.alert(data.message ?? `HTTP ${response.status}`);
+        return;
       }
 
-      const data = await response.json();
       console.log(data);
       const text =
         data?.candidates?.[0]?.content?.parts?.[0]?.text ??
@@ -81,7 +83,7 @@ export default function GeminiImageDescriber({
 
       setDescription(text.trim());
     } catch (err) {
-      Alert.alert("Error", err.message ?? "Something went wrong");
+      Alert.alert("Error", (err as any).message ?? "Something went wrong");
     } finally {
       setLoading(false);
     }

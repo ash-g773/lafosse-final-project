@@ -159,8 +159,9 @@ export default function MapScreen() {
         { headers: { Authorization: `Bearer ${stored}` } },
       );
       const data = await response.json();
-      setAlerts(data.data);
-      setUnreadCount(data.data.filter((a: any) => !a.is_read).length);
+      const alertsData = data.data ?? [];
+      setAlerts(alertsData);
+      setUnreadCount(alertsData.filter((a: any) => !a.is_read).length);
     } catch (err) {
       console.error("Failed to fetch alerts:", err);
     }
@@ -190,7 +191,7 @@ export default function MapScreen() {
       // close alerts modal
       setAlertsModalVisible(false);
 
-      // navigate to the relevant pet or sighting
+      // navigate to pet or sighting report
       if (alert_type === "lost" && pets_id) {
         const response = await fetch(
           `${process.env.EXPO_PUBLIC_API_URL}/pets/${pets_id}`,
@@ -426,12 +427,12 @@ export default function MapScreen() {
                   />
                 )}
                 <Text style={styles.modalDescription}>
-                  {selectedPet.species}
+                  {selectedPet.species.charAt(0).toUpperCase() + selectedPet.species.slice(1)}
                   {selectedPet.breed ? ` · ${selectedPet.breed}` : ""}
                 </Text>
                 {selectedPet.colour && (
                   <Text style={styles.modalDescription}>
-                    Colour: {selectedPet.colour}
+                    {selectedPet.colour.charAt(0).toUpperCase() + selectedPet.colour.slice(1)}
                   </Text>
                 )}
                 <Text style={styles.modalDescription}>
@@ -491,10 +492,10 @@ export default function MapScreen() {
           >
             <View style={styles.modalHandle} />
             <Text style={styles.modalName}>Alerts</Text>
-            {alerts.length === 0 ? (
+            {!alerts || alerts.length === 0 ? (
               <Text style={styles.modalDescription}>No alerts yet.</Text>
             ) : (
-              <ScrollView style={{ maxHeight: 300 }}>
+              <ScrollView style={{ maxHeight: 400 }}>
                 {alerts.map((alert) => (
                   <TouchableOpacity
                     key={alert.alerts_id}
@@ -513,7 +514,7 @@ export default function MapScreen() {
                     <Text style={styles.alertIcon}>
                       {alert.alert_type === "lost" ? "🔴" : "🟢"}
                     </Text>
-                    <Text style={styles.alertMessage}>
+                    <Text style={styles.alertMessage} numberOfLines={5} ellipsizeMode="tail">
                       {alert.alert_message}
                     </Text>
                   </TouchableOpacity>
@@ -673,22 +674,28 @@ const styles = StyleSheet.create({
   },
   alertRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: theme.spacing.sm,
     padding: theme.spacing.md,
     borderRadius: theme.borderRadius.sm,
     backgroundColor: theme.colors.background,
     marginBottom: theme.spacing.xs,
+    opacity: 0.5,
   },
   alertRowUnread: {
-    backgroundColor: theme.colors.secondary + "44",
+    backgroundColor: theme.colors.secondary + "33",
+    borderLeftWidth: 3,
+    borderLeftColor: theme.colors.primary,
+    opacity: 1,
   },
   alertIcon: {
     fontSize: theme.fontSize.md,
   },
   alertMessage: {
-    fontSize: theme.fontSize.md,
-    color: theme.colors.text.secondary,
-    flex: 1,
-  },
+  fontSize: theme.fontSize.sm,
+  color: theme.colors.text.secondary,
+  flexShrink: 1,
+  flexWrap: "wrap",
+  lineHeight: 20,
+},
 });

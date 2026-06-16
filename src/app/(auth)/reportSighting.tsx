@@ -1,5 +1,6 @@
 import { theme } from "@/themes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { router } from "expo-router";
@@ -84,7 +85,14 @@ export default function ReportSightingScreen() {
     console.log(result);
 
     if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      console.log("Original URI:", uri);
+      const filename = uri.split("/").pop() || "sighting.jpg";
+      const destUri = FileSystem.cacheDirectory + filename;
+      console.log("Dest URI:", destUri);
+      await FileSystem.copyAsync({ from: uri, to: destUri });
+      console.log("Copy complete");
+      setSelectedImage(destUri);
       setModal2Visible(false);
     }
     console.log(selectedImage);
@@ -113,9 +121,11 @@ export default function ReportSightingScreen() {
     sightingDescription: string | undefined,
     animalColor: string | undefined,
   ) {
-    const fullSightingDescription =
-      animalType + "; " + sightingDescription + "; " + animalColor;
-    return fullSightingDescription;
+    const parts = [];
+    if (animalType) parts.push(animalType.charAt(0).toUpperCase() + animalType.slice(1));
+    if (animalColor) parts.push(animalColor.toLowerCase());
+    if (sightingDescription) parts.push(sightingDescription);
+    return parts.join(" · ");
   }
 
   const [region, setRegion] = useState<Region>({
@@ -526,17 +536,16 @@ export default function ReportSightingScreen() {
                   testID="descriptionInput"
                 />
 
-                <Text style={styles.aiResponse}>
-                  {" "}
+                <View style={styles.aiResponseContainer}>
                   {selectedImage ? (
                     <GeminiImageDescriber
                       imageUri={selectedImage}
                       imageMimeType={selectedImageMimeType}
                     />
                   ) : (
-                    "Please upload an image"
-                  )}{" "}
-                </Text>
+                    <Text style={styles.aiResponse}>Please upload an image</Text>
+                  )}
+                </View>
 
                 <Text style={styles.formLabels}>
                   Your contact info (optional):{" "}
@@ -765,6 +774,11 @@ const styles = StyleSheet.create({
   },
   locationButtonSelected: {
     backgroundColor: theme.colors.success,
+  },
+  aiResponseContainer: {
+    width: "100%",
+    marginTop: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
   },
   aiResponse: {
     color: theme.colors.text.light,
