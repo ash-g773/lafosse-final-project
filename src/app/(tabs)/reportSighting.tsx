@@ -5,19 +5,20 @@ import * as Location from "expo-location";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-    Alert,
-    Image,
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
+import GeminiImageDescriber from "../components/GeminiImageDescriber";
 
 export default function ReportSightingScreen() {
   const [open, setOpen] = useState<boolean>(false);
@@ -48,6 +49,10 @@ export default function ReportSightingScreen() {
   const [selectedImage, setSelectedImage] = useState<string | undefined>(
     undefined,
   );
+  const [selectedImageMimeType, setSelectedImageMimeType] = useState<
+    string | undefined
+  >(undefined);
+  const [loadAi, setLoadAi] = useState(false);
 
   const pickImage = async () => {
     const permissionResult =
@@ -344,6 +349,20 @@ export default function ReportSightingScreen() {
               style={styles.input}
               onChangeText={setSightingDescription}
             />
+
+            <TouchableOpacity onPress={() => setLoadAi(true)}>
+              <Text>
+                {" "}
+                {!loadAi ? (
+                  "Click here for an AI summary of your sighting photo"
+                ) : (
+                  <GeminiImageDescriber
+                    imageUri={selectedImage}
+                    imageMimeType={selectedImageMimeType}
+                  />
+                )}{" "}
+              </Text>
+            </TouchableOpacity>
             <Text style={styles.formLabels}>
               Your contact info (optional):{" "}
             </Text>

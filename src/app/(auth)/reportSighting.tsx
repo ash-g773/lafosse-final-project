@@ -512,16 +512,16 @@ export default function ReportSightingScreen() {
                   testID="descriptionInput"
                 />
 
-                <TouchableOpacity onPress={() => setLoadAi(true)}>
-                  <Text>
+                <TouchableOpacity>
+                  <Text style={styles.aiPrompt}>
                     {" "}
-                    {!loadAi ? (
-                      "Click here for an AI summary of your sighting photo"
-                    ) : (
+                    {selectedImage ? (
                       <GeminiImageDescriber
                         imageUri={selectedImage}
                         imageMimeType={selectedImageMimeType}
                       />
+                    ) : (
+                      "Please upload an image"
                     )}{" "}
                   </Text>
                 </TouchableOpacity>
@@ -743,5 +743,11 @@ const styles = StyleSheet.create({
   },
   locationButtonSelected: {
     backgroundColor: theme.colors.success,
+  },
+  aiPrompt: {
+    color: theme.colors.text.light,
+    textAlign: "center",
+    margin: theme.spacing.sm,
+    fontSize: theme.fontSize.md,
   },
 });

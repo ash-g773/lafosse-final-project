@@ -1,13 +1,14 @@
+import { theme } from "@/themes";
 import * as FileSystem from "expo-file-system/legacy";
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
@@ -29,13 +30,8 @@ export default function GeminiImageDescriber({
   const [loading, setLoading] = useState(false);
 
   const describeImage = async () => {
-    if (!imageUri) return;
-
-    if (!GEMINI_API_KEY) {
-      Alert.alert(
-        "Missing API Key",
-        "Please set EXPO_PUBLIC_GEMINI_API_KEY in your .env file",
-      );
+    if (!imageUri) {
+      Alert.alert("Please upload an image first");
       return;
     }
 
@@ -73,17 +69,18 @@ export default function GeminiImageDescriber({
 
       if (!response.ok) {
         const err = await response.json();
-        throw new Error(err?.error?.message ?? `HTTP ${response.status}`);
+        Alert.alert(err.message ?? `HTTP ${response.status}`);
       }
 
       const data = await response.json();
-      const text: string =
+      console.log(data);
+      const text =
         data?.candidates?.[0]?.content?.parts?.[0]?.text ??
         "No description returned";
 
       setDescription(text.trim());
-    } catch (err: any) {
-      Alert.alert("Error", err.message ?? "Someething went wrong");
+    } catch (err) {
+      Alert.alert("Error", err.message ?? "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -99,7 +96,9 @@ export default function GeminiImageDescriber({
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.primaryButtonText}>Describe Image</Text>
+          <Text style={styles.primaryButtonText}>
+            Generate AI description of uploaded photo
+          </Text>
         )}
       </TouchableOpacity>
       {/* Result */}
@@ -108,7 +107,7 @@ export default function GeminiImageDescriber({
           <Text style={styles.resultLabel}>Gemini says:</Text>
           <Text style={styles.resultText}>{description}</Text>
         </View>
-      )}{" "}
+      )}
     </ScrollView>
   );
 }
@@ -117,11 +116,9 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     alignItems: "center",
-    padding: 24,
-    backgroundColor: "#f9f9f9",
   },
   primaryButton: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: theme.colors.tertiary,
     paddingVertical: 14,
     paddingHorizontal: 32,
     borderRadius: 12,
@@ -133,6 +130,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
+    textAlign: "center",
   },
   disabledButton: {
     backgroundColor: "#a5b4fc",
