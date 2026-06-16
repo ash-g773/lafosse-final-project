@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -38,6 +39,19 @@ interface Pet {
   lng: string;
   image_url: string | null;
   status: string;
+  created_at: string;
+}
+
+interface Sighting {
+  sightings_id: number;
+  pets_id: number | null;
+  users_id: number | null;
+  guest_contact: string | null;
+  sighting_description: string;
+  location_description: string;
+  lat: string;
+  lng: string;
+  image_url: string | null;
   created_at: string;
 }
 
@@ -244,6 +258,11 @@ export default function Profile() {
     }
   }
 
+  const [selectedSighting, setSelectedSighting] = useState<Sighting | null>(
+    null,
+  );
+  const [modalVisible, setModalVisible] = useState(false);
+
   if (profileLoading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -418,7 +437,10 @@ export default function Profile() {
                       {aiMatches[Pet.pets_id].matches?.map((match: any) => (
                         <TouchableOpacity
                           key={match.sighting_id}
-                          //onPress={() => router.push(``)}
+                          onPress={() => {
+                            setSelectedSighting(match.sighting);
+                            setModalVisible(true);
+                          }}
                           style={[
                             styles.aiMatchCard,
                             {
@@ -444,6 +466,30 @@ export default function Profile() {
                           </Text>
                         </TouchableOpacity>
                       ))}
+                      <Modal
+                        visible={modalVisible}
+                        transparent
+                        animationType="slide"
+                        onRequestClose={() => setModalVisible(false)}
+                      >
+                        <View style={styles.modalCard}>
+                          {selectedSighting?.image_url && (
+                            <Image
+                              source={{ uri: selectedSighting.image_url }}
+                              style={styles.image}
+                            />
+                          )}
+
+                          <Text>{selectedSighting?.sighting_description}</Text>
+                          <Text>{selectedSighting?.location_description}</Text>
+
+                          <TouchableOpacity
+                            onPress={() => setModalVisible(false)}
+                          >
+                            <Text>Close</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </Modal>
                     </View>
                   )}
                 </View>
@@ -620,5 +666,21 @@ const styles = StyleSheet.create({
   aiReasoning: {
     fontSize: theme.fontSize.sm,
     color: theme.colors.text.secondary,
+  },
+  modalCard: {
+    backgroundColor: "white",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: theme.spacing.xl,
+    paddingBottom: 40,
+    gap: theme.spacing.md,
+    minHeight: "35%", // takes up bottom third of screen
+  },
+  image: {
+    height: 200,
+    width: "80%",
+    alignSelf: "center",
+    borderRadius: theme.borderRadius.md,
+    resizeMode: "cover",
   },
 });

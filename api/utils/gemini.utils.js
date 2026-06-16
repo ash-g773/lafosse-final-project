@@ -76,32 +76,33 @@ async function getAiMatches(pet, sightings) {
 
     return score;
   }
-
   const scored = sightings.map((s) => ({
     ...s,
     score: scoreSighting(pet, s),
   }));
   scored.sort((a, b) => b.score - a.score);
+}
 
-  const candidates = scored.filter((s) => s.score >= 80);
-  if (candidates.length === 0) {
-    return {
-      matches: [],
-      summary: "No likely matches found",
-    };
-  }
+const candidates = scored.filter((s) => s.score >= 80);
+if (candidates.length === 0) {
+  return {
+    matches: [],
+    summary: "No likely matches found",
+  };
 
-  const best = candidates[0];
+  const top = candidates[0];
+  const second = candidates[1];
 
-  if (best && best.score >= 180) {
+  const scoreGap = top && second ? top.score - second.score : 999;
+
+  if (top && top.score >= 180 && scoreGap > 20) {
     console.log(best, best.score);
     return {
       matches: [
         {
           sighting_id: best.sightings_id,
           likelihood: "High",
-          reasoning:
-            "Very strong automatic match based on species, colour, breed and/or name.",
+          reasoning: "Very strong automatic match based on key details.",
           next_steps: "Contact the reporter as soon as possible.",
         },
       ],
@@ -109,7 +110,14 @@ async function getAiMatches(pet, sightings) {
     };
   }
 
-  if (candidates.length === 1 && best.score >= 140) {
+  if (!top || top.score < 80) {
+    return {
+      matches: [],
+      summary: "No likely matches found.",
+    };
+  }
+
+  if (candidates.length === 1 && top.score >= 140) {
     return {
       matches: [
         {
@@ -120,6 +128,21 @@ async function getAiMatches(pet, sightings) {
         },
       ],
       summary: "We found one promising sighting.",
+    };
+  }
+
+  const needsAi =
+    top && top.score < 180 && candidates.length > 1 && scoreGap < 30;
+
+  if (!needsAi) {
+    return {
+      matches: candidates.slice(0, 3).map((s) => ({
+        sighting_id: s.sightings_id,
+        likelihood: "Medium",
+        reasoning: "Rule-based match.",
+        next_steps: "Review this sighting.",
+      })),
+      summary: "We found some possible matches.",
     };
   }
 
@@ -221,7 +244,23 @@ Only include High, Medium or Low confidence matches that are genuinely plausible
       .replace(/^```[^\n]*\n?/, "")
       .replace(/\n?```$/, "")
       .trim();
-    return JSON.parse(cleaned);
+    const aiResult = JSON.parse(cleaned);
+
+    const enrichedMatches = aiResult.matches.map((match) => {
+      const sighting = topSightings.find(
+        (s) => s.sightings_id === match.sighting_id,
+      );
+
+      return {
+        ...match,
+        sighting,
+      };
+    });
+
+    return {
+      ...aiResult,
+      matches: enrichedMatches,
+    };
   } catch (err) {
     clearTimeout(timeout);
     if (err.name === "AbortError") {
