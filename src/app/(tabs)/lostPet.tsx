@@ -15,6 +15,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TextInputContentSizeChangeEvent,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -228,6 +229,11 @@ export default function LostPetScreen() {
       setSubmitting(false);
     }
   }
+  // expandable text box
+  const [height, setHeight] = useState(0);
+  const onContentsSizeChange = (event: TextInputContentSizeChangeEvent) => {
+    setHeight(Math.max(50, event.nativeEvent.contentSize.height));
+  };
   // rendering the actual page
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.primary }}>
@@ -428,6 +434,7 @@ export default function LostPetScreen() {
                   autoCapitalize="none"
                   style={styles.input}
                   placeholder="Please input breed"
+                  placeholderTextColor={theme.colors.text.secondary}
                   onChangeText={setAnimalBreed}
                 />
                 <Text style={styles.formLabels}>
@@ -437,6 +444,7 @@ export default function LostPetScreen() {
                   autoCapitalize="none"
                   style={styles.input}
                   placeholder="Please input color"
+                  placeholderTextColor={theme.colors.text.secondary}
                   onChangeText={setAnimalColor}
                   testID="colorInput"
                 />
@@ -444,9 +452,19 @@ export default function LostPetScreen() {
                 <Text style={styles.formLabels}>More information: </Text>
                 <TextInput
                   placeholder="Your contact info (optional) and any additional info"
+                  placeholderTextColor={theme.colors.text.secondary}
                   autoCapitalize="none"
-                  style={styles.moreInfo}
+                  style={{
+                    backgroundColor: theme.colors.secondary_light,
+                    borderRadius: theme.borderRadius.md,
+                    padding: theme.spacing.md,
+                    fontSize: theme.fontSize.md,
+                    marginBottom: theme.spacing.md,
+                    color: theme.colors.text.secondary,
+                    height: height,
+                  }}
                   onChangeText={setDescription}
+                  onContentSizeChange={onContentsSizeChange}
                   multiline={true}
                   testID="descriptionInput"
                 />
