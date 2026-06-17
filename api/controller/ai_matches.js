@@ -9,15 +9,6 @@ async function match(req, res) {
       return res.status(400).json({ error: "Invalid pet ID" });
     }
 
-    // Test connectivity (for debugging)
-    try {
-      const testResponse = await fetch("https://httpbin.org/get");
-      console.log("Connectivity test status:", testResponse.status);
-    } catch (connectivityErr) {
-      console.error("Connectivity test failed:", connectivityErr.message);
-      // Proceed anyway bc this is just a test
-    }
-
     // Fetch pet
     const pet = await Pet.getOneById(id);
     if (!pet) {

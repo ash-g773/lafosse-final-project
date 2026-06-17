@@ -6,7 +6,13 @@ const mockPush = jest.fn();
 const mockReplace = jest.fn();
 
 jest.mock("@react-native-async-storage/async-storage", () => ({
-  getItem: jest.fn(),
+  getItem: jest
+    .fn()
+    .mockResolvedValue(
+      "header." +
+        Buffer.from(JSON.stringify({ users_id: 1 })).toString("base64") +
+        ".signature",
+    ),
   removeItem: jest.fn(),
 }));
 
@@ -97,6 +103,27 @@ const mockSightings = [
   },
 ];
 
+const mockAlerts = [
+  {
+    alerts_id: 1,
+    pets_id: 1,
+    sightings_id: null,
+    alert_type: "lost",
+    alert_message: "Lost Cat: Luna · Black near Thorpedale Road",
+    is_read: false,
+    created_at: "2024-01-01",
+  },
+  {
+    alerts_id: 2,
+    pets_id: null,
+    sightings_id: 1,
+    alert_type: "sighting",
+    alert_message: "New sighting reported near your area",
+    is_read: true,
+    created_at: "2024-01-01",
+  },
+];
+
 function setupMockFetch() {
   mockFetch
     .mockResolvedValueOnce({
@@ -104,12 +131,21 @@ function setupMockFetch() {
     })
     .mockResolvedValueOnce({
       json: async () => mockSightings,
+    })
+    .mockResolvedValueOnce({
+      // alerts fetch
+      json: async () => ({ data: mockAlerts }),
     });
 }
 
 beforeEach(() => {
+  jest.useFakeTimers();
   mockPush.mockReset();
   mockReplace.mockReset();
+});
+
+afterEach(() => {
+  jest.useRealTimers();
 });
 
 describe("MapScreen", () => {
@@ -342,5 +378,175 @@ describe("MapScreen", () => {
   it("renders correctly", async () => {
     const { toJSON } = await render(<MapScreen />);
     expect(toJSON()).toMatchSnapshot();
+  });
+  it("displays alerts button", async () => {
+    setupMockFetch();
+    const { getByTestId } = await render(<MapScreen />);
+
+    await waitFor(() => {
+      expect(getByTestId("alerts-btn")).toBeTruthy();
+    });
+  });
+
+  it("shows unread badge count when there are unread alerts", async () => {
+    setupMockFetch();
+    const { getByText } = await render(<MapScreen />);
+
+    await waitFor(() => {
+      // one unread alert in mock data
+      expect(getByText("1")).toBeTruthy();
+    });
+  });
+
+  it("opens alerts modal when alerts button is pressed", async () => {
+    setupMockFetch();
+    mockFetch.mockResolvedValueOnce({
+      json: async () => ({ data: mockAlerts }),
+    });
+
+    const { getByTestId } = await render(<MapScreen />);
+
+    await waitFor(() => {
+      expect(getByTestId("alerts-btn")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("alerts-btn"));
+
+    await waitFor(() => {
+      expect(getByTestId("alerts-modal-title")).toBeTruthy();
+    });
+  });
+
+  it("displays alert messages in modal", async () => {
+    setupMockFetch();
+    mockFetch.mockResolvedValueOnce({
+      json: async () => ({ data: mockAlerts }),
+    });
+
+    const { getByTestId, getByText } = await render(<MapScreen />);
+
+    await waitFor(() => {
+      expect(getByTestId("alerts-btn")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("alerts-btn"));
+
+    await waitFor(() => {
+      expect(
+        getByText("Lost Cat: Luna · Black near Thorpedale Road"),
+      ).toBeTruthy();
+      expect(getByText("New sighting reported near your area")).toBeTruthy();
+    });
+  });
+
+  it("shows no alerts message when alerts list is empty", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ json: async () => mockPets })
+      .mockResolvedValueOnce({ json: async () => mockSightings })
+      .mockResolvedValueOnce({ json: async () => ({ data: [] }) })
+      .mockResolvedValueOnce({ json: async () => ({ data: [] }) }); // button press fetch
+
+    const { getByTestId, getByText } = await render(<MapScreen />);
+
+    await waitFor(() => {
+      expect(getByTestId("alerts-btn")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("alerts-btn"));
+
+    await waitFor(() => {
+      expect(getByText("No alerts yet.")).toBeTruthy();
+    });
+  });
+
+  it("closes alerts modal when close button is pressed", async () => {
+    setupMockFetch();
+    mockFetch.mockResolvedValueOnce({
+      json: async () => ({ data: mockAlerts }),
+    });
+
+    const { getByTestId, getByText, queryByTestId } = await render(
+      <MapScreen />,
+    );
+
+    await waitFor(() => {
+      expect(getByTestId("alerts-btn")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("alerts-btn"));
+
+    await waitFor(() => {
+      expect(getByTestId("alerts-modal-title")).toBeTruthy();
+    });
+
+    fireEvent.press(getByText("Close"));
+
+    await waitFor(() => {
+      expect(queryByTestId("alerts-modal-title")).toBeNull();
+    });
+  });
+
+  it("marks alert as read and opens pet modal when lost alert is tapped", async () => {
+    setupMockFetch();
+    mockFetch
+      .mockResolvedValueOnce({ json: async () => ({ data: mockAlerts }) }) // button press alerts
+      .mockResolvedValueOnce({
+        // PATCH mark as read
+        json: async () => ({}),
+        ok: true,
+      })
+      .mockResolvedValueOnce({
+        // GET pet details
+        json: async () => mockPets[0],
+      });
+
+    const { getByTestId, getByText } = await render(<MapScreen />);
+
+    await waitFor(() => {
+      expect(getByTestId("alerts-btn")).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId("alerts-btn"));
+
+    await waitFor(() => {
+      expect(
+        getByText("Lost Cat: Luna · Black near Thorpedale Road"),
+      ).toBeTruthy();
+    });
+
+    fireEvent.press(getByText("Lost Cat: Luna · Black near Thorpedale Road"));
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining("/alerts/1/read"),
+        expect.objectContaining({ method: "PATCH" }),
+      );
+    });
+  });
+
+  it("fetches alerts on mount", async () => {
+    setupMockFetch();
+
+    await render(<MapScreen />);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining("/alerts/"),
+        expect.any(Object),
+      );
+    });
+  });
+
+  it("handles alerts fetch error gracefully", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ json: async () => mockPets })
+      .mockResolvedValueOnce({ json: async () => mockSightings })
+      .mockRejectedValueOnce(new Error("alerts fetch failed"));
+
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
+    expect(() => render(<MapScreen />)).not.toThrow();
+
+    consoleSpy.mockRestore();
   });
 });
