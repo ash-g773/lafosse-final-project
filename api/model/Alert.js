@@ -1,17 +1,27 @@
 const db = require("../database/connect");
 
 class Alert {
-    constructor({ alerts_id, users_id, pets_id, sightings_id, alert_type, alert_message, alert_radius, is_read, created_at }) {
-        this.alerts_id = alerts_id
-        this.users_id = users_id
-        this.pets_id = pets_id
-        this.sightings_id = sightings_id
-        this.alert_type = alert_type
-        this.alert_message = alert_message
-        this.alert_radius = alert_radius
-        this.is_read = is_read
-        this.created_at = created_at
-    }
+  constructor({
+    alerts_id,
+    users_id,
+    pets_id,
+    sightings_id,
+    alert_type,
+    alert_message,
+    alert_radius,
+    is_read,
+    created_at,
+  }) {
+    this.alerts_id = alerts_id;
+    this.users_id = users_id;
+    this.pets_id = pets_id;
+    this.sightings_id = sightings_id;
+    this.alert_type = alert_type;
+    this.alert_message = alert_message;
+    this.alert_radius = alert_radius;
+    this.is_read = is_read;
+    this.created_at = created_at;
+  }
 
   static async getByUserId(users_id) {
     const response = await db.query(
@@ -30,16 +40,28 @@ class Alert {
     return new Alert(response.rows[0]);
   }
 
-    static async createForAllUsers(pets_id, sightings_id, alert_type, alert_message) {
-        const users = await db.query("SELECT users_id FROM users;");
-        for (const user of users.rows) {
-            const values = [user.users_id, pets_id, sightings_id, alert_type, alert_message]
-            console.log("inserting with values:", values)
-            const query = "INSERT INTO alerts (users_id, pets_id, sightings_id, alert_type, alert_message) VALUES ($1, $2, $3, $4, $5)"
-            console.log("query:", query)
-            await db.query(query, values);
-        }
+  static async createForAllUsers(
+    pets_id,
+    sightings_id,
+    alert_type,
+    alert_message,
+  ) {
+    const users = await db.query("SELECT users_id FROM users;");
+    for (const user of users.rows) {
+      const values = [
+        user.users_id,
+        pets_id,
+        sightings_id,
+        alert_type,
+        alert_message,
+      ];
+      console.log("inserting with values:", values);
+      const query =
+        "INSERT INTO alerts (users_id, pets_id, sightings_id, alert_type, alert_message) VALUES ($1, $2, $3, $4, $5)";
+      console.log("query:", query);
+      await db.query(query, values);
     }
+  }
 }
 
 module.exports = Alert;

@@ -14,6 +14,13 @@ jest.mock("expo-router", () => {
   };
 });
 
+// Mock AsyncStorage globally
+jest.mock("@react-native-async-storage/async-storage", () => ({
+  getItem: jest.fn().mockResolvedValue("test-token"),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+}));
+
 const mockedRouter = require("expo-router").router;
 
 const mockFetch = jest.fn();

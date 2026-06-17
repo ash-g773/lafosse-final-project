@@ -12,7 +12,9 @@ jest.mock("expo-router", () => ({
 }));
 
 jest.mock("@react-native-async-storage/async-storage", () => ({
-  getItem: jest.fn(),
+  getItem: jest.fn().mockResolvedValue("test-token"),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
 }));
 
 jest.mock("expo-file-system/legacy", () => ({
@@ -105,7 +107,6 @@ beforeEach(() => {
 });
 
 describe("report sighting screen tests", () => {
-
   it("renders all key elements", async () => {
     const { getByTestId, getByText } = render(<ReportSightingScreen />);
     expect(getByTestId("addPic")).toBeTruthy();
@@ -135,7 +136,9 @@ describe("report sighting screen tests", () => {
   });
 
   it("handles denied location permission on button press", async () => {
-    Location.requestForegroundPermissionsAsync.mockResolvedValueOnce({ status: "denied" });
+    Location.requestForegroundPermissionsAsync.mockResolvedValue({
+      status: "denied",
+    });
     const { getByText } = render(<ReportSightingScreen />);
     await act(async () => {
       fireEvent.press(getByText("At my current location"));
@@ -145,7 +148,9 @@ describe("report sighting screen tests", () => {
   });
 
   it("picks image from gallery successfully", async () => {
-    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: true });
+    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({
+      granted: true,
+    });
     ImagePicker.launchImageLibraryAsync.mockResolvedValue({
       canceled: false,
       assets: [{ uri: "file:///photo.jpg" }],
@@ -156,12 +161,18 @@ describe("report sighting screen tests", () => {
       fireEvent.press(getByTestId("addPic"));
       await new Promise((r) => setTimeout(r, 100));
     });
+    await act(async () => {
+      fireEvent.press(getByTestId("gallery-btn"));
+      await new Promise((r) => setTimeout(r, 100));
+    });
     expect(ImagePicker.launchImageLibraryAsync).toHaveBeenCalled();
     expect(FileSystem.copyAsync).toHaveBeenCalled();
   });
 
   it("handles denied image library permission", async () => {
-    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: false });
+    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({
+      granted: false,
+    });
     const { getByTestId } = render(<ReportSightingScreen />);
     await act(async () => {
       fireEvent.press(getByTestId("addPic"));
@@ -171,7 +182,9 @@ describe("report sighting screen tests", () => {
   });
 
   it("handles cancelled image pick", async () => {
-    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: true });
+    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({
+      granted: true,
+    });
     ImagePicker.launchImageLibraryAsync.mockResolvedValue({ canceled: true });
     const { getByTestId } = render(<ReportSightingScreen />);
     await act(async () => {
@@ -231,7 +244,9 @@ describe("report sighting screen tests", () => {
   });
 
   it("submits successfully with a token and redirects to tabs", async () => {
-    const payload = Buffer.from(JSON.stringify({ users_id: 2 })).toString("base64");
+    const payload = Buffer.from(JSON.stringify({ users_id: 2 })).toString(
+      "base64",
+    );
     AsyncStorage.getItem.mockResolvedValue(`header.${payload}.sig`);
     mockFetch.mockResolvedValue({
       status: 201,
@@ -262,7 +277,9 @@ describe("report sighting screen tests", () => {
   });
 
   it("submits with an image attached", async () => {
-    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: true });
+    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({
+      granted: true,
+    });
     ImagePicker.launchImageLibraryAsync.mockResolvedValue({
       canceled: false,
       assets: [{ uri: "file:///photo.jpg" }],
