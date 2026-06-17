@@ -264,13 +264,12 @@ export default function ReportSightingScreen() {
   }
 
   async function openCamera() {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
     if (!permissionResult.granted) {
       Alert.alert(
         "Permission required",
-        "Permission to access the media library is required",
+        "Permission to access the camera is required",
       );
       return;
     }
@@ -349,6 +348,7 @@ export default function ReportSightingScreen() {
                     <View style={styles.modal2Inner}>
                       <TouchableOpacity
                         style={styles.button}
+                        testID="camera-btn"
                         onPress={openCamera}
                       >
                         <Text style={styles.buttonText}>Camera</Text>

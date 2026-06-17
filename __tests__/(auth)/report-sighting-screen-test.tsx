@@ -193,6 +193,47 @@ describe("report sighting screen tests", () => {
     expect(ImagePicker.launchImageLibraryAsync).not.toHaveBeenCalled();
   });
 
+  it("opens camera successfully", async () => {
+    ImagePicker.requestCameraPermissionsAsync.mockResolvedValue({
+      granted: true,
+    });
+    ImagePicker.launchCameraAsync.mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: "file:///photo.jpg" }],
+    });
+    const { getByTestId } = render(<ReportSightingScreen />);
+    await act(async () => {
+      fireEvent.press(getByTestId("addPic"));
+      await new Promise((r) => setTimeout(r, 100));
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId("camera-btn"));
+      await new Promise((r) => setTimeout(r, 100));
+    });
+    expect(ImagePicker.launchCameraAsync).toHaveBeenCalled();
+  });
+
+  it("handles denied camera permission", async () => {
+    ImagePicker.requestCameraPermissionsAsync.mockResolvedValue({
+      granted: false,
+    });
+    const { getByTestId } = render(<ReportSightingScreen />);
+    await act(async () => {
+      fireEvent.press(getByTestId("addPic"));
+      await new Promise((r) => setTimeout(r, 100));
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId("camera-btn"));
+      await new Promise((r) => setTimeout(r, 100));
+    });
+    expect(Alert.alert).toHaveBeenCalled();
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Permission required",
+      "Permission to access the camera is required",
+    );
+    expect(ImagePicker.launchImageLibraryAsync).not.toHaveBeenCalled();
+  });
+
   it("handles cancelled image pick", async () => {
     ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({
       granted: true,
