@@ -47,19 +47,12 @@ jest.mock("expo-image-picker", () => ({
 }));
 
 jest.mock("expo-location", () => ({
-  requestForegroundPermissionsAsync: jest
-    .fn()
-    .mockResolvedValue({ status: "granted" }),
+  requestForegroundPermissionsAsync: jest.fn().mockResolvedValue({ status: "granted" }),
   getCurrentPositionAsync: jest.fn().mockResolvedValue({
     coords: { latitude: 51.5074, longitude: -0.1278 },
   }),
   reverseGeocodeAsync: jest.fn().mockResolvedValue([
-    {
-      name: "1",
-      street: "Marvels Lane",
-      district: "Grove Park",
-      city: "London",
-    },
+    { name: "1", street: "Marvels Lane", district: "Grove Park", city: "London" },
   ]),
 }));
 
@@ -72,19 +65,12 @@ const AsyncStorage = require("@react-native-async-storage/async-storage");
 
 beforeEach(() => {
   jest.clearAllMocks();
-  Location.requestForegroundPermissionsAsync.mockResolvedValue({
-    status: "granted",
-  });
+  Location.requestForegroundPermissionsAsync.mockResolvedValue({ status: "granted" });
   Location.getCurrentPositionAsync.mockResolvedValue({
     coords: { latitude: 51.5074, longitude: -0.1278 },
   });
   Location.reverseGeocodeAsync.mockResolvedValue([
-    {
-      name: "1",
-      street: "Marvels Lane",
-      district: "Grove Park",
-      city: "London",
-    },
+    { name: "1", street: "Marvels Lane", district: "Grove Park", city: "London" },
   ]);
 });
 
@@ -115,9 +101,7 @@ describe("report lost screen tests", () => {
   });
 
   it("handles denied location permission on button press", async () => {
-    Location.requestForegroundPermissionsAsync
-      .mockResolvedValueOnce({ status: "denied" }) // for useEffect on mount
-      .mockResolvedValueOnce({ status: "denied" }); // for button press
+    Location.requestForegroundPermissionsAsync.mockResolvedValueOnce({ status: "denied" });
 
     const { getByText } = render(<ReportLostScreen />);
 
@@ -128,6 +112,7 @@ describe("report lost screen tests", () => {
 
     expect(Location.getCurrentPositionAsync).not.toHaveBeenCalled();
   });
+
   it("opens the map modal when somewhere else is pressed", async () => {
     const { getByText } = render(<ReportLostScreen />);
     fireEvent.press(getByText("Somewhere else (open map)"));
@@ -155,6 +140,7 @@ describe("report lost screen tests", () => {
       expect(Location.reverseGeocodeAsync).toHaveBeenCalled(),
     );
   });
+
   it("expands description text input on content size change", async () => {
     const { getByTestId } = render(<ReportLostScreen />);
     const descInput = getByTestId("descriptionInput");
@@ -167,9 +153,7 @@ describe("report lost screen tests", () => {
   });
 
   it("picks an image from the library", async () => {
-    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({
-      granted: true,
-    });
+    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: true });
     ImagePicker.launchImageLibraryAsync.mockResolvedValue({
       canceled: false,
       assets: [{ uri: "file:///photo.jpg" }],
@@ -182,9 +166,7 @@ describe("report lost screen tests", () => {
   });
 
   it("handles denied image library permission", async () => {
-    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({
-      granted: false,
-    });
+    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: false });
     const { getByTestId } = render(<ReportLostScreen />);
     fireEvent.press(getByTestId("addPic"));
     await waitFor(() => {
@@ -193,9 +175,7 @@ describe("report lost screen tests", () => {
   });
 
   it("handles cancelled image pick", async () => {
-    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({
-      granted: true,
-    });
+    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: true });
     ImagePicker.launchImageLibraryAsync.mockResolvedValue({ canceled: true });
     const { getByTestId } = render(<ReportLostScreen />);
     fireEvent.press(getByTestId("addPic"));
@@ -227,9 +207,7 @@ describe("report lost screen tests", () => {
   });
 
   it("submits the form with a valid token and decodes userId", async () => {
-    const payload = Buffer.from(JSON.stringify({ users_id: 5 })).toString(
-      "base64",
-    );
+    const payload = Buffer.from(JSON.stringify({ users_id: 5 })).toString("base64");
     AsyncStorage.getItem.mockResolvedValue(`header.${payload}.sig`);
     mockFetch.mockResolvedValue({
       status: 201,
@@ -267,9 +245,7 @@ describe("report lost screen tests", () => {
   });
 
   it("submits with an image attached", async () => {
-    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({
-      granted: true,
-    });
+    ImagePicker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: true });
     ImagePicker.launchImageLibraryAsync.mockResolvedValue({
       canceled: false,
       assets: [{ uri: "file:///photo.jpg" }],
