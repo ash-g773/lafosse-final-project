@@ -148,19 +148,14 @@ async function getAiMatches(pet, sightings) {
       createMatch(
         top,
         "High",
-        `Strong match: ${pet.species} (${pet.colour}) seen ${ageDays.toFixed(0)} days ago.`,
+        "Strong match",
         "Contact the reporter as soon as possible.",
       ),
     );
   } else {
     // If top score is < 80, treat it as Medium
     matches.push(
-      createMatch(
-        top,
-        "Medium",
-        `Possible match: Similar ${pet.species}.`,
-        "Review this sighting.",
-      ),
+      createMatch(top, "Medium", "Possible match", "Review this sighting."),
     );
   }
 
