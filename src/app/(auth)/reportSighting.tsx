@@ -355,6 +355,7 @@ export default function ReportSightingScreen() {
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.button}
+                        testID="gallery-btn"
                         onPress={pickImage}
                       >
                         <Text style={styles.buttonText}>Gallery</Text>

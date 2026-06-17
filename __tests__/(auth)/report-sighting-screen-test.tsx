@@ -136,7 +136,7 @@ describe("report sighting screen tests", () => {
   });
 
   it("handles denied location permission on button press", async () => {
-    Location.requestForegroundPermissionsAsync.mockResolvedValueOnce({
+    Location.requestForegroundPermissionsAsync.mockResolvedValue({
       status: "denied",
     });
     const { getByText } = render(<ReportSightingScreen />);
@@ -159,6 +159,10 @@ describe("report sighting screen tests", () => {
     const { getByTestId } = render(<ReportSightingScreen />);
     await act(async () => {
       fireEvent.press(getByTestId("addPic"));
+      await new Promise((r) => setTimeout(r, 100));
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId("gallery-btn"));
       await new Promise((r) => setTimeout(r, 100));
     });
     expect(ImagePicker.launchImageLibraryAsync).toHaveBeenCalled();
