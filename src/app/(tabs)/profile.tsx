@@ -487,10 +487,7 @@ export default function Profile() {
                                   : match.likelihood === "Medium"
                                     ? "🟡"
                                     : "🔴"}{" "}
-                                {match.likelihood} match
-                              </Text>
-                              <Text style={styles.aiReasoning}>
-                                {match.reasoning}
+                                Possible sighting
                               </Text>
                             </TouchableOpacity>
                           ))}

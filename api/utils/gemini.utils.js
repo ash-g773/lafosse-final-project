@@ -117,7 +117,7 @@ async function getAiMatches(pet, sightings) {
   scored.sort((a, b) => b.score - a.score);
 
   // Filter candidates
-  const candidates = scored.filter((s) => s.score >= 80);
+  const candidates = scored.filter((s) => s.score >= 60);
   if (candidates.length === 0) {
     return {
       matches: [],
@@ -141,65 +141,61 @@ async function getAiMatches(pet, sightings) {
     };
   }
 
-  // High confidence match
-  if (top && top.score >= 80 && scoreGap > 10) {
-    return {
-      matches: [
-        createMatch(
-          top,
-          "High",
-          "Very strong automatic match based on key details.",
-          "Contact the reporter as soon as possible.",
-        ),
-      ],
-      summary: "We found a highly promising match.",
-    };
+  // Always return:
+  // 1. Top match as "High" (if score >= 80)
+  // 2. Next 2 matches as "Medium" (if score >= 60)
+  const matches = [];
+  const top = candidates[0];
+
+  // 1. Add the top match as "High" (if score >= 80)
+  if (top.score >= 80) {
+    matches.push(
+      createMatch(
+        top,
+        "High",
+        `Strong match: ${pet.species} (${pet.colour}) seen ${distance.toFixed(0)}m away, ${ageDays.toFixed(0)} days ago.`,
+        "Contact the reporter as soon as possible.",
+      ),
+    );
+  } else {
+    // If top score is < 80, treat it as Medium
+    matches.push(
+      createMatch(
+        top,
+        "Medium",
+        `Possible match: Similar ${pet.species} but ${distance > 250 ? "farther away" : "less detail"}.`,
+        "Review this sighting.",
+      ),
+    );
   }
 
-  // Single high-scoring candidate
-  if (candidates.length === 1 && top.score >= 120) {
-    // ✅ Lowered from 140 to 120
-    return {
-      matches: [
+  // 2. Add up to 2 more matches as "Medium" (if they exist and score >= 60)
+  for (let i = 1; i <= Math.min(2, candidates.length - 1); i++) {
+    const candidate = candidates[i];
+    if (candidate.score >= 60) {
+      matches.push(
         createMatch(
-          top,
+          candidate,
           "Medium",
-          "Likely match based on the available information.",
+          "Possible match based on key details.",
           "Review this sighting.",
         ),
-      ],
-      summary: "We found one promising sighting.",
-    };
+      );
+    }
   }
 
-  // Multiple candidates
-  const needsAi =
-    top && top.score < 150 && candidates.length > 1 && scoreGap < 30; // ✅ Lowered from 180 to 150
-  if (!needsAi) {
+  // If we have matches, return them
+  if (matches.length > 0) {
     return {
-      matches: candidates
-        .slice(0, 3)
-        .map((s) =>
-          createMatch(
-            s,
-            "Medium",
-            "Possible match based on key details.",
-            "Review this sighting.",
-          ),
-        ),
-      summary: "We found some possible matches.",
+      matches: matches.slice(0, 3), // Ensure max 3 matches (1 High + 2 Medium)
+      summary:
+        matches.length === 1
+          ? "We found one promising match."
+          : `We found ${matches.length} possible matches.`,
     };
   }
 
-  // No likely matches
-  if (!top || top.score < 80) {
-    return {
-      matches: [],
-      summary: "No likely matches found.",
-    };
-  }
-
-  // Call Gemini API for AI matching
+  // Fallback: Use Gemini API for ambiguous cases (optional)
   const topSightings = candidates.slice(0, 5);
   const prompt = `
 Compare this lost pet against the candidate sightings.

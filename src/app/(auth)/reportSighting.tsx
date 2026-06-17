@@ -441,6 +441,10 @@ export default function ReportSightingScreen() {
                   </TouchableOpacity>
                 </View>
 
+                <Text style={styles.subheading}>
+                  Please fill in all fields marked *
+                </Text>
+
                 <Text style={styles.formLabels}>Location Details:</Text>
                 <TextInput
                   style={styles.input}
@@ -450,7 +454,7 @@ export default function ReportSightingScreen() {
                   testID="locationDescriptionInput"
                 />
 
-                <Text style={styles.formLabels}>Type of Animal:</Text>
+                <Text style={styles.formLabels}>Type of Animal *:</Text>
                 <DropDownPicker
                   open={open}
                   value={animalType}
@@ -473,7 +477,7 @@ export default function ReportSightingScreen() {
                   testID="colorInput"
                 />
 
-                <Text style={styles.formLabels}>Description:</Text>
+                <Text style={styles.formLabels}>Description *:</Text>
                 <TextInput
                   multiline={true}
                   placeholder="Time of sighting, behavior, etc."
@@ -484,9 +488,7 @@ export default function ReportSightingScreen() {
                   testID="descriptionInput"
                 />
 
-                <Text style={styles.formLabels}>
-                  Your contact info (optional):
-                </Text>
+                <Text style={styles.formLabels}>Your contact information:</Text>
                 <TextInput
                   placeholder="+44 1234567890"
                   placeholderTextColor={theme.colors.text.secondary}
@@ -513,20 +515,19 @@ export default function ReportSightingScreen() {
                       style={styles.map}
                       provider={PROVIDER_GOOGLE}
                       region={region}
-                      showsUserLocation={true}
-                      showsMyLocationButton={true}
-                      onUserLocationChange={() => {}}
+                      showsUserLocation={true} // Shows the blue dot for user location
+                      showsMyLocationButton={true} // Shows the "recenter" button
                       onPress={(e) =>
                         setSelectedLocation(e.nativeEvent.coordinate)
-                      }
+                      } // Handles pin placement
                     >
                       {selectedLocation && (
                         <Marker
                           coordinate={selectedLocation}
                           draggable={true}
-                          onDragEnd={(e) => {
-                            setSelectedLocation(e.nativeEvent.coordinate);
-                          }}
+                          onDragEnd={(e) =>
+                            setSelectedLocation(e.nativeEvent.coordinate)
+                          }
                           pinColor={theme.colors.accent}
                         />
                       )}
@@ -785,5 +786,12 @@ const styles = StyleSheet.create({
     color: theme.colors.text.light,
     textAlign: "center",
     fontSize: theme.fontSize.md,
+  },
+  subheading: {
+    padding: 10,
+    alignSelf: "center",
+    color: theme.colors.text.light,
+    fontWeight: "bold",
+    marginTop: 20,
   },
 });
