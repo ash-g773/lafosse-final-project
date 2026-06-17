@@ -148,7 +148,7 @@ async function getAiMatches(pet, sightings) {
       createMatch(
         top,
         "High",
-        `Strong match: ${pet.species} (${pet.colour}) seen ${distance.toFixed(0)}m away, ${ageDays.toFixed(0)} days ago.`,
+        `Strong match: ${pet.species} (${pet.colour}) seen ${ageDays.toFixed(0)} days ago.`,
         "Contact the reporter as soon as possible.",
       ),
     );
@@ -158,7 +158,7 @@ async function getAiMatches(pet, sightings) {
       createMatch(
         top,
         "Medium",
-        `Possible match: Similar ${pet.species} but ${distance > 250 ? "farther away" : "less detail"}.`,
+        `Possible match: Similar ${pet.species}.`,
         "Review this sighting.",
       ),
     );
