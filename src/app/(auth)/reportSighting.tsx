@@ -41,6 +41,7 @@ export default function ReportSightingScreen() {
   const [location, setLocation] = useState<Location.LocationObject | undefined>(
     undefined,
   );
+  const [locationDescription, setLocationDescription] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   async function getCurrentLocation() {
@@ -191,11 +192,15 @@ export default function ReportSightingScreen() {
 
     setSubmitting(true);
     try {
-      const fullSightingDescription = combineDescriptors(
-        animalType,
-        sightingDescription,
-        animalColor,
-      );
+      const fullSightingDescription = [
+        animalType
+          ? animalType.charAt(0).toUpperCase() + animalType.slice(1)
+          : "",
+        animalColor || "",
+        sightingDescription || "",
+      ]
+        .filter(Boolean)
+        .join(" · ");
 
       // only add auth header if token exists
       const headers: Record<string, string> = {
@@ -222,7 +227,12 @@ export default function ReportSightingScreen() {
       formData.append("guest_contact", guestContact ?? "");
       formData.append("lat", location ? String(location.coords.latitude) : "");
       formData.append("lng", location ? String(location.coords.longitude) : "");
+      formData.append("location_description", locationDescription || "");
 
+      if (!animalType || !location) {
+        Alert.alert("Error", "Please select an animal type and location.");
+        return;
+      }
       console.log("About to POST to backend");
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_API_URL}/sightings/`,
@@ -299,6 +309,7 @@ export default function ReportSightingScreen() {
   };
 
   // rendering the actual page
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.primary }}>
       <KeyboardAvoidingView
@@ -328,6 +339,7 @@ export default function ReportSightingScreen() {
           </View>
 
           <Text style={styles.title}>Report a Sighting</Text>
+
           <ScrollView
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ flexGrow: 1 }}
@@ -337,24 +349,25 @@ export default function ReportSightingScreen() {
                 <Text style={styles.subtitle}>
                   Please upload a photo of the sighting:
                 </Text>
+
                 <Modal
                   animationType="slide"
                   transparent={true}
                   visible={modal2Visible}
-                  onRequestClose={() => {
-                    setModal2Visible(!modal2Visible);
-                  }}
+                  onRequestClose={() => setModal2Visible(!modal2Visible)}
                 >
                   <View style={styles.modal2Container}>
                     <View style={styles.modal2Inner}>
                       <TouchableOpacity
                         style={styles.button}
+                        testID="camera-btn"
                         onPress={openCamera}
                       >
                         <Text style={styles.buttonText}>Camera</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.button}
+                        testID="gallery-btn"
                         onPress={pickImage}
                       >
                         <Text style={styles.buttonText}>Gallery</Text>
@@ -362,6 +375,7 @@ export default function ReportSightingScreen() {
                     </View>
                   </View>
                 </Modal>
+
                 <TouchableOpacity
                   style={styles.button}
                   onPress={() => setModal2Visible(true)}
@@ -379,12 +393,24 @@ export default function ReportSightingScreen() {
                 <Text style={styles.subtitle}>
                   Please ensure you can clearly see the animal in your photo.
                 </Text>
-              </View>
 
-              <View style={styles.form}>
+                <View style={styles.form}>
+                  <View style={styles.aiResponseContainer}>
+                    {selectedImage ? (
+                      <GeminiImageDescriber
+                        imageUri={selectedImage}
+                        imageMimeType={selectedImageMimeType}
+                      />
+                    ) : (
+                      <Text style={styles.aiResponse}>
+                        Please upload an image
+                      </Text>
+                    )}
+                  </View>
+                </View>
+
                 <Text style={styles.formLabels}>Where did you see them?</Text>
                 <View style={styles.location}>
-                  {/* once selected i.e. when location!null this needs to change to just display location */}
                   <TouchableOpacity
                     style={[
                       styles.locationButton,
@@ -400,86 +426,6 @@ export default function ReportSightingScreen() {
                         : "At my current location"}
                     </Text>
                   </TouchableOpacity>
-
-                  <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible}
-                    onRequestClose={() => {
-                      setModalVisible(!modalVisible);
-                    }}
-                  >
-                    <View style={styles.modalContainer}>
-                      <View style={styles.modalInner}>
-                        <Text style={styles.mapMessage}>
-                          Please select the location of the sighting on the map
-                          (use two fingers to move)
-                        </Text>
-
-                        <MapView
-                          style={styles.map}
-                          provider={PROVIDER_GOOGLE}
-                          region={region}
-                          showsUserLocation={true} // show blue dot
-                          showsMyLocationButton={true} // show recentre button
-                          onUserLocationChange={() => {}}
-                          onPress={(e) =>
-                            setSelectedLocation(e.nativeEvent.coordinate)
-                          }
-                        >
-                          {selectedLocation && (
-                            <Marker
-                              coordinate={selectedLocation}
-                              draggable={true} // lets user drag pin after placing it
-                              onDragEnd={(e) => {
-                                // update location when pin is dragged
-                                setSelectedLocation(e.nativeEvent.coordinate);
-                              }}
-                              pinColor={theme.colors.accent}
-                            />
-                          )}
-                        </MapView>
-                        {selectedLocation && (
-                          <Text style={styles.locationConfirmed}>
-                            📍 Location selected — drag the pin to adjust
-                          </Text>
-                        )}
-
-                        <Pressable
-                          style={styles.button}
-                          onPress={() => {
-                            if (selectedLocation) {
-                              // save the map selection as the sighting location
-                              setLocation({
-                                coords: {
-                                  latitude: selectedLocation.latitude,
-                                  longitude: selectedLocation.longitude,
-                                  altitude: null,
-                                  accuracy: null,
-                                  altitudeAccuracy: null,
-                                  heading: null,
-                                  speed: null,
-                                },
-                                timestamp: Date.now(),
-                              } as Location.LocationObject);
-                              console.log(
-                                "coords:",
-                                selectedLocation.latitude,
-                                selectedLocation.longitude,
-                              );
-                            }
-                            setModalVisible(false);
-                          }}
-                        >
-                          <Text style={styles.buttonText}>
-                            {selectedLocation
-                              ? "Confirm location"
-                              : "Close map"}
-                          </Text>
-                        </Pressable>
-                      </View>
-                    </View>
-                  </Modal>
                   <TouchableOpacity
                     style={[
                       styles.locationButton,
@@ -495,7 +441,16 @@ export default function ReportSightingScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <Text style={styles.formLabels}>Type of Animal: </Text>
+                <Text style={styles.formLabels}>Location Details:</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., Near Victoria coach station"
+                  placeholderTextColor={theme.colors.text.secondary}
+                  onChangeText={setLocationDescription}
+                  testID="locationDescriptionInput"
+                />
+
+                <Text style={styles.formLabels}>Type of Animal:</Text>
                 <DropDownPicker
                   open={open}
                   value={animalType}
@@ -504,55 +459,33 @@ export default function ReportSightingScreen() {
                   setValue={setValue}
                   setItems={setItems}
                   placeholder="Select an animal..."
-                  listMode="SCROLLVIEW"
                   style={styles.input}
                   testID="dropdown"
                 />
-                <Text style={styles.formLabels}>Color / Pattern: </Text>
+
+                <Text style={styles.formLabels}>Color / Pattern:</Text>
                 <TextInput
                   autoCapitalize="none"
                   style={styles.input}
-                  placeholder="Please input color"
+                  placeholder="e.g., Brown tabby"
                   placeholderTextColor={theme.colors.text.secondary}
                   onChangeText={setAnimalColor}
                   testID="colorInput"
                 />
 
-                <Text style={styles.formLabels}>Description: </Text>
+                <Text style={styles.formLabels}>Description:</Text>
                 <TextInput
                   multiline={true}
-                  placeholder="Time of sighting, behaviour etc."
+                  placeholder="Time of sighting, behavior, etc."
                   placeholderTextColor={theme.colors.text.secondary}
-                  autoCapitalize="none"
-                  style={{
-                    height: height,
-                    backgroundColor: theme.colors.secondary_light,
-                    borderRadius: theme.borderRadius.md,
-                    padding: theme.spacing.md,
-                    fontSize: theme.fontSize.md,
-                    marginBottom: theme.spacing.md,
-                    color: theme.colors.text.primary,
-                  }}
+                  style={{ height: height, ...styles.input }}
                   onContentSizeChange={onContentsSizeChange}
                   onChangeText={setSightingDescription}
                   testID="descriptionInput"
                 />
 
-                <View style={styles.aiResponseContainer}>
-                  {selectedImage ? (
-                    <GeminiImageDescriber
-                      imageUri={selectedImage}
-                      imageMimeType={selectedImageMimeType}
-                    />
-                  ) : (
-                    <Text style={styles.aiResponse}>
-                      Please upload an image
-                    </Text>
-                  )}
-                </View>
-
                 <Text style={styles.formLabels}>
-                  Your contact info (optional):{" "}
+                  Your contact info (optional):
                 </Text>
                 <TextInput
                   placeholder="+44 1234567890"
@@ -563,6 +496,78 @@ export default function ReportSightingScreen() {
                   testID="contactInput"
                 />
               </View>
+
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(!modalVisible)}
+              >
+                <View style={styles.modalContainer}>
+                  <View style={styles.modalInner}>
+                    <Text style={styles.mapMessage}>
+                      Please select the location of the sighting on the map (use
+                      two fingers to move)
+                    </Text>
+                    <MapView
+                      style={styles.map}
+                      provider={PROVIDER_GOOGLE}
+                      region={region}
+                      showsUserLocation={true}
+                      showsMyLocationButton={true}
+                      onUserLocationChange={() => {}}
+                      onPress={(e) =>
+                        setSelectedLocation(e.nativeEvent.coordinate)
+                      }
+                    >
+                      {selectedLocation && (
+                        <Marker
+                          coordinate={selectedLocation}
+                          draggable={true}
+                          onDragEnd={(e) => {
+                            setSelectedLocation(e.nativeEvent.coordinate);
+                          }}
+                          pinColor={theme.colors.accent}
+                        />
+                      )}
+                    </MapView>
+                    {selectedLocation && (
+                      <Text style={styles.locationConfirmed}>
+                        📍 Location selected — drag the pin to adjust
+                      </Text>
+                    )}
+                    <Pressable
+                      style={styles.button}
+                      onPress={() => {
+                        if (selectedLocation) {
+                          setLocation({
+                            coords: {
+                              latitude: selectedLocation.latitude,
+                              longitude: selectedLocation.longitude,
+                              altitude: null,
+                              accuracy: null,
+                              altitudeAccuracy: null,
+                              heading: null,
+                              speed: null,
+                            },
+                            timestamp: Date.now(),
+                          } as Location.LocationObject);
+                          console.log(
+                            "coords:",
+                            selectedLocation.latitude,
+                            selectedLocation.longitude,
+                          );
+                        }
+                        setModalVisible(false);
+                      }}
+                    >
+                      <Text style={styles.buttonText}>
+                        {selectedLocation ? "Confirm location" : "Close map"}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </Modal>
 
               <TouchableOpacity
                 style={[styles.submitButton, submitting && { opacity: 0.6 }]}
@@ -724,11 +729,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalInner: {
-    width: "80%",
-    height: "90%",
+    width: "90%",
+    height: "80%",
     margin: 20,
     backgroundColor: theme.colors.primary,
-    padding: 25,
+    padding: 20,
     alignItems: "center",
     elevation: 5,
     justifyContent: "space-between",

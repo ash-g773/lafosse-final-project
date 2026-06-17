@@ -396,7 +396,7 @@ export default function Profile() {
                       <Text style={styles.petName}>{Pet.name}</Text>
                       <Text style={styles.petDetail}>
                         {Pet.species}
-                        {Pet.breed ? ` · ${Pet.breed}` : ""}
+                        {Pet.breed ? ` · ${Pet.breed}` : null}
                       </Text>
                       {Pet.colour && (
                         <Text style={styles.petDetail}>
