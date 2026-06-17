@@ -332,7 +332,7 @@ export default function Profile() {
               autoCapitalize="characters"
             />
 
-            <Text style={styles.label}>Alert Radius</Text>
+            <Text style={styles.label}>Alert Radius (m)</Text>
             <TextInput
               value={alertRadius}
               style={styles.input}
@@ -396,21 +396,21 @@ export default function Profile() {
                       <Text style={styles.petName}>{Pet.name}</Text>
                       <Text style={styles.petDetail}>
                         {Pet.species}
-                        {Pet.breed ? ` · ${Pet.breed}` : null}
+                        {Pet.breed ? ` · ${Pet.breed}` : ""}
                       </Text>
-                      {Pet.colour && (
+                      {Pet.colour ? (
                         <Text style={styles.petDetail}>
                           Colour: {Pet.colour}
                         </Text>
-                      )}
-                      {Pet.description && (
+                      ) : null}
+                      {Pet.description ? (
                         <Text style={styles.petDetail}>{Pet.description}</Text>
-                      )}
-                      {Pet.last_seen_location && (
+                      ) : null}
+                      {Pet.last_seen_location ? (
                         <Text style={styles.petDetail}>
                           Last seen: {Pet.last_seen_location}
                         </Text>
-                      )}
+                      ) : null}
                       <View
                         style={[
                           styles.statusBadge,
@@ -515,7 +515,6 @@ export default function Profile() {
                 style={styles.modalCard}
                 onPress={() => {}}
               >
-                {/* handle bar */}
                 <View style={styles.modalHandle} />
 
                 <Text style={styles.modalTitle}>Possible Sighting</Text>
@@ -565,11 +564,10 @@ export default function Profile() {
                   <View style={styles.modalRow}>
                     <Text style={styles.modalLabel}>📞 Contact</Text>
                     <Text style={styles.modalText}>
-                      {selectedSighting.guest_contact}
+                      {selectedSighting.guest_contact || ""}
                     </Text>
                   </View>
                 )}
-
                 <TouchableOpacity
                   style={styles.modalCloseBtn}
                   onPress={() => setModalVisible(false)}
@@ -579,7 +577,6 @@ export default function Profile() {
               </TouchableOpacity>
             </TouchableOpacity>
           </Modal>
-          javascript Copy
           <Modal
             visible={reunitedModalVisible}
             transparent
