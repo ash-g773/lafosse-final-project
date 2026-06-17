@@ -2,7 +2,9 @@ import { theme } from "@/themes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
+import * as NavigationBar from "expo-navigation-bar";
 import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -89,6 +91,7 @@ export default function LostPetScreen() {
       });
     }
     getLocation();
+    NavigationBar.setVisibilityAsync("hidden");
   }, []);
 
   // open gallery or camera + select image
@@ -245,6 +248,7 @@ export default function LostPetScreen() {
   // rendering the actual page
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.primary }}>
+      <StatusBar style="auto" hidden={true} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1, backgroundColor: theme.colors.primary }}

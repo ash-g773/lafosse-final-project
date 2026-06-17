@@ -1,5 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as NavigationBar from "expo-navigation-bar";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -97,6 +99,7 @@ export default function Profile() {
       }
     }
     start();
+    NavigationBar.setVisibilityAsync("hidden");
   }, []);
   async function fetchProfileWithId(id: number, token: string) {
     try {
@@ -287,6 +290,7 @@ export default function Profile() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.primary }}>
+      <StatusBar style="auto" hidden={true} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1, backgroundColor: theme.colors.primary }}

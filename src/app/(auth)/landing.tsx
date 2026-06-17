@@ -1,13 +1,17 @@
 import { LinearGradient } from "expo-linear-gradient";
+import * as NavigationBar from "expo-navigation-bar";
 import { Stack, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { theme } from "../../themes";
 
 export default function Landing() {
+  NavigationBar.setVisibilityAsync("hidden");
   const router = useRouter();
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
+      <StatusBar style="auto" hidden={true} />
       <View style={styles.outerContainer}>
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.secondary]}

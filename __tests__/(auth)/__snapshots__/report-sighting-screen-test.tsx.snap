@@ -290,15 +290,36 @@ exports[`report sighting screen tests renders correctly 1`] = `
               >
                 Please ensure you can clearly see the animal in your photo.
               </Text>
-            </View>
-            <View
-              style={
-                {
-                  "alignItems": "stretch",
-                  "width": "100%",
+              <View
+                style={
+                  {
+                    "alignItems": "stretch",
+                    "width": "100%",
+                  }
                 }
-              }
-            >
+              >
+                <View
+                  style={
+                    {
+                      "marginBottom": 16,
+                      "marginTop": 8,
+                      "width": "100%",
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      {
+                        "color": "#FFFFFF",
+                        "fontSize": 16,
+                        "textAlign": "center",
+                      }
+                    }
+                  >
+                    Please upload an image
+                  </Text>
+                </View>
+              </View>
               <Text
                 style={
                   {
@@ -431,12 +452,51 @@ exports[`report sighting screen tests renders correctly 1`] = `
               <Text
                 style={
                   {
+                    "alignSelf": "center",
+                    "color": "#FFFFFF",
+                    "fontWeight": "bold",
+                    "marginTop": 20,
+                    "padding": 10,
+                  }
+                }
+              >
+                Please fill in all fields marked *
+              </Text>
+              <Text
+                style={
+                  {
                     "color": "#FFFFFF",
                     "marginTop": 4,
                   }
                 }
               >
-                Type of Animal: 
+                Location Details:
+              </Text>
+              <TextInput
+                onChangeText={[Function]}
+                placeholder="e.g., Near Victoria coach station"
+                placeholderTextColor="#5E8A96"
+                style={
+                  {
+                    "backgroundColor": "#EDF6F9",
+                    "borderRadius": 16,
+                    "color": "#5E8A96",
+                    "fontSize": 16,
+                    "marginBottom": 16,
+                    "padding": 16,
+                  }
+                }
+                testID="locationDescriptionInput"
+              />
+              <Text
+                style={
+                  {
+                    "color": "#FFFFFF",
+                    "marginTop": 4,
+                  }
+                }
+              >
+                Type of Animal *:
               </Text>
               <View
                 style={
@@ -555,12 +615,12 @@ exports[`report sighting screen tests renders correctly 1`] = `
                   }
                 }
               >
-                Color / Pattern: 
+                Color / Pattern:
               </Text>
               <TextInput
                 autoCapitalize="none"
                 onChangeText={[Function]}
-                placeholder="Please input color"
+                placeholder="e.g., Brown tabby"
                 placeholderTextColor="#5E8A96"
                 style={
                   {
@@ -582,20 +642,19 @@ exports[`report sighting screen tests renders correctly 1`] = `
                   }
                 }
               >
-                Description: 
+                Description *:
               </Text>
               <TextInput
-                autoCapitalize="none"
                 multiline={true}
                 onChangeText={[Function]}
                 onContentSizeChange={[Function]}
-                placeholder="Time of sighting, behaviour etc."
+                placeholder="Time of sighting, behavior, etc."
                 placeholderTextColor="#5E8A96"
                 style={
                   {
                     "backgroundColor": "#EDF6F9",
                     "borderRadius": 16,
-                    "color": "#1B262C",
+                    "color": "#5E8A96",
                     "fontSize": 16,
                     "height": 0,
                     "marginBottom": 16,
@@ -604,27 +663,6 @@ exports[`report sighting screen tests renders correctly 1`] = `
                 }
                 testID="descriptionInput"
               />
-              <View
-                style={
-                  {
-                    "marginBottom": 16,
-                    "marginTop": 8,
-                    "width": "100%",
-                  }
-                }
-              >
-                <Text
-                  style={
-                    {
-                      "color": "#FFFFFF",
-                      "fontSize": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                >
-                  Please upload an image
-                </Text>
-              </View>
               <Text
                 style={
                   {
@@ -633,8 +671,7 @@ exports[`report sighting screen tests renders correctly 1`] = `
                   }
                 }
               >
-                Your contact info (optional):
-                 
+                Your contact information:
               </Text>
               <TextInput
                 autoCapitalize="none"

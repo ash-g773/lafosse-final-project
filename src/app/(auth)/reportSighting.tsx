@@ -3,7 +3,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
+import * as NavigationBar from "expo-navigation-bar";
 import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -155,6 +157,7 @@ export default function ReportSightingScreen() {
       });
     }
     getLocation();
+    NavigationBar.setVisibilityAsync("hidden");
   }, []);
 
   // sending the filled out form
@@ -312,6 +315,7 @@ export default function ReportSightingScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.primary }}>
+      <StatusBar style="auto" hidden={true} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1, backgroundColor: theme.colors.primary }}
@@ -456,6 +460,7 @@ export default function ReportSightingScreen() {
 
                 <Text style={styles.formLabels}>Type of Animal *:</Text>
                 <DropDownPicker
+                  listMode="SCROLLVIEW"
                   open={open}
                   value={animalType}
                   items={items}
