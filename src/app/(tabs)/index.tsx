@@ -170,6 +170,7 @@ export default function MapScreen() {
   async function markAlertAsRead(
     alerts_id: number,
     pets_id: number | null,
+    sightings_id: number | null,
     alert_type: string,
   ) {
     try {
@@ -187,11 +188,8 @@ export default function MapScreen() {
         ),
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
-
-      // close alerts modal
       setAlertsModalVisible(false);
 
-      // navigate to pet or sighting report
       if (alert_type === "lost" && pets_id) {
         const response = await fetch(
           `${process.env.EXPO_PUBLIC_API_URL}/pets/${pets_id}`,
@@ -201,9 +199,15 @@ export default function MapScreen() {
         setSelectedPet(data);
         setModalType("pet");
         setModalVisible(true);
-      } else if (alert_type === "sighting") {
-        // for sightings, just refresh the map so the pin is visible
-        fetchMapData();
+      } else if (alert_type === "sighting" && sightings_id) {
+        const response = await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/sightings/${sightings_id}`,
+          { headers: { Authorization: `Bearer ${stored}` } },
+        );
+        const data = await response.json();
+        setSelectedSighting(data);
+        setModalType("sighting");
+        setModalVisible(true);
       }
     } catch (err) {
       console.error("Failed to mark alert as read:", err);
@@ -232,8 +236,8 @@ export default function MapScreen() {
 
       const lostPetsData = await lostPetsRes.json();
       const sightingsData = await sightingsRes.json();
-      setLostPets(lostPetsData);
-      setSightings(sightingsData);
+      setLostPets(Array.isArray(lostPetsData) ? lostPetsData : []);
+      setSightings(Array.isArray(sightingsData) ? sightingsData : []);
     } catch (error) {
       console.log(`${process.env.EXPO_PUBLIC_API_URL}`);
       console.error("Failed to fetch map data:", error);
@@ -337,29 +341,30 @@ export default function MapScreen() {
       </MapView>
       <View style={styles.topButtons}>
         <TouchableOpacity
-          style={styles.iconBtn}
+          style={styles.glassBtn}
           testID="profile-btn"
           onPress={() => router.push("./profile")}
         >
-          <Text>Profile</Text>
+          <Text style={styles.glassBtnText}>Profile</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.iconBtn}
+          style={styles.glassBtn}
           testID="logout-btn"
           onPress={handleLogout}
         >
-          <Text>Log Out</Text>
+          <Text style={styles.glassBtnText}>Log Out</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
-          style={styles.iconBtn}
+          style={styles.glassBtn}
           testID="alerts-btn"
           onPress={() => {
-            (setAlertsModalVisible(true), fetchAlerts());
+            setAlertsModalVisible(true);
+            fetchAlerts();
           }}
         >
-          <Text>Alerts</Text>
-          <Text>🔔</Text>
+          <Text style={styles.glassBtnText}>Alerts</Text>
           {unreadCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{unreadCount}</Text>
@@ -427,12 +432,14 @@ export default function MapScreen() {
                   />
                 )}
                 <Text style={styles.modalDescription}>
-                  {selectedPet.species.charAt(0).toUpperCase() + selectedPet.species.slice(1)}
+                  {selectedPet.species.charAt(0).toUpperCase() +
+                    selectedPet.species.slice(1)}
                   {selectedPet.breed ? ` · ${selectedPet.breed}` : ""}
                 </Text>
                 {selectedPet.colour && (
                   <Text style={styles.modalDescription}>
-                    {selectedPet.colour.charAt(0).toUpperCase() + selectedPet.colour.slice(1)}
+                    {selectedPet.colour.charAt(0).toUpperCase() +
+                      selectedPet.colour.slice(1)}
                   </Text>
                 )}
                 <Text style={styles.modalDescription}>
@@ -491,7 +498,9 @@ export default function MapScreen() {
             onPress={() => {}}
           >
             <View style={styles.modalHandle} />
-            <Text style={styles.modalName}>Alerts</Text>
+            <Text style={styles.modalName} testID="alerts-modal-title">
+              Alerts
+            </Text>
             {!alerts || alerts.length === 0 ? (
               <Text style={styles.modalDescription}>No alerts yet.</Text>
             ) : (
@@ -507,6 +516,7 @@ export default function MapScreen() {
                       markAlertAsRead(
                         alert.alerts_id,
                         alert.pets_id,
+                        alert.sightings_id,
                         alert.alert_type,
                       )
                     }
@@ -514,7 +524,11 @@ export default function MapScreen() {
                     <Text style={styles.alertIcon}>
                       {alert.alert_type === "lost" ? "🔴" : "🟢"}
                     </Text>
-                    <Text style={styles.alertMessage} numberOfLines={5} ellipsizeMode="tail">
+                    <Text
+                      style={styles.alertMessage}
+                      numberOfLines={5}
+                      ellipsizeMode="tail"
+                    >
                       {alert.alert_message}
                     </Text>
                   </TouchableOpacity>
@@ -540,22 +554,31 @@ const styles = StyleSheet.create({
   },
   topButtons: {
     position: "absolute",
-    top: 50,
+    top: 60,
     left: 16,
-    gap: 8,
+    gap: 10,
   },
-  iconBtn: {
-    backgroundColor: theme.colors.secondary + "CC",
-    borderRadius: 999,
-    width: 55,
-    height: 45,
+  glassBtn: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: theme.colors.secondary + "55",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.4)",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
     elevation: 4,
+    minWidth: 110,
+  },
+  glassBtnText: {
+    fontSize: theme.fontSize.md,
+    fontWeight: "600",
+    color: theme.colors.text.light,
   },
   plusBtn: {
     position: "absolute",
@@ -657,15 +680,14 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   badge: {
-    position: "absolute",
-    top: -4,
-    right: -4,
     backgroundColor: theme.colors.accent,
     borderRadius: theme.borderRadius.full,
-    width: 18,
-    height: 18,
+    minWidth: 20,
+    height: 20,
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: 4,
+    marginLeft: theme.spacing.sm,
   },
   badgeText: {
     color: theme.colors.text.light,
@@ -692,10 +714,10 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.md,
   },
   alertMessage: {
-  fontSize: theme.fontSize.sm,
-  color: theme.colors.text.secondary,
-  flexShrink: 1,
-  flexWrap: "wrap",
-  lineHeight: 20,
-},
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.text.secondary,
+    flexShrink: 1,
+    flexWrap: "wrap",
+    lineHeight: 20,
+  },
 });

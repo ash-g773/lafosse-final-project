@@ -1,6 +1,93 @@
 import { render } from "@testing-library/react-native";
 import ReportSightingScreen from "../../src/app/(auth)/reportSighting";
 
+const mockReplace = jest.fn();
+
+jest.mock("expo-router", () => ({
+  router: {
+    replace: (...args: any[]) => mockReplace(...args),
+  },
+}));
+
+jest.mock("@react-native-async-storage/async-storage", () => ({
+  getItem: jest.fn(),
+}));
+
+jest.mock("react-native-maps", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  const MockMapView = ({ children, onPress }: any) =>
+    React.createElement(
+      View,
+      {
+        testID: "map-view",
+        onTouchEnd: () =>
+          onPress &&
+          onPress({
+            nativeEvent: {
+              coordinate: { latitude: 51.5, longitude: -0.1 },
+            },
+          }),
+      },
+      children,
+    );
+  const MockMarker = ({ testID }: any) =>
+    React.createElement(View, { testID: testID || "marker" });
+  return {
+    __esModule: true,
+    default: MockMapView,
+    Marker: MockMarker,
+    PROVIDER_GOOGLE: "google",
+  };
+});
+
+jest.mock("expo-image-picker", () => ({
+  requestMediaLibraryPermissionsAsync: jest.fn(),
+  launchImageLibraryAsync: jest.fn(),
+}));
+
+jest.mock("expo-location", () => ({
+  requestForegroundPermissionsAsync: jest
+    .fn()
+    .mockResolvedValue({ status: "granted" }),
+  getCurrentPositionAsync: jest.fn().mockResolvedValue({
+    coords: { latitude: 51.5074, longitude: -0.1278 },
+  }),
+  reverseGeocodeAsync: jest.fn().mockResolvedValue([
+    {
+      name: "1",
+      street: "Marvels Lane",
+      district: "Grove Park",
+      city: "London",
+    },
+  ]),
+}));
+
+const mockFetch = jest.fn();
+(global as any).fetch = mockFetch;
+
+const ImagePicker = require("expo-image-picker");
+const Location = require("expo-location");
+const AsyncStorage = require("@react-native-async-storage/async-storage");
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  Location.requestForegroundPermissionsAsync.mockResolvedValue({
+    status: "granted",
+  });
+  Location.getCurrentPositionAsync.mockResolvedValue({
+    coords: { latitude: 51.5074, longitude: -0.1278 },
+  });
+  Location.reverseGeocodeAsync.mockResolvedValue([
+    {
+      name: "1",
+      street: "Marvels Lane",
+      district: "Grove Park",
+      city: "London",
+    },
+  ]);
+});
+
 describe("report sighting screen tests", () => {
   it("has a photo modal", async () => {
     const { getByTestId } = await render(<ReportSightingScreen />);
@@ -8,9 +95,10 @@ describe("report sighting screen tests", () => {
     console.log(loginAndLogo.children);
 
     expect(loginAndLogo).toBeTruthy();
-    expect(loginAndLogo.children.length).toBe(2);
+    expect(loginAndLogo.children.length).toBe(3);
     expect(loginAndLogo.children[0].type).toBeTruthy();
     expect(loginAndLogo.children[1].type).toBeTruthy();
+    expect(loginAndLogo.children[2].type).toBeTruthy();
   });
 
   it("has an add pic button that works", async () => {
