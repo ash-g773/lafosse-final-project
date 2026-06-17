@@ -1,5 +1,7 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
+import { Alert } from "react-native";
 import ReportSightingScreen from "../../src/app/(auth)/reportSighting";
+jest.spyOn(Alert, "alert");
 
 const mockReplace = jest.fn();
 const mockBack = jest.fn();
@@ -60,6 +62,7 @@ jest.mock("expo-image-picker", () => ({
   requestCameraPermissionsAsync: jest.fn(),
   launchImageLibraryAsync: jest.fn(),
   launchCameraAsync: jest.fn(),
+  alert: jest.fn(),
   CameraType: { back: "back" },
 }));
 
@@ -178,6 +181,15 @@ describe("report sighting screen tests", () => {
       fireEvent.press(getByTestId("addPic"));
       await new Promise((r) => setTimeout(r, 100));
     });
+    await act(async () => {
+      fireEvent.press(getByTestId("gallery-btn"));
+      await new Promise((r) => setTimeout(r, 100));
+    });
+    expect(Alert.alert).toHaveBeenCalled();
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Permission required",
+      "Permission to access the media library is required",
+    );
     expect(ImagePicker.launchImageLibraryAsync).not.toHaveBeenCalled();
   });
 
