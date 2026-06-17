@@ -32,14 +32,9 @@ class Pet {
   }
 
   static async getAll() {
-    const response = await db.query(
-      "SELECT * FROM pets ORDER BY created_at DESC;",
-    );
-    if (response.rows.length === 0) {
-      throw new Error("No pets available.");
-    }
-    return response.rows.map((p) => new Pet(p));
-  }
+  const response = await db.query("SELECT * FROM pets ORDER BY created_at DESC;");
+  return response.rows.map(p => new Pet(p));
+}
 
   static async getOneById(id) {
     const response = await db.query("SELECT * FROM pets WHERE pets_id = $1;", [
