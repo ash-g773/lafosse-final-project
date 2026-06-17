@@ -4,6 +4,12 @@ import Landing from "../../src/app/(auth)/landing";
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
 
+jest.mock("@react-native-async-storage/async-storage", () => ({
+  getItem: jest.fn().mockResolvedValue("test-token"),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+}));
+
 jest.mock("expo-router", () => ({
   Stack: {
     Screen: () => null,

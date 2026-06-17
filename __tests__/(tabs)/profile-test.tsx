@@ -2,10 +2,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import Profile from "../../src/app/(tabs)/profile";
 
-jest.mock("@react-native-async-storage/async-storage", () =>
-  require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
-);
-
+// Mock AsyncStorage globally
+jest.mock("@react-native-async-storage/async-storage", () => ({
+  getItem: jest.fn().mockResolvedValue("test-token"),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+}));
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
 const mockBack = jest.fn();

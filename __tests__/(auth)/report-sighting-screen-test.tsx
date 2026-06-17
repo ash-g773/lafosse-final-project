@@ -10,9 +10,10 @@ jest.mock("expo-router", () => ({
 }));
 
 jest.mock("@react-native-async-storage/async-storage", () => ({
-  getItem: jest.fn(),
+  getItem: jest.fn().mockResolvedValue("test-token"),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
 }));
-
 jest.mock("react-native-maps", () => {
   const React = require("react");
   const { View } = require("react-native");
