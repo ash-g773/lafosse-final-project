@@ -160,10 +160,18 @@ export default function Profile() {
     }
   }
 
+  const [reunitedModalVisible, setReunitedModalVisible] = useState(false);
+  const [reunitedPetName, setReunitedPetName] = useState("");
+
   async function markAsReunited(petId: number) {
+    console.log("markAsReunited called with petId:", petId);
     try {
       const token = await AsyncStorage.getItem("token");
       if (!token) return;
+
+      const pet = lostPets.find((p) => p.pets_id === petId);
+      const petName = pet?.name || "your pet";
+      console.log("Pet name:", petName);
 
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_API_URL}/pets/${petId}/status`,
@@ -186,6 +194,9 @@ export default function Profile() {
           pet.pets_id === petId ? { ...pet, status: "reunited" } : pet,
         ),
       );
+      setReunitedPetName(petName);
+      setReunitedModalVisible(true);
+      console.log("Modal should now be visible");
     } catch (error) {
       console.error("Failed to update status:", error);
     }
@@ -212,7 +223,7 @@ export default function Profile() {
             full_name: fullName,
             phone: phone,
             postcode: postcode,
-            alert_radius: parseInt(alertRadius),
+            alert_radius: alertRadius ? parseInt(alertRadius) : 5000,
           }),
         },
       );
@@ -294,40 +305,42 @@ export default function Profile() {
             <Text style={styles.successMsg}>Profile updated successfully!</Text>
           )}
           {error && <Text style={styles.errorMsg}>{error}</Text>}
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            value={fullName}
-            style={styles.input}
-            onChangeText={setFullName}
-            placeholder="Your Name"
-          />
+          <View style={styles.profile}>
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput
+              value={fullName}
+              style={styles.input}
+              onChangeText={setFullName}
+              placeholder="Your Name"
+            />
 
-          <Text style={styles.label}>Phone Number</Text>
-          <TextInput
-            style={styles.input}
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="Your Number"
-            keyboardType="phone-pad"
-          />
+            <Text style={styles.label}>Phone Number</Text>
+            <TextInput
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="Your Number"
+              keyboardType="phone-pad"
+            />
 
-          <Text style={styles.label}>Postcode</Text>
-          <TextInput
-            value={postcode}
-            style={styles.input}
-            onChangeText={setPostcode}
-            placeholder="Your Postcode"
-            autoCapitalize="characters"
-          />
+            <Text style={styles.label}>Postcode</Text>
+            <TextInput
+              value={postcode}
+              style={styles.input}
+              onChangeText={setPostcode}
+              placeholder="Your Postcode"
+              autoCapitalize="characters"
+            />
 
-          <Text style={styles.label}>Alert Radius (m)</Text>
-          <TextInput
-            value={alertRadius}
-            style={styles.input}
-            onChangeText={setAlertRadius}
-            placeholder="Choose your alert radius"
-            keyboardType="numeric"
-          />
+            <Text style={styles.label}>Alert Radius</Text>
+            <TextInput
+              value={alertRadius}
+              style={styles.input}
+              onChangeText={setAlertRadius}
+              placeholder="Choose your alert radius"
+              keyboardType="numeric"
+            />
+          </View>
           <TouchableOpacity
             style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
             onPress={handleSave}
@@ -338,7 +351,6 @@ export default function Profile() {
               {saving ? "Saving..." : "Save Changes"}
             </Text>
           </TouchableOpacity>
-
           <View style={styles.petsSection}>
             <TouchableOpacity
               style={styles.viewPetsBtn}
@@ -570,6 +582,37 @@ export default function Profile() {
               </TouchableOpacity>
             </TouchableOpacity>
           </Modal>
+          javascript Copy
+          <Modal
+            visible={reunitedModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setReunitedModalVisible(false)}
+          >
+            <TouchableOpacity
+              style={[styles.modalBackdrop, { zIndex: 1000 }]}
+              activeOpacity={1}
+              onPress={() => setReunitedModalVisible(false)}
+            >
+              <TouchableOpacity
+                activeOpacity={1}
+                style={[styles.reunitedModal, { zIndex: 1001 }]}
+                onPress={() => {}}
+              >
+                <Text style={styles.reunitedModalTitle}>🎉 Great News!</Text>
+                <Text style={styles.reunitedModalText}>
+                  {reunitedPetName} has been marked as reunited. We're so happy
+                  they're back where they belong!
+                </Text>
+                <TouchableOpacity
+                  style={styles.reunitedModalBtn}
+                  onPress={() => setReunitedModalVisible(false)}
+                >
+                  <Text style={styles.reunitedModalBtnText}>Continue</Text>
+                </TouchableOpacity>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </Modal>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -588,10 +631,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 10,
   },
+  profile: {
+    flex: 1,
+    alignItems: "center",
+  },
   heading: {
     fontSize: theme.fontSize.xxl,
     fontWeight: "bold",
-    color: theme.colors.text.primary,
+    color: theme.colors.text.light,
     marginBottom: theme.spacing.md,
     marginTop: theme.spacing.xl,
     padding: 10,
@@ -600,10 +647,11 @@ const styles = StyleSheet.create({
   label: {
     fontSize: theme.fontSize.md,
     fontWeight: "bold",
-    color: theme.colors.text.primary,
+    color: theme.colors.text.light,
     padding: theme.spacing.sm,
   },
   input: {
+    width: "90%",
     backgroundColor: theme.colors.card,
     borderWidth: 1,
     borderColor: theme.colors.secondary,
@@ -802,5 +850,36 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: theme.borderRadius.md,
     resizeMode: "cover",
+  },
+  reunitedModal: {
+    backgroundColor: "white",
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.xl,
+    margin: theme.spacing.lg,
+    alignItems: "center",
+    gap: theme.spacing.md,
+  },
+  reunitedModalTitle: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: "bold",
+    color: theme.colors.success,
+  },
+  reunitedModalText: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.primary,
+    textAlign: "center",
+  },
+  reunitedModalBtn: {
+    backgroundColor: theme.colors.primary,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    marginTop: theme.spacing.md,
+    width: "100%",
+    alignItems: "center",
+  },
+  reunitedModalBtnText: {
+    color: theme.colors.text.light,
+    fontWeight: "bold",
+    fontSize: theme.fontSize.md,
   },
 });
