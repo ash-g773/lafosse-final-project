@@ -125,11 +125,6 @@ async function getAiMatches(pet, sightings) {
     };
   }
 
-  // Extract top candidates
-  const top = candidates[0];
-  const second = candidates.length >= 2 ? candidates[1] : null;
-  const scoreGap = top && second ? top.score - second.score : 999;
-
   // helper function - create match object with sighting
   function createMatch(sighting, likelihood, reasoning, nextSteps) {
     return {
