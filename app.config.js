@@ -43,6 +43,17 @@ export default ({ config }) => {
       config: {
         googleMapsApiKey: process.env.EXPO_PUBLIC_IOS_MAPS_KEY,
       },
+      infoPlist: {
+        NSAppTransportSecurity: {
+          NSAllowsArbitraryLoads: true,
+          NSExceptionDomains: {
+            "18.134.15.89": {
+              NSExceptionAllowsInsecureHTTPLoads: true,
+              NSIncludesSubdomains: false,
+            },
+          },
+        }
+      },
     },
     android: {
       package: "com.lafossefinalproject.findmypet",
